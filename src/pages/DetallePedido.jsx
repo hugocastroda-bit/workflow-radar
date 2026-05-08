@@ -11,7 +11,6 @@ import PriorityBadge from "../components/PriorityBadge";
 import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
-const SEDES = ["Clínica Delgado", "Clínica Bellavista", "OncoCenter", "Cantella", "Medicina Nuclear", "Asistencia Médica", "Corporativo", "Otro"];
 const PROCESOS = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
 const PRIORIDADES = ["Alta", "Media", "Baja"];
 
@@ -165,13 +164,6 @@ export default function DetallePedido() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Sede</Label>
-                <Select value={draft.sede} onValueChange={v => set("sede", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{SEDES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
                 <Label className="text-xs text-muted-foreground">Proceso</Label>
                 <Select value={draft.proceso} onValueChange={v => set("proceso", v)}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
@@ -205,7 +197,6 @@ export default function DetallePedido() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
               <Field label="Solicitante" value={pedido.solicitante} />
               <Field label="Responsable" value={pedido.responsable} />
-              <Field label="Sede" value={pedido.sede} />
               <Field label="Proceso" value={pedido.proceso} />
               <Field label="Fecha requerida" value={pedido.fecha_requerida} highlight={isOverdue} />
               <Field label="Fecha de creación" value={pedido.created_date?.split("T")[0]} />

@@ -88,9 +88,7 @@ export default function Dashboard() {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count).slice(0, 10);
 
-  const bySede = Object.entries(_.countBy(pedidos, "sede"))
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+
 
   const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
   const byEstado = ESTADOS.map(name => ({
@@ -181,7 +179,7 @@ export default function Dashboard() {
       </div>
 
       {/* Charts row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5">
         <Section title="Pedidos por proceso">
           {byProceso.length > 0 ? (
             <ResponsiveContainer width="100%" height={barH(byProceso.length)}>
@@ -193,31 +191,6 @@ export default function Dashboard() {
                 <Bar dataKey="count" name="Pedidos" fill="hsl(152 40% 42%)" radius={[0, 3, 3, 0]} barSize={16} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
-        </Section>
-
-        <Section title="Pedidos por sede">
-          {bySede.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-1.5 text-xs font-medium text-muted-foreground">Sede</th>
-                  <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Total</th>
-                  <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Activos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bySede.map(s => (
-                  <tr key={s.name} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2 text-slate-700">{s.name}</td>
-                    <td className="py-2 text-right text-muted-foreground tabular-nums">{s.count}</td>
-                    <td className="py-2 text-right font-medium tabular-nums">
-                      {pedidos.filter(p => p.sede === s.name && p.estado !== "Cerrado").length}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
         </Section>
       </div>

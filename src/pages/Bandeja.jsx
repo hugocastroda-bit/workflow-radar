@@ -11,7 +11,6 @@ import { Plus, Search, AlertTriangle, Loader2, X } from "lucide-react";
 
 const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 const PRIORIDADES = ["Alta", "Media", "Baja"];
-const SEDES      = ["Clínica Delgado", "Clínica Bellavista", "OncoCenter", "Cantella", "Medicina Nuclear", "Asistencia Médica", "Corporativo", "Otro"];
 const PROCESOS   = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
 
 export default function Bandeja() {
@@ -20,7 +19,7 @@ export default function Bandeja() {
   const [loading, setLoading]   = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [search, setSearch]     = useState("");
-  const [filters, setFilters]   = useState({ estado: "", prioridad: "", sede: "", proceso: "" });
+  const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "" });
 
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -39,7 +38,6 @@ export default function Bandeja() {
         !p.responsable?.toLowerCase().includes(search.toLowerCase())) return false;
     if (filters.estado    && p.estado    !== filters.estado)    return false;
     if (filters.prioridad && p.prioridad !== filters.prioridad) return false;
-    if (filters.sede      && p.sede      !== filters.sede)      return false;
     if (filters.proceso   && p.proceso   !== filters.proceso)   return false;
     if (isVencidoFilter && !(p.fecha_requerida < today && p.estado !== "Cerrado")) return false;
     return true;
@@ -47,7 +45,7 @@ export default function Bandeja() {
 
   const hasFilters = Object.values(filters).some(Boolean) || search || isVencidoFilter;
   const clearFilters = () => {
-    setFilters({ estado: "", prioridad: "", sede: "", proceso: "" });
+    setFilters({ estado: "", prioridad: "", proceso: "" });
     setSearch("");
     window.history.replaceState({}, "", "/bandeja");
   };
@@ -84,10 +82,7 @@ export default function Bandeja() {
           <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
-        <Select value={filters.sede}      onValueChange={v => setFilters(f => ({ ...f, sede: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue placeholder="Sede" /></SelectTrigger>
-          <SelectContent>{SEDES.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}</SelectContent>
-        </Select>
+
         <Select value={filters.proceso}   onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
           <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
@@ -110,7 +105,6 @@ export default function Bandeja() {
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Estado</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Prioridad</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Proceso</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Sede</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Fecha req.</th>
             </tr>
           </thead>
@@ -132,7 +126,6 @@ export default function Bandeja() {
                   <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
                   <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
                   <td className="px-4 py-3 text-slate-400">{p.proceso}</td>
-                  <td className="px-4 py-3 text-slate-400">{p.sede}</td>
                   <td className={`px-4 py-3 font-medium ${isOverdue ? "text-red-500" : "text-slate-400"}`}>{p.fecha_requerida}</td>
                 </tr>
               );

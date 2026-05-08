@@ -13,7 +13,7 @@ const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", 
 export default function Kanban() {
   const [pedidos, setPedidos]         = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "", sede: "" });
+  const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "" });
   const [blockModal, setBlockModal]   = useState(null); // { id, motivo }
 
   useEffect(() => {
@@ -21,18 +21,16 @@ export default function Kanban() {
   }, []);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
-  const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "", sede: "" });
+  const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "" });
   const hasFilters = Object.values(filters).some(Boolean);
 
   const responsables = [...new Set(pedidos.map(p => p.responsable).filter(Boolean))];
   const procesos     = [...new Set(pedidos.map(p => p.proceso).filter(Boolean))];
-  const sedes        = [...new Set(pedidos.map(p => p.sede).filter(Boolean))];
 
   const filtered = pedidos.filter(p => {
     if (filters.responsable && p.responsable !== filters.responsable) return false;
     if (filters.prioridad   && p.prioridad   !== filters.prioridad)   return false;
     if (filters.proceso     && p.proceso     !== filters.proceso)     return false;
-    if (filters.sede        && p.sede        !== filters.sede)        return false;
     return true;
   });
 
@@ -107,12 +105,7 @@ export default function Kanban() {
             <SelectContent>{procesos.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
           </Select>
         )}
-        {sedes.length > 0 && (
-          <Select value={filters.sede} onValueChange={v => setFilter("sede", v)}>
-            <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Sede" /></SelectTrigger>
-            <SelectContent>{sedes.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}</SelectContent>
-          </Select>
-        )}
+
         {hasFilters && (
           <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors">
             <X className="h-3 w-3" /> Limpiar

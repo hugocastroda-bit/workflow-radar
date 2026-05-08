@@ -10,7 +10,7 @@ import { base44 } from "@/api/base44Client";
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
 const emptyForm = {
-  titulo: "", descripcion: "", solicitante: "", sede: "", proceso: "",
+  titulo: "", descripcion: "", solicitante: "", proceso: "",
   prioridad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
   proxima_accion: "", motivo_bloqueo: "", comentarios_avance: "",
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
@@ -21,14 +21,12 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [solicitantes, setSolicitantes] = useState([]);
   const [responsables, setResponsables] = useState([]);
-  const [sedes, setSedes] = useState([]);
   const [procesos, setProcesos] = useState([]);
   const [prioridades, setPrioridades] = useState([]);
 
   useEffect(() => {
     base44.entities.Solicitante.filter({ activo: true }, "nombre").then(d => setSolicitantes(d));
     base44.entities.Responsable.filter({ activo: true }, "nombre").then(d => setResponsables(d));
-    base44.entities.Sede.filter({ activo: true }, "nombre").then(d => setSedes(d));
     base44.entities.Proceso.filter({ activo: true }, "nombre").then(d => setProcesos(d));
     base44.entities.Prioridad.filter({ activo: true }, "nombre").then(d => setPrioridades(d));
   }, [open]);
@@ -101,13 +99,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Sede *</Label>
-                <Select value={form.sede} onValueChange={v => handleChange("sede", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{sedes.map(s => <SelectItem key={s.id} value={s.nombre}>{s.nombre}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Proceso *</Label>
                 <Select value={form.proceso} onValueChange={v => handleChange("proceso", v)}>
@@ -186,7 +177,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving || !form.titulo || !form.solicitante || !form.sede || !form.proceso || !form.prioridad || !form.fecha_requerida}>
+            <Button onClick={handleSave} disabled={saving || !form.titulo || !form.solicitante || !form.proceso || !form.prioridad || !form.fecha_requerida}>
               {saving ? "Guardando..." : pedido ? "Guardar cambios" : "Crear pedido"}
             </Button>
           </div>
