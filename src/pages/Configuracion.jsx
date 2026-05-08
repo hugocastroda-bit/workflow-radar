@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/AuthContext";
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",   extraLabel: "Cargo o área" },
   { key: "Responsable",  label: "Responsables",  extra: "rol_funcion",  extraLabel: "Rol o función" },
-  { key: "Sede",         label: "Sedes",         extra: null,           extraLabel: null },
   { key: "Proceso",      label: "Procesos",      extra: null,           extraLabel: null },
   { key: "Prioridad",    label: "Prioridades",   extra: null,           extraLabel: null },
 ];
