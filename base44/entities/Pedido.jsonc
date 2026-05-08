@@ -110,6 +110,24 @@
     "calendar_event_id": {
       "type": "string",
       "title": "ID evento Google Calendar"
+    },
+    "archivado": {
+      "type": "boolean",
+      "title": "Archivado",
+      "default": false
+    },
+    "fecha_archivado": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha de archivo"
+    },
+    "archivado_por": {
+      "type": "string",
+      "title": "Archivado por"
+    },
+    "motivo_archivo": {
+      "type": "string",
+      "title": "Motivo de archivo"
     }
   },
   "required": [

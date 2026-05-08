@@ -53,7 +53,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.Pedido.list().then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }).then(d => { setPedidos(d); setLoading(false); });
   }, []);
 
   if (loading) return (

@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X, Trash2 } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive } from "lucide-react";
+import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { toast } from "sonner";
@@ -27,13 +28,15 @@ export default function Bandeja() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [archiveTarget, setArchiveTarget] = useState(null);
+  const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const urlParams = new URLSearchParams(window.location.search);
 
   useEffect(() => {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
-    base44.entities.Pedido.list("-created_date").then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => { setPedidos(d); setLoading(false); });
   }, []);
 
   const today = new Date().toISOString().split("T")[0];
@@ -55,6 +58,25 @@ export default function Bandeja() {
     setFilters({ estado: "", prioridad: "", proceso: "" });
     setSearch("");
     window.history.replaceState({}, "", "/bandeja");
+  };
+
+  const handleArchive = async (motivo) => {
+    if (!isAdmin || !archiveTarget) return;
+    setArchiving(true);
+    try {
+      await base44.entities.Pedido.update(archiveTarget, {
+        archivado: true,
+        fecha_archivado: new Date().toISOString().split("T")[0],
+        archivado_por: user?.full_name || user?.email || "Admin",
+        ...(motivo ? { motivo_archivo: motivo } : {}),
+      });
+      setPedidos(prev => prev.filter(p => p.id !== archiveTarget));
+      setArchiveTarget(null);
+      toast.success("Pedido archivado correctamente");
+    } catch {
+      toast.error("No se pudo archivar el pedido. Inténtalo nuevamente.");
+    }
+    setArchiving(false);
   };
 
   const handleDelete = async () => {
@@ -151,9 +173,14 @@ export default function Bandeja() {
                   <td className={`px-4 py-3 font-medium ${isOverdue ? "text-red-500" : "text-slate-400"}`}>{p.fecha_requerida}</td>
                   {isAdmin && (
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Archivar">
+                          <Archive className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Borrar">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -165,6 +192,13 @@ export default function Bandeja() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmArchivarModal
+        open={!!archiveTarget}
+        onClose={() => setArchiveTarget(null)}
+        onConfirm={handleArchive}
+        archiving={archiving}
+      />
 
       <ConfirmDeleteModal
         open={!!deleteTarget}

@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, Archive } from "lucide-react";
 import PriorityBadge from "./PriorityBadge";
 
-export default function KanbanCard({ pedido, provided, onDelete }) {
+export default function KanbanCard({ pedido, provided, onDelete, onArchive }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -33,14 +33,26 @@ export default function KanbanCard({ pedido, provided, onDelete }) {
       {pedido.responsable && (
         <p className="text-xs text-muted-foreground mt-1.5 truncate">{pedido.responsable}</p>
       )}
-      {isAdmin && onDelete && (
-        <div className="flex justify-end mt-1.5">
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(pedido); }}
-            className="p-0.5 rounded text-slate-300 hover:text-red-500 transition-colors"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
+      {isAdmin && (onDelete || onArchive) && (
+        <div className="flex justify-end mt-1.5 gap-1">
+          {onArchive && (
+            <button
+              onClick={e => { e.stopPropagation(); onArchive(pedido); }}
+              className="p-0.5 rounded text-slate-300 hover:text-slate-600 transition-colors"
+              title="Archivar"
+            >
+              <Archive className="h-3 w-3" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(pedido); }}
+              className="p-0.5 rounded text-slate-300 hover:text-red-500 transition-colors"
+              title="Borrar"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          )}
         </div>
       )}
     </div>

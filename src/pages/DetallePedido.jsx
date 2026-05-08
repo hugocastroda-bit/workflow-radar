@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { toast } from "sonner";
@@ -46,6 +48,10 @@ export default function DetallePedido() {
   const [editSection, setEditSection] = useState(null);
   const [draft, setDraft] = useState({});
   const [showDelete, setShowDelete] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [showRestore, setShowRestore] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -80,6 +86,39 @@ export default function DetallePedido() {
 
   const set = (field, value) => setDraft(prev => ({ ...prev, [field]: value }));
 
+  const handleArchive = async (motivo) => {
+    if (!isAdmin) return;
+    setArchiving(true);
+    try {
+      await base44.entities.Pedido.update(id, {
+        archivado: true,
+        fecha_archivado: new Date().toISOString().split("T")[0],
+        archivado_por: user?.full_name || user?.email || "Admin",
+        ...(motivo ? { motivo_archivo: motivo } : {}),
+      });
+      toast.success("Pedido archivado");
+      navigate("/archivados");
+    } catch {
+      toast.error("No se pudo archivar el pedido.");
+    }
+    setArchiving(false);
+    setShowArchive(false);
+  };
+
+  const handleRestore = async () => {
+    if (!isAdmin) return;
+    setRestoring(true);
+    try {
+      await base44.entities.Pedido.update(id, { archivado: false, fecha_archivado: null, archivado_por: null });
+      toast.success("Pedido restaurado correctamente");
+      await load();
+      setShowRestore(false);
+    } catch {
+      toast.error("No se pudo restaurar el pedido.");
+    }
+    setRestoring(false);
+  };
+
   const handleDelete = async () => {
     if (!isAdmin) return;
     setDeleting(true);
@@ -97,6 +136,7 @@ export default function DetallePedido() {
   if (!pedido) return <div className="p-8 text-sm text-muted-foreground">Pedido no encontrado</div>;
 
   const today = new Date().toISOString().split("T")[0];
+  const isArchived = !!pedido.archivado;
   const isOverdue = pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
   const isBlocked = pedido.estado === "Bloqueado";
   const isClosed = pedido.estado === "Cerrado";
@@ -145,15 +185,40 @@ export default function DetallePedido() {
             Actualizado {pedido.updated_date?.split("T")[0] || "—"}
           </p>
           {isAdmin && (
-            <button
-              onClick={() => setShowDelete(true)}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors"
-            >
-              <Trash2 className="h-3 w-3" /> Borrar pedido
-            </button>
+            <div className="flex flex-col items-end gap-1.5">
+              {isArchived ? (
+                <button onClick={() => setShowRestore(true)}
+                  className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors">
+                  <ArchiveRestore className="h-3 w-3" /> Restaurar pedido
+                </button>
+              ) : (
+                <button onClick={() => setShowArchive(true)}
+                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors">
+                  <Archive className="h-3 w-3" /> Archivar pedido
+                </button>
+              )}
+              <button onClick={() => setShowDelete(true)}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors">
+                <Trash2 className="h-3 w-3" /> Borrar pedido
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {/* Alerta archivado */}
+      {isArchived && (
+        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-300 rounded-lg px-4 py-3">
+          <Archive className="h-4 w-4 text-slate-500 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-slate-700">Pedido archivado</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Archivado el {pedido.fecha_archivado || "—"} por {pedido.archivado_por || "—"}
+              {pedido.motivo_archivo ? ` · ${pedido.motivo_archivo}` : ""}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Alerta bloqueo */}
       {isBlocked && pedido.motivo_bloqueo && (
@@ -347,6 +412,30 @@ export default function DetallePedido() {
           </button>
         </div>
       )}
+
+      <ConfirmArchivarModal
+        open={showArchive}
+        onClose={() => setShowArchive(false)}
+        onConfirm={handleArchive}
+        archiving={archiving}
+      />
+
+      {/* Restore confirmation */}
+      <Dialog open={showRestore} onOpenChange={setShowRestore}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">Restaurar pedido</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-600">¿Deseas restaurar este pedido? Volverá a aparecer en la Bandeja y en el Kanban.</p>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={() => setShowRestore(false)} disabled={restoring}>Cancelar</Button>
+            <Button size="sm" onClick={handleRestore} disabled={restoring}
+              className="bg-emerald-700 hover:bg-emerald-600 text-white">
+              {restoring ? "Restaurando…" : "Sí, restaurar pedido"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDeleteModal
         open={showDelete}

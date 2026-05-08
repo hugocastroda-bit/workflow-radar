@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
 import KanbanColumn from "../components/KanbanColumn";
 import { Loader2, X } from "lucide-react";
+import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { toast } from "sonner";
@@ -19,12 +20,14 @@ export default function Kanban() {
   const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "" });
   const [blockModal, setBlockModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [archiveTarget, setArchiveTarget] = useState(null);
+  const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
-    base44.entities.Pedido.list("-created_date").then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => { setPedidos(d); setLoading(false); });
   }, []);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
@@ -67,6 +70,25 @@ export default function Kanban() {
     await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
     setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
     setBlockModal(null);
+  };
+
+  const handleArchive = async (motivo) => {
+    if (!isAdmin || !archiveTarget) return;
+    setArchiving(true);
+    try {
+      await base44.entities.Pedido.update(archiveTarget.id, {
+        archivado: true,
+        fecha_archivado: new Date().toISOString().split("T")[0],
+        archivado_por: user?.full_name || user?.email || "Admin",
+        ...(motivo ? { motivo_archivo: motivo } : {}),
+      });
+      setPedidos(prev => prev.filter(p => p.id !== archiveTarget.id));
+      setArchiveTarget(null);
+      toast.success("Pedido archivado correctamente");
+    } catch {
+      toast.error("No se pudo archivar el pedido.");
+    }
+    setArchiving(false);
   };
 
   const handleDelete = async () => {
@@ -138,10 +160,17 @@ export default function Kanban() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-6">
           {ESTADOS.map(estado => (
-            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} />
+            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} onArchive={isAdmin ? setArchiveTarget : null} />
           ))}
         </div>
       </DragDropContext>
+
+      <ConfirmArchivarModal
+        open={!!archiveTarget}
+        onClose={() => setArchiveTarget(null)}
+        onConfirm={handleArchive}
+        archiving={archiving}
+      />
 
       <ConfirmDeleteModal
         open={!!deleteTarget}

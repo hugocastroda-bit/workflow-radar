@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
@@ -8,7 +8,8 @@ const navItems = [
 { path: "/kanban", label: "Kanban", icon: Columns3 },
 { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
 { path: "/carga-masiva", label: "Carga masiva", icon: Upload, adminOnly: true },
-{ path: "/configuracion", label: "Configuración", icon: Settings, adminOnly: true }];
+{ path: "/configuracion", label: "Configuración", icon: Settings, adminOnly: true },
+{ path: "/archivados", label: "Archivados", icon: Archive, adminOnly: true }];
 
 
 export default function Layout() {
