@@ -115,15 +115,11 @@
   "required": [
     "titulo",
     "solicitante",
-    "sede",
     "proceso",
-    "prioridad",
-    "fecha_requerida"
+    "prioridad"
   ],
   "rls": {
-    "create": {
-      "created_by": "{{user.email}}"
-    },
+    "create": {},
     "read": {
       "$or": [
         {
