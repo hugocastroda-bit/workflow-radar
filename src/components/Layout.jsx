@@ -1,20 +1,21 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
 { path: "/", label: "Bandeja", icon: Inbox },
 { path: "/kanban", label: "Kanban", icon: Columns3 },
 { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-{ path: "/configuracion", label: "Configuración", icon: Settings }];
+{ path: "/carga-masiva", label: "Carga masiva", icon: Upload, adminOnly: true },
+{ path: "/configuracion", label: "Configuración", icon: Settings, adminOnly: true }];
 
 
 export default function Layout() {
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  const visibleNavItems = navItems.filter((item) => item.path !== "/configuracion" || isAdmin);
+  const visibleNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex">
