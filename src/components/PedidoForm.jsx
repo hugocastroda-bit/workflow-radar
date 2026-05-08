@@ -1,11 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
+import { ChevronDown, Search, ChevronUp } from "lucide-react";
+
+// Module-level cache so catalogs persist across modal opens
+const catalogCache = {
+  solicitantes: null,
+  responsables: null,
+  procesos: null,
+  prioridades: null,
+};
+
+async function loadCatalogs() {
+  const promises = [];
+  if (!catalogCache.solicitantes) promises.push(
+    base44.entities.Solicitante.filter({ activo: true }, "nombre").then(d => { catalogCache.solicitantes = d; })
+  );
+  if (!catalogCache.responsables) promises.push(
+    base44.entities.Responsable.filter({ activo: true }, "nombre").then(d => { catalogCache.responsables = d; })
+  );
+  if (!catalogCache.procesos) promises.push(
+    base44.entities.Proceso.filter({ activo: true }, "nombre").then(d => { catalogCache.procesos = d; })
+  );
+  if (!catalogCache.prioridades) promises.push(
+    base44.entities.Prioridad.filter({ activo: true }, "nombre").then(d => { catalogCache.prioridades = d; })
+  );
+  await Promise.all(promises);
+}
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -16,26 +41,101 @@ const emptyForm = {
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
 };
 
+// Searchable dropdown component
+function SearchableSelect({ label, value, onChange, options, placeholder, required }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = options.filter(o => o.toLowerCase().includes(search.toLowerCase()));
+  const display = value || "";
+
+  return (
+    <div ref={ref} className="relative">
+      <Label className="text-xs font-medium text-muted-foreground">
+        {label}{required && " *"}
+      </Label>
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setSearch(""); }}
+        className="mt-1 flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm text-left focus:outline-none focus:ring-1 focus:ring-ring"
+      >
+        <span className={display ? "text-foreground" : "text-muted-foreground"}>
+          {display || placeholder}
+        </span>
+        {open ? <ChevronUp className="h-4 w-4 opacity-50" /> : <ChevronDown className="h-4 w-4 opacity-50" />}
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md">
+          <div className="flex items-center border-b px-2 py-1.5 gap-1">
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar..."
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto p-1">
+            {!required && value && (
+              <button
+                type="button"
+                onClick={() => { onChange(""); setOpen(false); }}
+                className="w-full text-left rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+              >
+                — Sin asignar
+              </button>
+            )}
+            {filtered.length === 0 && (
+              <p className="px-2 py-3 text-center text-xs text-muted-foreground">Sin resultados</p>
+            )}
+            {filtered.map(o => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => { onChange(o); setOpen(false); }}
+                className={`w-full text-left rounded-sm px-2 py-1.5 text-sm hover:bg-accent ${value === o ? "bg-accent font-medium" : ""}`}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [solicitantes, setSolicitantes] = useState([]);
-  const [responsables, setResponsables] = useState([]);
-  const [procesos, setProcesos] = useState([]);
-  const [prioridades, setPrioridades] = useState([]);
+  const [catalogs, setCatalogs] = useState({ ...catalogCache });
+  const [showOptional, setShowOptional] = useState(false);
 
+  // Load catalogs in background when modal opens
   useEffect(() => {
-    base44.entities.Solicitante.filter({ activo: true }, "nombre").then(d => setSolicitantes(d));
-    base44.entities.Responsable.filter({ activo: true }, "nombre").then(d => setResponsables(d));
-    base44.entities.Proceso.filter({ activo: true }, "nombre").then(d => setProcesos(d));
-    base44.entities.Prioridad.filter({ activo: true }, "nombre").then(d => setPrioridades(d));
+    if (!open) return;
+    loadCatalogs().then(() => setCatalogs({ ...catalogCache }));
   }, [open]);
 
   useEffect(() => {
-    if (pedido) {
-      setForm({ ...emptyForm, ...pedido });
-    } else {
-      setForm(emptyForm);
+    if (open) {
+      if (pedido) {
+        setForm({ ...emptyForm, ...pedido });
+        setShowOptional(true);
+      } else {
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 7);
+        setForm({ ...emptyForm, fecha_requerida: defaultDate.toISOString().split("T")[0] });
+        setShowOptional(false);
+      }
     }
   }, [pedido, open]);
 
@@ -63,78 +163,127 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     onClose();
   };
 
+  const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;
+
+  const solicitanteOpts = (catalogs.solicitantes || []).map(s => s.nombre);
+  const responsableOpts = (catalogs.responsables || []).map(r => r.nombre);
+  const procesoOpts = (catalogs.procesos || []).map(p => p.nombre);
+  const prioridadOpts = (catalogs.prioridades || []).map(p => p.nombre);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
+          <DialogTitle className="text-base font-semibold">
             {pedido ? "Editar pedido" : "Nuevo pedido"}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-5 mt-2">
-          {/* Basic Info */}
+
+        <div className="space-y-4 mt-1">
+          {/* Required fields */}
           <div className="space-y-3">
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Título *</Label>
-              <Input value={form.titulo} onChange={e => handleChange("titulo", e.target.value)} placeholder="Título del pedido" className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
-              <Textarea value={form.descripcion} onChange={e => handleChange("descripcion", e.target.value)} placeholder="Descripción del pedido" className="mt-1" rows={3} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Solicitante *</Label>
-                <Select value={form.solicitante} onValueChange={v => handleChange("solicitante", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{solicitantes.map(s => <SelectItem key={s.id} value={s.nombre}>{s.nombre}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Responsable</Label>
-                <Select value={form.responsable} onValueChange={v => handleChange("responsable", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{responsables.map(r => <SelectItem key={r.id} value={r.nombre}>{r.nombre}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              <Input
+                autoFocus
+                value={form.titulo}
+                onChange={e => handleChange("titulo", e.target.value)}
+                placeholder="¿Qué se necesita?"
+                className="mt-1"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Proceso *</Label>
-                <Select value={form.proceso} onValueChange={v => handleChange("proceso", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{procesos.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              <SearchableSelect
+                label="Solicitante" required
+                value={form.solicitante} onChange={v => handleChange("solicitante", v)}
+                options={solicitanteOpts} placeholder="Seleccionar"
+              />
+              <SearchableSelect
+                label="Proceso" required
+                value={form.proceso} onChange={v => handleChange("proceso", v)}
+                options={procesoOpts} placeholder="Seleccionar"
+              />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Prioridad *</Label>
-                <Select value={form.prioridad} onValueChange={v => handleChange("prioridad", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{prioridades.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Fecha requerida *</Label>
-                <Input type="date" value={form.fecha_requerida} onChange={e => handleChange("fecha_requerida", e.target.value)} className="mt-1" />
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <SearchableSelect
+                label="Prioridad" required
+                value={form.prioridad} onChange={v => handleChange("prioridad", v)}
+                options={prioridadOpts} placeholder="Seleccionar"
+              />
               {pedido && (
-                <div>
+                <div className="relative">
                   <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
-                  <Select value={form.estado} onValueChange={v => handleChange("estado", v)}>
-                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                    <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    label="" value={form.estado} onChange={v => handleChange("estado", v)}
+                    options={ESTADOS} placeholder="Estado"
+                  />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Tracking */}
+          {/* Optional fields toggle */}
+          {!pedido && (
+            <button
+              type="button"
+              onClick={() => setShowOptional(o => !o)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showOptional ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {showOptional ? "Ocultar detalles opcionales" : "Agregar más detalles (opcional)"}
+            </button>
+          )}
+
+          {showOptional && (
+            <div className="space-y-3 border-t pt-3">
+              <div className="grid grid-cols-2 gap-3">
+                <SearchableSelect
+                  label="Responsable"
+                  value={form.responsable} onChange={v => handleChange("responsable", v)}
+                  options={responsableOpts} placeholder="Sin asignar"
+                />
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
+                  <Input
+                    type="date"
+                    value={form.fecha_requerida}
+                    onChange={e => handleChange("fecha_requerida", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
+                <Textarea
+                  value={form.descripcion}
+                  onChange={e => handleChange("descripcion", e.target.value)}
+                  placeholder="Detalles adicionales..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tracking section (edit mode only) */}
           {pedido && (
             <div className="space-y-3 border-t pt-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
+              <div className="grid grid-cols-2 gap-3">
+                <SearchableSelect
+                  label="Responsable"
+                  value={form.responsable} onChange={v => handleChange("responsable", v)}
+                  options={responsableOpts} placeholder="Sin asignar"
+                />
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
+                  <Input type="date" value={form.fecha_requerida} onChange={e => handleChange("fecha_requerida", e.target.value)} className="mt-1" />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
+                <Textarea value={form.descripcion} onChange={e => handleChange("descripcion", e.target.value)} className="mt-1" rows={2} />
+              </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Próxima acción</Label>
                 <Input value={form.proxima_accion} onChange={e => handleChange("proxima_accion", e.target.value)} className="mt-1" />
@@ -156,7 +305,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             </div>
           )}
 
-          {/* Close */}
+          {/* Close section */}
           {pedido && form.estado === "Cerrado" && (
             <div className="space-y-3 border-t pt-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cierre</p>
@@ -175,9 +324,9 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving || !form.titulo || !form.solicitante || !form.proceso || !form.prioridad || !form.fecha_requerida}>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={onClose} disabled={saving}>Cancelar</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving || !canSave}>
               {saving ? "Guardando..." : pedido ? "Guardar cambios" : "Crear pedido"}
             </Button>
           </div>
