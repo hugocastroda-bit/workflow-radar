@@ -1,0 +1,119 @@
+{
+  "name": "Pedido",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "title": "T\u00edtulo del pedido"
+    },
+    "descripcion": {
+      "type": "string",
+      "title": "Descripci\u00f3n"
+    },
+    "solicitante": {
+      "type": "string",
+      "title": "Solicitante"
+    },
+    "sede": {
+      "type": "string",
+      "title": "Sede",
+      "enum": [
+        "Cl\u00ednica Delgado",
+        "Cl\u00ednica Bellavista",
+        "OncoCenter",
+        "Cantella",
+        "Medicina Nuclear",
+        "Asistencia M\u00e9dica",
+        "Corporativo",
+        "Otro"
+      ]
+    },
+    "proceso": {
+      "type": "string",
+      "title": "Proceso",
+      "enum": [
+        "Selecci\u00f3n",
+        "Bienestar",
+        "SST",
+        "Clima",
+        "Liderazgo",
+        "ACI",
+        "Onboarding",
+        "Comunicaciones internas",
+        "Legal laboral",
+        "Compensaciones",
+        "Gesti\u00f3n de talento",
+        "Otros"
+      ]
+    },
+    "prioridad": {
+      "type": "string",
+      "title": "Prioridad",
+      "enum": [
+        "Alta",
+        "Media",
+        "Baja"
+      ]
+    },
+    "fecha_requerida": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha requerida"
+    },
+    "responsable": {
+      "type": "string",
+      "title": "Responsable asignado"
+    },
+    "estado": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "Nuevo",
+        "Por priorizar",
+        "Asignado",
+        "En curso",
+        "Bloqueado",
+        "En revisi\u00f3n",
+        "Cerrado"
+      ],
+      "default": "Nuevo"
+    },
+    "proxima_accion": {
+      "type": "string",
+      "title": "Pr\u00f3xima acci\u00f3n"
+    },
+    "motivo_bloqueo": {
+      "type": "string",
+      "title": "Motivo de bloqueo"
+    },
+    "comentarios_avance": {
+      "type": "string",
+      "title": "Comentarios de avance"
+    },
+    "link_evidencia": {
+      "type": "string",
+      "title": "Link o evidencia relacionada"
+    },
+    "resultado_final": {
+      "type": "string",
+      "title": "Resultado final"
+    },
+    "comentario_cierre": {
+      "type": "string",
+      "title": "Comentario de cierre"
+    },
+    "fecha_cierre_real": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha real de cierre"
+    }
+  },
+  "required": [
+    "titulo",
+    "solicitante",
+    "sede",
+    "proceso",
+    "prioridad",
+    "fecha_requerida"
+  ]
+}
