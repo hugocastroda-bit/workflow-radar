@@ -21,7 +21,7 @@ export default function Layout() {
       <aside className="hidden md:flex w-52 flex-col border-r border-slate-200 bg-white fixed inset-y-0 left-0 z-30">
         <div className="px-5 py-5 border-b border-slate-100">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Gestión</p>
-          <h1 className="text-base font-semibold text-slate-800">Radar Cultura</h1>
+          <h1 className="text-base font-semibold text-slate-800">Radar</h1>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           {visibleNavItems.map((item) => {
