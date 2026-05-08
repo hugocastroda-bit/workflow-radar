@@ -153,16 +153,31 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const handleSave = async () => {
     setSaving(true);
     const data = { ...form };
-    if (pedido?.id) {
-      await base44.entities.Pedido.update(pedido.id, data);
-    } else {
-      data.estado = "Nuevo";
-      await base44.entities.Pedido.create(data);
+
+    const timeout = setTimeout(() => {
+      setSaving(false);
+      toast.error("El guardado está tomando más tiempo de lo esperado. Revisa la conexión o intenta nuevamente.");
+    }, 8000);
+
+    try {
+      let saved;
+      if (pedido?.id) {
+        saved = await base44.entities.Pedido.update(pedido.id, data);
+      } else {
+        data.estado = "Nuevo";
+        saved = await base44.entities.Pedido.create(data);
+      }
+      clearTimeout(timeout);
+      setSaving(false);
+      if (!pedido) toast.success("Pedido creado correctamente");
+      onSaved?.(saved);
+      onClose();
+    } catch (err) {
+      clearTimeout(timeout);
+      setSaving(false);
+      console.error("Error al guardar pedido:", err);
+      toast.error("No se pudo crear el pedido. Inténtalo nuevamente.");
     }
-    setSaving(false);
-    if (!pedido) toast.success("Pedido creado correctamente");
-    onSaved?.();
-    onClose();
   };
 
   const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;

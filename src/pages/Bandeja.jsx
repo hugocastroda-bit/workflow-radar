@@ -137,7 +137,15 @@ export default function Bandeja() {
         </table>
       </div>
 
-      <PedidoForm open={formOpen} onClose={() => setFormOpen(false)} pedido={null} onSaved={() => base44.entities.Pedido.list("-created_date").then(setPedidos)} />
+      <PedidoForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        pedido={null}
+        onSaved={(saved) => {
+          if (saved) setPedidos(prev => [saved, ...prev]);
+          else base44.entities.Pedido.list("-created_date").then(setPedidos);
+        }}
+      />
     </div>
   );
 }
