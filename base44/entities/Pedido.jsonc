@@ -106,6 +106,10 @@
       "type": "string",
       "format": "date",
       "title": "Fecha real de cierre"
+    },
+    "calendar_event_id": {
+      "type": "string",
+      "title": "ID evento Google Calendar"
     }
   },
   "required": [
