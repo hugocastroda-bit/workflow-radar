@@ -7,9 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 
-const SEDES = ["Clínica Delgado", "Clínica Bellavista", "OncoCenter", "Cantella", "Medicina Nuclear", "Asistencia Médica", "Corporativo", "Otro"];
-const PROCESOS = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
-const PRIORIDADES = ["Alta", "Media", "Baja"];
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
 const emptyForm = {
@@ -22,6 +19,19 @@ const emptyForm = {
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [solicitantes, setSolicitantes] = useState([]);
+  const [responsables, setResponsables] = useState([]);
+  const [sedes, setSedes] = useState([]);
+  const [procesos, setProcesos] = useState([]);
+  const [prioridades, setPrioridades] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Solicitante.filter({ activo: true }, "nombre").then(d => setSolicitantes(d));
+    base44.entities.Responsable.filter({ activo: true }, "nombre").then(d => setResponsables(d));
+    base44.entities.Sede.filter({ activo: true }, "nombre").then(d => setSedes(d));
+    base44.entities.Proceso.filter({ activo: true }, "nombre").then(d => setProcesos(d));
+    base44.entities.Prioridad.filter({ activo: true }, "nombre").then(d => setPrioridades(d));
+  }, [open]);
 
   useEffect(() => {
     if (pedido) {
@@ -77,11 +87,17 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Solicitante *</Label>
-                <Input value={form.solicitante} onChange={e => handleChange("solicitante", e.target.value)} placeholder="Nombre del solicitante" className="mt-1" />
+                <Select value={form.solicitante} onValueChange={v => handleChange("solicitante", v)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>{solicitantes.map(s => <SelectItem key={s.id} value={s.nombre}>{s.nombre}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Responsable</Label>
-                <Input value={form.responsable} onChange={e => handleChange("responsable", e.target.value)} placeholder="Responsable asignado" className="mt-1" />
+                <Select value={form.responsable} onValueChange={v => handleChange("responsable", v)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>{responsables.map(r => <SelectItem key={r.id} value={r.nombre}>{r.nombre}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -89,14 +105,14 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 <Label className="text-xs font-medium text-muted-foreground">Sede *</Label>
                 <Select value={form.sede} onValueChange={v => handleChange("sede", v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{SEDES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{sedes.map(s => <SelectItem key={s.id} value={s.nombre}>{s.nombre}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Proceso *</Label>
                 <Select value={form.proceso} onValueChange={v => handleChange("proceso", v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  <SelectContent>{procesos.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
@@ -105,7 +121,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 <Label className="text-xs font-medium text-muted-foreground">Prioridad *</Label>
                 <Select value={form.prioridad} onValueChange={v => handleChange("prioridad", v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  <SelectContent>{prioridades.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>

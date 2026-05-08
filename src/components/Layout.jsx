@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Inbox, Columns3, BarChart3, Plus, LogOut } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
   { path: "/", label: "Bandeja", icon: Inbox },
   { path: "/kanban", label: "Kanban", icon: Columns3 },
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
+  { path: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
 export default function Layout() {

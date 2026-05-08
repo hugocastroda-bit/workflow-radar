@@ -12,6 +12,7 @@ import Bandeja from './pages/Bandeja';
 import Kanban from './pages/Kanban';
 import Dashboard from './pages/Dashboard';
 import DetallePedido from './pages/DetallePedido';
+import Configuracion from './pages/Configuracion';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pedido/:id" element={<DetallePedido />} />
+          <Route path="/configuracion" element={<Configuracion />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

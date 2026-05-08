@@ -1,0 +1,22 @@
+{
+  "name": "Responsable",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "title": "Nombre"
+    },
+    "rol_funcion": {
+      "type": "string",
+      "title": "Rol o funci\u00f3n"
+    },
+    "activo": {
+      "type": "boolean",
+      "title": "Activo",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

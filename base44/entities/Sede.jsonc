@@ -1,0 +1,18 @@
+{
+  "name": "Sede",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "title": "Nombre de sede"
+    },
+    "activo": {
+      "type": "boolean",
+      "title": "Activo",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

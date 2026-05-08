@@ -1,0 +1,18 @@
+{
+  "name": "Proceso",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "title": "Nombre del proceso"
+    },
+    "activo": {
+      "type": "boolean",
+      "title": "Activo",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

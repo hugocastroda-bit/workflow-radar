@@ -1,0 +1,22 @@
+{
+  "name": "Solicitante",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "title": "Nombre"
+    },
+    "cargo_area": {
+      "type": "string",
+      "title": "Cargo o \u00e1rea"
+    },
+    "activo": {
+      "type": "boolean",
+      "title": "Activo",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}
