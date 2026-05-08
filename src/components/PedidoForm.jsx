@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 
 // Module-level cache so catalogs persist across modal opens
 const catalogCache = {
@@ -159,6 +160,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
       await base44.entities.Pedido.create(data);
     }
     setSaving(false);
+    if (!pedido) toast.success("Pedido creado correctamente");
     onSaved?.();
     onClose();
   };
