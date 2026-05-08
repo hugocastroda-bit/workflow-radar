@@ -1,20 +1,20 @@
 import { cn } from "@/lib/utils";
 
 const statusStyles = {
-  "Nuevo": "bg-blue-50 text-blue-700 border-blue-200",
-  "Por priorizar": "bg-slate-50 text-slate-700 border-slate-200",
-  "Asignado": "bg-indigo-50 text-indigo-700 border-indigo-200",
-  "En curso": "bg-sky-50 text-sky-700 border-sky-200",
-  "Bloqueado": "bg-amber-50 text-amber-700 border-amber-200",
-  "En revisión": "bg-purple-50 text-purple-700 border-purple-200",
-  "Cerrado": "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "Nuevo": "text-slate-600 bg-slate-50 border-slate-200",
+  "Por priorizar": "text-slate-500 bg-slate-50 border-slate-200",
+  "Asignado": "text-blue-700 bg-blue-50 border-blue-100",
+  "En curso": "text-sky-700 bg-sky-50 border-sky-100",
+  "Bloqueado": "text-amber-700 bg-amber-50 border-amber-200",
+  "En revisión": "text-violet-700 bg-violet-50 border-violet-100",
+  "Cerrado": "text-emerald-700 bg-emerald-50 border-emerald-200",
 };
 
 export default function StatusBadge({ status }) {
   return (
     <span className={cn(
-      "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border",
-      statusStyles[status] || "bg-muted text-muted-foreground border-border"
+      "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border",
+      statusStyles[status] || "text-slate-500 bg-slate-50 border-slate-200"
     )}>
       {status}
     </span>

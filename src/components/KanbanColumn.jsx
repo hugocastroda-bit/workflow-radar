@@ -1,33 +1,20 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import KanbanCard from "./KanbanCard";
 
-const columnColors = {
-  "Nuevo": "bg-blue-500",
-  "Por priorizar": "bg-slate-400",
-  "Asignado": "bg-indigo-500",
-  "En curso": "bg-sky-500",
-  "Bloqueado": "bg-amber-500",
-  "En revisión": "bg-purple-500",
-  "Cerrado": "bg-emerald-500",
-};
-
 export default function KanbanColumn({ status, pedidos }) {
   return (
-    <div className="flex-shrink-0 w-72">
-      <div className="flex items-center gap-2 mb-3 px-1">
-        <div className={`h-2 w-2 rounded-full ${columnColors[status] || "bg-muted"}`} />
-        <h3 className="text-sm font-semibold text-foreground">{status}</h3>
-        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-          {pedidos.length}
-        </span>
+    <div className="flex-shrink-0 w-64">
+      <div className="flex items-center justify-between mb-2 px-1">
+        <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{status}</h3>
+        <span className="text-xs text-muted-foreground tabular-nums">{pedidos.length}</span>
       </div>
       <Droppable droppableId={status}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`min-h-[200px] rounded-lg p-2 transition-colors ${
-              snapshot.isDraggingOver ? "bg-primary/5" : "bg-muted/40"
+            className={`min-h-[120px] rounded-md p-1.5 transition-colors ${
+              snapshot.isDraggingOver ? "bg-primary/5" : "bg-slate-50"
             }`}
           >
             {pedidos.map((pedido, index) => (

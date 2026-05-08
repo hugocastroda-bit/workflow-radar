@@ -1,38 +1,27 @@
 import { cn } from "@/lib/utils";
 
-export default function SummaryCard({ title, value, icon: Icon, variant = "default", onClick }) {
-  const variants = {
-    default: "border-border",
-    danger: "border-red-200 bg-red-50/50",
-    warning: "border-amber-200 bg-amber-50/50",
-    success: "border-emerald-200 bg-emerald-50/50",
-    info: "border-blue-200 bg-blue-50/50",
-  };
+const variantStyles = {
+  default: { card: "", value: "text-foreground" },
+  danger: { card: "border-red-200", value: "text-red-600" },
+  warning: { card: "border-amber-200", value: "text-amber-600" },
+  success: { card: "border-emerald-200", value: "text-emerald-700" },
+  info: { card: "", value: "text-foreground" },
+};
 
-  const iconVariants = {
-    default: "text-muted-foreground",
-    danger: "text-red-500",
-    warning: "text-amber-500",
-    success: "text-emerald-500",
-    info: "text-blue-500",
-  };
+export default function SummaryCard({ title, value, variant = "default", onClick }) {
+  const v = variantStyles[variant] || variantStyles.default;
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "bg-card rounded-xl border p-5 transition-all",
-        variants[variant],
-        onClick && "cursor-pointer hover:shadow-md"
+        "bg-card rounded-lg border px-5 py-4",
+        v.card,
+        onClick && "cursor-pointer hover:shadow-sm transition-shadow"
       )}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-3xl font-semibold text-foreground mt-1 tracking-tight">{value}</p>
-        </div>
-        {Icon && <Icon className={cn("h-5 w-5 mt-1", iconVariants[variant])} />}
-      </div>
+      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{title}</p>
+      <p className={cn("text-3xl font-semibold mt-1.5 tracking-tight", v.value)}>{value}</p>
     </div>
   );
 }

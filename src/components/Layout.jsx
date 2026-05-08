@@ -14,70 +14,65 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <aside className="hidden md:flex w-56 flex-col border-r border-border bg-card fixed inset-y-0 left-0 z-30">
-        <div className="p-5 border-b border-border">
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">{"Radar C&T"}</h1>
+      {/* Sidebar */}
+      <aside className="hidden md:flex w-52 flex-col border-r border-border bg-white fixed inset-y-0 left-0 z-30">
+        <div className="px-5 py-4 border-b border-border">
+          <p className="text-sm font-semibold text-foreground tracking-tight">{"Radar C&T"}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Cultura y Talento</p>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-2 space-y-0.5 pt-3">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path ||
+              (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
                   isActive
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary/10 text-primary font-medium"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 flex-shrink-0" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-1">
           <Link
             to="/bandeja?crear=true"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full justify-center"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors w-full justify-center"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             Nuevo pedido
           </Link>
           <button
             onClick={() => base44.auth.logout()}
-            className="flex items-center gap-2 px-3 py-2 mt-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
             Salir
           </button>
         </div>
       </aside>
 
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-card border-b border-border">
-        <div className="flex items-center justify-between px-4 h-14">
-          <h1 className="text-base font-semibold text-foreground">{"Radar C&T"}</h1>
-          <Link
-            to="/bandeja?crear=true"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Nuevo
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-border">
+        <div className="flex items-center justify-between px-4 h-12">
+          <p className="text-sm font-semibold text-foreground">{"Radar C&T"}</p>
+          <Link to="/bandeja?crear=true" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-primary text-white">
+            <Plus className="h-3.5 w-3.5" /> Nuevo
           </Link>
         </div>
         <nav className="flex px-2 pb-2 gap-1 overflow-x-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link
-                key={item.path}
-                to={item.path}
+              <Link key={item.path} to={item.path}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent"
+                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent"
                 }`}
               >
                 <item.icon className="h-3.5 w-3.5" />
@@ -88,7 +83,7 @@ export default function Layout() {
         </nav>
       </div>
 
-      <main className="flex-1 md:ml-56 mt-[104px] md:mt-0 min-h-screen">
+      <main className="flex-1 md:ml-52 mt-[96px] md:mt-0 min-h-screen">
         <Outlet />
       </main>
     </div>

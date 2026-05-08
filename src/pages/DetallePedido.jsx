@@ -79,8 +79,8 @@ export default function DetallePedido() {
       </div>
 
       {/* Section 1: General Info */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Información general</h2>
+      <div className="bg-white border border-border rounded-lg p-6">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Información general</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
           <Field label="Solicitante" value={pedido.solicitante} />
           <Field label="Responsable" value={pedido.responsable} />
@@ -101,13 +101,13 @@ export default function DetallePedido() {
       </div>
 
       {/* Section 2: Tracking */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Seguimiento</h2>
+      <div className="bg-white border border-border rounded-lg p-6">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Seguimiento</h2>
         <div className="space-y-4">
           <Field label="Próxima acción" value={pedido.proxima_accion} />
           <Field label="Comentarios de avance" value={pedido.comentarios_avance} />
           {pedido.estado === "Bloqueado" && (
-            <div className="bg-amber-50/50 border border-amber-200 rounded-lg p-4">
+            <div className="border-l-4 border-amber-400 pl-4 py-2">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-4 w-4 text-amber-500" />
                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Motivo de bloqueo</p>
@@ -120,8 +120,8 @@ export default function DetallePedido() {
       </div>
 
       {/* Section 3: Evidence */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Evidencias</h2>
+      <div className="bg-white border border-border rounded-lg p-6">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Evidencias</h2>
         {pedido.link_evidencia ? (
           <a
             href={pedido.link_evidencia}
@@ -139,7 +139,7 @@ export default function DetallePedido() {
 
       {/* Section 4: Close */}
       {pedido.estado === "Cerrado" && (
-        <div className="bg-card border border-emerald-200 rounded-xl p-6 bg-emerald-50/30">
+        <div className="bg-white border border-emerald-200 rounded-lg p-6">
           <h2 className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-4">Cierre</h2>
           <div className="space-y-4">
             <Field label="Resultado final" value={pedido.resultado_final} />

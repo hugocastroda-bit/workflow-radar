@@ -57,7 +57,7 @@ export default function Kanban() {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-6">
+        <div className="flex gap-3 overflow-x-auto pb-6">
           {ESTADOS.map(estado => (
             <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} />
           ))}

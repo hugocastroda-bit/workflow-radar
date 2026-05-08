@@ -84,8 +84,8 @@ export default function Bandeja() {
             {isVencidoFilter ? " vencidos" : ""}
           </p>
         </div>
-        <Button onClick={() => { setEditPedido(null); setFormOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" /> Nuevo pedido
+        <Button onClick={() => { setEditPedido(null); setFormOpen(true); }} size="sm" className="gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> Nuevo pedido
         </Button>
       </div>
 
@@ -125,11 +125,11 @@ export default function Bandeja() {
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="bg-white border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/30">
+              <tr className="border-b border-border bg-slate-50/60">
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Título</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Solicitante</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Responsable</th>
