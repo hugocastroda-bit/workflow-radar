@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -11,6 +12,9 @@ const navItems = [
 
 export default function Layout() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const visibleNavItems = navItems.filter(item => item.path !== "/configuracion" || isAdmin);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex">
@@ -20,7 +24,7 @@ export default function Layout() {
           <h1 className="text-base font-semibold text-slate-800">{"Radar C&T"}</h1>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -64,7 +68,7 @@ export default function Layout() {
           </Link>
         </div>
         <nav className="flex px-3 pb-2 gap-1 overflow-x-auto">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link

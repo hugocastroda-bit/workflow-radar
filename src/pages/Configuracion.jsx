@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",   extraLabel: "Cargo o área" },
@@ -182,7 +183,21 @@ function CatalogoTab({ entityKey, extraField, extraLabel }) {
 
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const tab = TABS.find(t => t.key === activeTab);
+
+  if (!isAdmin) {
+    return (
+      <div className="p-8 max-w-3xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+          <ShieldOff className="h-8 w-8 text-slate-300" />
+          <p className="text-sm font-medium text-slate-600">No tienes permisos para acceder a esta sección.</p>
+          <p className="text-xs text-slate-400">Solo los usuarios Admin pueden gestionar la configuración.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
