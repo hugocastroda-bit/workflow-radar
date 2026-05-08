@@ -2,59 +2,58 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import SummaryCard from "../components/SummaryCard";
-import { Loader2 } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Plus, AlertTriangle, Clock, Loader2 } from "lucide-react";
 
 export default function Home() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    base44.entities.Pedido.list().then(d => { setPedidos(d); setLoading(false); });
-  }, []);
+  useEffect(() => { base44.entities.Pedido.list().then(d => { setPedidos(d); setLoading(false); }); }, []);
 
   const today = new Date().toISOString().split("T")[0];
-  const abiertos = pedidos.filter(p => p.estado !== "Cerrado");
-  const vencidos = abiertos.filter(p => p.fecha_requerida < today);
+  const abiertos  = pedidos.filter(p => p.estado !== "Cerrado");
+  const vencidos  = abiertos.filter(p => p.fecha_requerida < today);
   const bloqueados = pedidos.filter(p => p.estado === "Bloqueado");
-  const cerrados = pedidos.filter(p => p.estado === "Cerrado");
+  const cerrados  = pedidos.filter(p => p.estado === "Cerrado");
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    <div className="flex items-center justify-center h-96">
+      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
     </div>
   );
 
-  const quickLinks = [
-    { to: "/bandeja", label: "Bandeja de pedidos", desc: `${abiertos.length} pedidos abiertos` },
-    { to: "/kanban", label: "Tablero Kanban", desc: "Vista por estado" },
-    { to: "/dashboard", label: "Dashboard", desc: "Carga del equipo" },
-    { to: "/bandeja?filtro_estado=vencidos", label: "Pedidos vencidos", desc: `${vencidos.length} requieren atención`, alert: vencidos.length > 0 },
-    { to: "/bandeja?filtro_estado=Bloqueado", label: "Pedidos bloqueados", desc: `${bloqueados.length} bloqueados`, alert: bloqueados.length > 0 },
-    { to: "/bandeja?crear=true", label: "Nuevo pedido", desc: "Registrar solicitud" },
-  ];
-
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-10">
+    <div className="p-8 max-w-5xl mx-auto space-y-10">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">{"Radar C&T"}</h1>
-        <p className="text-sm text-muted-foreground mt-1">Torre de control — Cultura y Talento</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Torre de control</p>
+        <h1 className="text-xl font-semibold text-slate-800">{"Radar C&T"}</h1>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard title="Abiertos" value={abiertos.length} variant="default" />
-        <SummaryCard title="Vencidos" value={vencidos.length} variant="danger" />
+        <SummaryCard title="Abiertos"   value={abiertos.length}  variant="info" />
+        <SummaryCard title="Vencidos"   value={vencidos.length}  variant="danger" />
         <SummaryCard title="Bloqueados" value={bloqueados.length} variant="warning" />
-        <SummaryCard title="Cerrados" value={cerrados.length} variant="success" />
+        <SummaryCard title="Cerrados"   value={cerrados.length}  variant="success" />
       </div>
 
       <div>
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Acceso rápido</h2>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Accesos rápidos</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {quickLinks.map(item => (
-            <Link key={item.to} to={item.to}>
-              <div className={`bg-white border rounded-lg px-4 py-3 hover:shadow-sm transition-shadow ${item.alert ? "border-l-4 border-l-red-400" : "border-border"}`}>
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
-                <p className={`text-xs mt-0.5 ${item.alert ? "text-red-500" : "text-muted-foreground"}`}>{item.desc}</p>
+          {[
+            { to: "/bandeja?crear=true",              icon: Plus,          label: "Nuevo pedido",         sub: "Registrar solicitud" },
+            { to: "/bandeja",                          icon: Inbox,         label: "Bandeja",              sub: "Ver todos los pedidos" },
+            { to: "/kanban",                           icon: Columns3,      label: "Kanban",               sub: "Vista por estado" },
+            { to: "/bandeja?filtro_estado=vencidos",   icon: AlertTriangle, label: "Pedidos vencidos",     sub: `${vencidos.length} requieren atención` },
+            { to: "/bandeja?filtro_estado=Bloqueado",  icon: Clock,         label: "Bloqueados",           sub: `${bloqueados.length} pedidos bloqueados` },
+            { to: "/dashboard",                        icon: BarChart3,     label: "Dashboard",            sub: "Carga de trabajo" },
+          ].map(({ to, icon: Icon, label, sub }) => (
+            <Link key={to} to={to}>
+              <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center gap-3">
+                <Icon className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-slate-700">{label}</p>
+                  <p className="text-xs text-slate-400">{sub}</p>
+                </div>
               </div>
             </Link>
           ))}
