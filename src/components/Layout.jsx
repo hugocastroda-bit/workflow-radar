@@ -40,7 +40,7 @@ export default function Layout() {
         </nav>
         <div className="p-3 border-t border-slate-100 space-y-1">
           <Link
-            to="/bandeja?crear=true"
+            to="/?crear=true"
             className="flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors w-full"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -59,7 +59,7 @@ export default function Layout() {
       <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-slate-200">
         <div className="flex items-center justify-between px-4 h-12">
           <h1 className="text-sm font-semibold text-slate-800">{"Radar C&T"}</h1>
-          <Link to="/bandeja?crear=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-slate-900 text-white">
+          <Link to="/?crear=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-slate-900 text-white">
             <Plus className="h-3 w-3" /> Nuevo
           </Link>
         </div>

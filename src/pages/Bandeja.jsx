@@ -25,7 +25,7 @@ export default function Bandeja() {
   const urlParams = new URLSearchParams(window.location.search);
 
   useEffect(() => {
-    if (urlParams.get("crear") === "true") setFormOpen(true);
+    if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
     base44.entities.Pedido.list("-created_date").then(d => { setPedidos(d); setLoading(false); });
   }, []);

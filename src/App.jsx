@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './components/Layout';
-import Home from './pages/Home';
+
 import Bandeja from './pages/Bandeja';
 import Kanban from './pages/Kanban';
 import Dashboard from './pages/Dashboard';
@@ -49,7 +49,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Bandeja />} />
           <Route path="/bandeja" element={<Bandeja />} />
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/dashboard" element={<Dashboard />} />
