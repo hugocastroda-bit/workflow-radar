@@ -1,7 +1,7 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import KanbanCard from "./KanbanCard";
 
-export default function KanbanColumn({ status, pedidos }) {
+export default function KanbanColumn({ status, pedidos, onDelete }) {
   return (
     <div className="flex-shrink-0 w-64">
       <div className="flex items-center justify-between mb-2 px-1">
@@ -20,7 +20,7 @@ export default function KanbanColumn({ status, pedidos }) {
             {pedidos.map((pedido, index) => (
               <Draggable key={pedido.id} draggableId={pedido.id} index={index}>
                 {(provided) => (
-                  <KanbanCard pedido={pedido} provided={provided} />
+                  <KanbanCard pedido={pedido} provided={provided} onDelete={onDelete} />
                 )}
               </Draggable>
             ))}

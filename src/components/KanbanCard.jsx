@@ -1,8 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
+import { Trash2 } from "lucide-react";
 import PriorityBadge from "./PriorityBadge";
 
-export default function KanbanCard({ pedido, provided }) {
+export default function KanbanCard({ pedido, provided, onDelete }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const today = new Date().toISOString().split("T")[0];
   const isOverdue = pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
   const isBlocked = pedido.estado === "Bloqueado";
@@ -28,6 +32,16 @@ export default function KanbanCard({ pedido, provided }) {
       </div>
       {pedido.responsable && (
         <p className="text-xs text-muted-foreground mt-1.5 truncate">{pedido.responsable}</p>
+      )}
+      {isAdmin && onDelete && (
+        <div className="flex justify-end mt-1.5">
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(pedido); }}
+            className="p-0.5 rounded text-slate-300 hover:text-red-500 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
       )}
     </div>
   );

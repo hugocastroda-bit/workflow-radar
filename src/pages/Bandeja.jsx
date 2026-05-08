@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { toast } from "sonner";
 
 const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 const PRIORIDADES = ["Alta", "Media", "Baja"];
@@ -21,6 +24,10 @@ export default function Bandeja() {
   const [search, setSearch]     = useState("");
   const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "" });
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const urlParams = new URLSearchParams(window.location.search);
 
   useEffect(() => {
@@ -48,6 +55,20 @@ export default function Bandeja() {
     setFilters({ estado: "", prioridad: "", proceso: "" });
     setSearch("");
     window.history.replaceState({}, "", "/bandeja");
+  };
+
+  const handleDelete = async () => {
+    if (!isAdmin) return;
+    setDeleting(true);
+    try {
+      await base44.entities.Pedido.delete(deleteTarget);
+      setPedidos(prev => prev.filter(p => p.id !== deleteTarget));
+      setDeleteTarget(null);
+      toast.success("Pedido borrado correctamente");
+    } catch {
+      toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
+    }
+    setDeleting(false);
   };
 
   if (loading) return (
@@ -106,6 +127,7 @@ export default function Bandeja() {
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Prioridad</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Proceso</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Fecha req.</th>
+              {isAdmin && <th className="px-4 py-3" />}
             </tr>
           </thead>
           <tbody>
@@ -127,6 +149,13 @@ export default function Bandeja() {
                   <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
                   <td className="px-4 py-3 text-slate-400">{p.proceso}</td>
                   <td className={`px-4 py-3 font-medium ${isOverdue ? "text-red-500" : "text-slate-400"}`}>{p.fecha_requerida}</td>
+                  {isAdmin && (
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -136,6 +165,13 @@ export default function Bandeja() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
 
       <PedidoForm
         open={formOpen}

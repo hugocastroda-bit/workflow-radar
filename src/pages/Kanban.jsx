@@ -3,6 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
 import KanbanColumn from "../components/KanbanColumn";
 import { Loader2, X } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,7 +17,11 @@ export default function Kanban() {
   const [pedidos, setPedidos]         = useState([]);
   const [loading, setLoading]         = useState(true);
   const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "" });
-  const [blockModal, setBlockModal]   = useState(null); // { id, motivo }
+  const [blockModal, setBlockModal] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     base44.entities.Pedido.list("-created_date").then(d => { setPedidos(d); setLoading(false); });
@@ -60,6 +67,20 @@ export default function Kanban() {
     await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
     setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
     setBlockModal(null);
+  };
+
+  const handleDelete = async () => {
+    if (!isAdmin) return;
+    setDeleting(true);
+    try {
+      await base44.entities.Pedido.delete(deleteTarget.id);
+      setPedidos(prev => prev.filter(p => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      toast.success("Pedido borrado correctamente");
+    } catch {
+      toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
+    }
+    setDeleting(false);
   };
 
   const grouped = ESTADOS.reduce((acc, e) => {
@@ -117,10 +138,17 @@ export default function Kanban() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-6">
           {ESTADOS.map(estado => (
-            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} />
+            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} />
           ))}
         </div>
       </DragDropContext>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
 
       {/* Block reason modal */}
       <Dialog open={!!blockModal} onOpenChange={() => setBlockModal(null)}>

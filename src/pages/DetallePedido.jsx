@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { toast } from "sonner";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 const PROCESOS = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
@@ -40,8 +43,12 @@ export default function DetallePedido() {
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editSection, setEditSection] = useState(null); // "general" | "seguimiento" | "cierre" | null
+  const [editSection, setEditSection] = useState(null);
   const [draft, setDraft] = useState({});
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const load = async () => {
     const data = await base44.entities.Pedido.get(id);
@@ -72,6 +79,19 @@ export default function DetallePedido() {
   };
 
   const set = (field, value) => setDraft(prev => ({ ...prev, [field]: value }));
+
+  const handleDelete = async () => {
+    if (!isAdmin) return;
+    setDeleting(true);
+    try {
+      await base44.entities.Pedido.delete(id);
+      toast.success("Pedido borrado correctamente");
+      navigate("/");
+    } catch {
+      toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
+    }
+    setDeleting(false);
+  };
 
   if (loading) return <div className="flex items-center justify-center h-96"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!pedido) return <div className="p-8 text-sm text-muted-foreground">Pedido no encontrado</div>;
@@ -120,9 +140,19 @@ export default function DetallePedido() {
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-1 shrink-0">
-          Actualizado {pedido.updated_date?.split("T")[0] || "—"}
-        </p>
+        <div className="flex flex-col items-end gap-2">
+          <p className="text-xs text-muted-foreground shrink-0">
+            Actualizado {pedido.updated_date?.split("T")[0] || "—"}
+          </p>
+          {isAdmin && (
+            <button
+              onClick={() => setShowDelete(true)}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <Trash2 className="h-3 w-3" /> Borrar pedido
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Alerta bloqueo */}
@@ -317,6 +347,13 @@ export default function DetallePedido() {
           </button>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }
