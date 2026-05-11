@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,14 +28,8 @@ async function loadCatalogs() {
       .catch(e => { console.warn("[PedidoForm] Error loading Solicitantes:", e); return []; });
   }
   if (!cache.responsables) {
-    // Load responsables from User table (active users) instead of Responsable catalog
-    cache.responsables = await base44.entities.User.list()
-      .then(users => users.filter(u => u.role && u.email).map(u => ({
-        full_name: u.full_name || u.email,
-        email: u.email,
-        display: `${u.full_name || u.email} — ${u.email}`
-      })))
-      .catch(e => { console.warn("[PedidoForm] Error loading Users as Responsables:", e); return []; });
+    cache.responsables = await obtenerResponsablesActivos()
+      .catch(e => { console.warn("[PedidoForm] Error loading Responsables:", e); return []; });
   }
   if (!cache.procesos) {
     cache.procesos = await base44.entities.Proceso.filter(f, "nombre")
@@ -206,7 +201,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;
 
   const solicitanteOpts = (catalogs.solicitantes || []).map(s => s.nombre);
-  const responsableOpts = (catalogs.responsables || []).map(r => r.display || r.full_name || r.nombre);
+  const responsableOpts = (catalogs.responsables || []).map(r => r.display || `${r.full_name} — ${r.email}`);
   const procesoOpts = (catalogs.procesos || []).map(p => p.nombre);
   const prioridadOpts = (catalogs.prioridades || []).map(p => p.nombre);
 

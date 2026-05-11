@@ -132,6 +132,8 @@ const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", P
 function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, bulkType }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [syncing, setSyncing]   = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [newForm, setNewForm]   = useState({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
@@ -365,6 +367,22 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     setSaving(false);
   };
 
+  const handleSync = async () => {
+    if (entityKey !== "Responsable") return;
+    setSyncing(true);
+    try {
+      const res = await base44.functions.invoke('syncUsersToResponsables', {});
+      setSyncResult(res.data);
+      toast.success("Sincronización completada");
+      invalidateCatalogCache();
+      load();
+    } catch (err) {
+      console.error("Sync error:", err);
+      toast.error("Error sincronizando usuarios");
+    }
+    setSyncing(false);
+  };
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
 
   const activos   = items.filter(i => i.activo !== false);
@@ -372,6 +390,27 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
   return (
     <div className="space-y-4">
+      {entityKey === "Responsable" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+          <p className="text-xs font-medium text-blue-900">Sincronizar Usuarios</p>
+          <p className="text-xs text-blue-700">Crea automáticamente Responsables para todos los usuarios del sistema.</p>
+          <Button size="sm" onClick={handleSync} disabled={syncing} className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700">
+            {syncing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Ejecutar sincronización"}
+          </Button>
+          {syncResult && (
+            <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
+              <p><strong>Resultado:</strong></p>
+              <ul className="ml-3 space-y-0.5 list-disc text-blue-700">
+                <li>Usuarios revisados: {syncResult.usuariosRevisados}</li>
+                <li>Responsables creados: {syncResult.responsablesCreados}</li>
+                <li>Responsables vinculados: {syncResult.responsablesVinculados}</li>
+                {syncResult.errores && <li className="text-red-600">Errores: {syncResult.errores.length}</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex justify-end gap-2">
         <Button size="sm" onClick={() => setBulkRows([])} variant="outline" className="gap-1.5 text-xs">
           <Upload className="h-3.5 w-3.5" /> Carga masiva
