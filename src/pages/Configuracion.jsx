@@ -147,10 +147,33 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [bulkResult, setBulkResult] = useState(null);
   const [bulkImporting, setBulkImporting] = useState(false);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    base44.entities[entityKey].filter({}, "nombre").then(d => { setItems(d); setLoading(false); })
-      .catch(() => setLoading(false));
+    try {
+      let d = await base44.entities[entityKey].filter({}, "nombre");
+      
+      // Si es Responsable, deduplicar por email
+      if (entityKey === "Responsable") {
+        const seenEmails = {};
+        const dedup = [];
+        for (const item of d) {
+          const email = (item.email || '').toLowerCase().trim();
+          if (email && seenEmails[email]) {
+            // Saltar duplicado
+            continue;
+          }
+          if (email) seenEmails[email] = true;
+          dedup.push(item);
+        }
+        d = dedup;
+      }
+      
+      setItems(d);
+      setLoading(false);
+    } catch (e) {
+      console.warn(`Error loading ${entityKey}:`, e);
+      setLoading(false);
+    }
   };
 
   const downloadTemplate = () => {
@@ -247,20 +270,16 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const saveEdit = async (id) => {
     setSaving(true);
     try {
-      // Validar correo único normalizado
-      if (editForm.email) {
+      // Validar correo único normalizado (solo para Responsable y Solicitante)
+      if (editForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = editForm.email.toLowerCase().trim();
-        // Check in Responsable table
-        const existingResp = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
-        if (existingResp.some(e => e.id !== id)) {
-          toast.error("Este correo ya está registrado y no puede repetirse.");
-          setSaving(false);
-          return;
-        }
-        // Check in User table
-        const existingUsers = await base44.entities.User.list();
-        if (existingUsers.some(u => u.email?.toLowerCase().trim() === normalized)) {
-          toast.error("Este correo ya está registrado y no puede repetirse.");
+        // Check in current entity table
+        const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
+        if (existingInTable.some(e => 
+          e.id !== id && 
+          (e.email || '').toLowerCase().trim() === normalized
+        )) {
+          toast.error("Este correo ya está registrado en otro registro y no puede repetirse.");
           setSaving(false);
           return;
         }
@@ -329,20 +348,15 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!newForm.nombre.trim()) return;
     setSaving(true);
     try {
-      // Validar correo único normalizado
-      if (newForm.email) {
+      // Validar correo único normalizado (solo para Responsable y Solicitante)
+      if (newForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = newForm.email.toLowerCase().trim();
-        // Check in Responsable table
-        const existingResp = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
-        if (existingResp.length > 0) {
-          toast.error("Este correo ya está registrado y no puede repetirse.");
-          setSaving(false);
-          return;
-        }
-        // Check in User table
-        const existingUsers = await base44.entities.User.list();
-        if (existingUsers.some(u => u.email?.toLowerCase().trim() === normalized)) {
-          toast.error("Este correo ya está registrado y no puede repetirse.");
+        // Check in current entity table
+        const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
+        if (existingInTable.some(e => 
+          (e.email || '').toLowerCase().trim() === normalized
+        )) {
+          toast.error("Este correo ya está registrado en otro registro y no puede repetirse.");
           setSaving(false);
           return;
         }
@@ -383,6 +397,25 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     setSyncing(false);
   };
 
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupResult, setCleanupResult] = useState(null);
+
+  const handleCleanupDuplicates = async () => {
+    if (entityKey !== "Responsable") return;
+    setCleanupLoading(true);
+    try {
+      const res = await base44.functions.invoke('cleanupDuplicates', {});
+      setCleanupResult(res.data);
+      toast.success("Limpieza de duplicados completada");
+      invalidateCatalogCache();
+      load();
+    } catch (err) {
+      console.error("Cleanup error:", err);
+      toast.error("Error en limpieza de duplicados");
+    }
+    setCleanupLoading(false);
+  };
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
 
   const activos   = items.filter(i => i.activo !== false);
@@ -391,23 +424,44 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   return (
     <div className="space-y-4">
       {entityKey === "Responsable" && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-medium text-blue-900">Sincronizar Usuarios</p>
-          <p className="text-xs text-blue-700">Crea automáticamente Responsables para todos los usuarios del sistema.</p>
-          <Button size="sm" onClick={handleSync} disabled={syncing} className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700">
-            {syncing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Ejecutar sincronización"}
-          </Button>
-          {syncResult && (
-            <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
-              <p><strong>Resultado:</strong></p>
-              <ul className="ml-3 space-y-0.5 list-disc text-blue-700">
-                <li>Usuarios revisados: {syncResult.usuariosRevisados}</li>
-                <li>Responsables creados: {syncResult.responsablesCreados}</li>
-                <li>Responsables vinculados: {syncResult.responsablesVinculados}</li>
-                {syncResult.errores && <li className="text-red-600">Errores: {syncResult.errores.length}</li>}
-              </ul>
-            </div>
-          )}
+        <div className="space-y-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-blue-900">Sincronizar Usuarios</p>
+            <p className="text-xs text-blue-700">Crea automáticamente Responsables para todos los usuarios del sistema. No crea duplicados.</p>
+            <Button size="sm" onClick={handleSync} disabled={syncing} className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700">
+              {syncing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Ejecutar sincronización"}
+            </Button>
+            {syncResult && (
+              <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
+                <p><strong>Resultado:</strong></p>
+                <ul className="ml-3 space-y-0.5 list-disc text-blue-700">
+                  <li>Usuarios revisados: {syncResult.usuariosRevisados}</li>
+                  <li>Responsables creados: {syncResult.responsablesCreados}</li>
+                  <li>Responsables actualizados: {syncResult.responsablesActualizados}</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-amber-900">Limpiar Duplicados</p>
+            <p className="text-xs text-amber-700">Detecta y consolida Responsables duplicados (mismo correo). Redirige pedidos y elimina o inactiva duplicados.</p>
+            <Button size="sm" onClick={handleCleanupDuplicates} disabled={cleanupLoading} className="gap-1.5 text-xs bg-amber-600 hover:bg-amber-700">
+              {cleanupLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Limpiar duplicados"}
+            </Button>
+            {cleanupResult && (
+              <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
+                <p><strong>Resultado:</strong></p>
+                <ul className="ml-3 space-y-0.5 list-disc text-amber-700">
+                  <li>Revisados: {cleanupResult.responsablesRevisados}</li>
+                  <li>Duplicados encontrados: {cleanupResult.duplicadosEncontrados}</li>
+                  <li>Eliminados: {cleanupResult.duplicadosEliminados}</li>
+                  <li>Inactivados: {cleanupResult.duplicadosInactivados}</li>
+                  {cleanupResult.requiereRevision?.length > 0 && <li className="text-red-600">Requieren revisión: {cleanupResult.requiereRevision.length}</li>}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

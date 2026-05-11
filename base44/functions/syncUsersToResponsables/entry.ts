@@ -1,68 +1,90 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Normaliza correo: minúsculas + sin espacios al inicio/final
+function normalizeEmail(email) {
+  if (!email) return '';
+  return email.toLowerCase().trim();
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
-    // Only Admin can sync
+    
+    // Solo admin puede sincronizar
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Get all users
-    const usuarios = await base44.asServiceRole.entities.User.list();
+    // 1. Obtener todos los usuarios
+    const users = await base44.entities.User.list();
     
-    let creados = 0;
-    let vinculados = 0;
-    let errores = [];
+    // 2. Obtener todos los responsables existentes
+    const responsables = await base44.entities.Responsable.list();
+    
+    // 3. Crear mapas por correo normalizado para búsqueda rápida
+    const respByEmailNorm = {};
+    responsables.forEach(r => {
+      const normalized = normalizeEmail(r.email);
+      if (normalized && !respByEmailNorm[normalized]) {
+        respByEmailNorm[normalized] = r;
+      }
+    });
+    
+    let usuariosRevisados = 0;
+    let responsablesCreados = 0;
+    let responsablesActualizados = 0;
+    const errores = [];
 
-    for (const usuario of usuarios) {
-      if (!usuario.email) continue;
+    // 4. Por cada usuario, crear o actualizar responsable
+    for (const usuario of users) {
+      usuariosRevisados++;
+      
+      if (!usuario.email || !usuario.full_name) {
+        errores.push(`Usuario ${usuario.id} sin email o nombre completo`);
+        continue;
+      }
 
-      const correoNorm = usuario.email.toLowerCase().trim();
+      const emailNorm = normalizeEmail(usuario.email);
+      const existingResp = respByEmailNorm[emailNorm];
 
       try {
-        // Check if Responsable exists
-        const existentes = await base44.asServiceRole.entities.Responsable.filter({
-          correoNormalizado: correoNorm
-        });
-
-        if (existentes.length > 0) {
-          // Exists, ensure active
-          const responsable = existentes[0];
-          if (!responsable.activo) {
-            await base44.asServiceRole.entities.Responsable.update(responsable.id, {
+        if (existingResp) {
+          // Ya existe responsable con este correo
+          // Actualizar nombre si está vacío
+          if (!existingResp.nombre || existingResp.nombre.trim() === '') {
+            await base44.entities.Responsable.update(existingResp.id, {
+              nombre: usuario.full_name,
+              email: emailNorm,
               activo: true
             });
-            vinculados++;
+            responsablesActualizados++;
           }
         } else {
-          // Create new
-          await base44.asServiceRole.entities.Responsable.create({
-            nombre: usuario.full_name || usuario.email,
-            email: usuario.email,
-            correoNormalizado: correoNorm,
-            activo: true,
+          // No existe, crear nuevo
+          const newResp = await base44.entities.Responsable.create({
+            nombre: usuario.full_name,
+            email: emailNorm,
+            rol_funcion: usuario.role || 'user',
+            activo: true
           });
-          creados++;
+          respByEmailNorm[emailNorm] = newResp;
+          responsablesCreados++;
         }
       } catch (err) {
-        errores.push({
-          usuario: usuario.email,
-          error: err.message
-        });
+        errores.push(`Error procesando usuario ${usuario.email}: ${err.message}`);
       }
     }
 
     return Response.json({
-      success: true,
-      usuariosRevisados: usuarios.length,
-      responsablesCreados: creados,
-      responsablesVinculados: vinculados,
-      errores: errores.length > 0 ? errores : null
+      status: 'success',
+      usuariosRevisados,
+      responsablesCreados,
+      responsablesActualizados,
+      errores
     });
   } catch (error) {
+    console.error('Sync error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
