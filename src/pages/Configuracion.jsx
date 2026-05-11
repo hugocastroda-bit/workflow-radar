@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
 import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
@@ -78,6 +79,8 @@ function NotificacionesTab() {
   );
 }
 
+const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", Proceso: "proceso", Prioridad: "prioridad" };
+
 function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, espacioId }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -86,6 +89,9 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [newForm, setNewForm]   = useState({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
   const [adding, setAdding]     = useState(false);
   const [saving, setSaving]     = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // item
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [blockModal, setBlockModal] = useState(null); // { item, message }
 
   const load = () => {
     setLoading(true);
@@ -125,6 +131,42 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       await base44.entities[entityKey].update(item.id, { activo: !item.activo });
       load();
     } catch { toast.error("No se pudo actualizar."); }
+  };
+
+  const handleDeleteRequest = (item) => setConfirmDelete(item);
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return;
+    setDeleteLoading(true);
+    try {
+      const campoPedido = CAMPO_PEDIDO[entityKey];
+      let pedidosAsociados = [];
+      if (campoPedido) {
+        const query = { [campoPedido]: confirmDelete.nombre };
+        if (espacioId) query.espacioId = espacioId;
+        pedidosAsociados = await base44.entities.Pedido.filter(query);
+      }
+      if (pedidosAsociados.length > 0) {
+        setConfirmDelete(null);
+        setBlockModal({ item: confirmDelete, message: "No se puede eliminar esta opción porque tiene información asociada. Puedes inactivarla para que no vuelva a aparecer en nuevos pedidos." });
+      } else {
+        await base44.entities[entityKey].delete(confirmDelete.id);
+        toast.success("Opción eliminada correctamente.");
+        setConfirmDelete(null);
+        load();
+      }
+    } catch { toast.error("No se pudo eliminar la opción. Inténtalo nuevamente."); }
+    setDeleteLoading(false);
+  };
+
+  const handleInactivarDesdeBloqueo = async () => {
+    if (!blockModal) return;
+    try {
+      await base44.entities[entityKey].update(blockModal.item.id, { activo: false });
+      toast.success("Opción inactivada correctamente.");
+      setBlockModal(null);
+      load();
+    } catch { toast.error("No se pudo inactivar."); }
   };
 
   const handleAdd = async () => {
@@ -237,6 +279,9 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                           <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors" title="Desactivar">
                             <PowerOff className="h-3.5 w-3.5" />
                           </button>
+                          <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors" title="Eliminar">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </td>
                     </>
@@ -262,15 +307,50 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                   {extraField && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField] || "—"}</td>}
                   {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField2] || "—"}</td>}
                   <td className="px-4 py-2.5 text-right">
-                    <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors" title="Reactivar">
-                      <Power className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors" title="Reactivar">
+                        <Power className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors" title="Eliminar">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Confirm delete modal */}
+      {confirmDelete && (
+        <Dialog open onOpenChange={() => setConfirmDelete(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-amber-500" /> Eliminar opción</DialogTitle></DialogHeader>
+            <p className="text-sm text-slate-600">¿Estás seguro de que deseas eliminar <strong>{confirmDelete.nombre}</strong>? Esta acción no se puede deshacer si no tiene información asociada.</p>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" size="sm" onClick={() => setConfirmDelete(null)} disabled={deleteLoading}>Cancelar</Button>
+              <Button size="sm" onClick={handleDeleteConfirm} disabled={deleteLoading} className="bg-red-600 hover:bg-red-700 text-white">
+                {deleteLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Sí, eliminar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Blocked delete — offer inactivate */}
+      {blockModal && (
+        <Dialog open onOpenChange={() => setBlockModal(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-amber-500" /> No se puede eliminar</DialogTitle></DialogHeader>
+            <p className="text-sm text-slate-600">{blockModal.message}</p>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
+              <Button size="sm" onClick={handleInactivarDesdeBloqueo} className="bg-amber-600 hover:bg-amber-700 text-white">Inactivar opción</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
