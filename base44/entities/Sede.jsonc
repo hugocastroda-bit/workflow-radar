@@ -21,7 +21,9 @@
         "role": "admin"
       }
     },
-    "read": {},
+    "read": {
+      "data.activo": true
+    },
     "update": {
       "user_condition": {
         "role": "admin"
