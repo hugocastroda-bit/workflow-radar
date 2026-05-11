@@ -37,11 +37,6 @@
     "nombreEspacio"
   ],
   "rls": {
-    "create": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
     "read": {},
     "update": {
       "user_condition": {
@@ -49,6 +44,11 @@
       }
     },
     "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
       "user_condition": {
         "role": "admin"
       }
