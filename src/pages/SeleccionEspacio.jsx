@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio, isAdminGlobal } from "@/lib/EspacioContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
@@ -20,7 +20,7 @@ export default function SeleccionEspacio() {
   const { user } = useAuth();
   const { entrarEspacio } = useEspacio();
   const navigate = useNavigate();
-  const isAdminGeneral = isAdminGlobal(user);
+  const isAdminGeneral = user?.role === "admin";
   const [loading, setLoading] = useState(true);
   const [espacios, setEspacios] = useState([]);
   const [diagnostico, setDiagnostico] = useState(null);
@@ -35,25 +35,19 @@ export default function SeleccionEspacio() {
     setLoading(true);
     try {
       const emailAuth = user.email.toLowerCase().trim();
-      const emailExacto = user.email; // Email exacto del sistema (como lo usa el RLS)
+      const emailExacto = user.email;
 
-      // Paso 1: Buscar responsable cuyo correo coincida con el usuario autenticado
-      // Usamos list() para que admin vea todos; usuarios normales solo ven los activos por RLS
       let todosResponsables = [];
       try { todosResponsables = await base44.entities.Responsable.list(); } catch { todosResponsables = []; }
       const responsable = todosResponsables.find(
         r => (r.email || "").toLowerCase().trim() === emailAuth
       );
 
-      // Paso 2: Obtener todos los espacios activos
       const todosEspacios = await base44.entities.EspacioEquipo.filter({ estado: "Activo" });
 
-      // Paso 3: Buscar membresías por correo autenticado
-      // RLS valida data.correoUsuario === user.email (case-sensitive del sistema)
-      // Probamos el email exacto del sistema Y el normalizado para cubrir ambos casos
       const correosABuscar = new Set([emailExacto, emailAuth]);
       if (responsable?.email) {
-        correosABuscar.add(responsable.email); // email tal como está guardado en Responsable
+        correosABuscar.add(responsable.email);
         correosABuscar.add((responsable.email || "").toLowerCase().trim());
       }
 
@@ -62,9 +56,8 @@ export default function SeleccionEspacio() {
         try {
           const memb = await base44.entities.MembresiaEspacio.filter({ correoUsuario: correo });
           todasMembresias = [...todasMembresias, ...memb];
-        } catch { /* ignorar errores individuales */ }
+        } catch { }
       }
-      // Deduplicar por id
       const seen = new Set();
       const membresias = todasMembresias.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
 
@@ -146,17 +139,14 @@ export default function SeleccionEspacio() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg space-y-6">
-        {/* Header */}
         <div className="text-center space-y-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Radar C{"&"}T</p>
+          <p className="text-xs font-semibold text-slate-400">RADAR CT</p>
           <h1 className="text-2xl font-semibold text-slate-800">Seleccionar espacio</h1>
           <p className="text-sm text-slate-400">
             Bienvenido, {user?.full_name || user?.email}. Elige un espacio para continuar.
           </p>
         </div>
 
-        {/* Spaces */}
-        {/* Botón actualizar */}
         <div className="flex justify-end">
           <button
             onClick={cargarEspacios}
@@ -176,28 +166,24 @@ export default function SeleccionEspacio() {
             {(() => {
               if (!diagnostico) return null;
               const { responsableEncontrado, totalMembresias, activas, detalles } = diagnostico;
-              // Caso 1: No hay responsable con ese correo
               if (!responsableEncontrado) return (
                 <>
                   <p className="text-sm font-medium text-slate-600">No existe un responsable registrado con tu correo.</p>
                   <p className="text-xs text-slate-400">Pide al administrador que te registre como responsable con el correo: <span className="font-mono">{diagnostico.emailAuth}</span></p>
                 </>
               );
-              // Caso 2: Hay responsable pero sin accesos
               if (totalMembresias === 0) return (
                 <>
                   <p className="text-sm font-medium text-slate-600">Tu usuario está registrado, pero aún no tiene espacios asignados.</p>
                   <p className="text-xs text-slate-400">Contacta al administrador para que asigne un espacio a tu usuario.</p>
                 </>
               );
-              // Caso 3: Tiene accesos pero están inactivos
               if (activas === 0 && detalles.some(d => d.estadoAcceso !== "Activo")) return (
                 <>
                   <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero los accesos están inactivos.</p>
                   <p className="text-xs text-slate-400">Contacta al administrador para activar tu acceso.</p>
                 </>
               );
-              // Caso 4: Accesos activos pero espacios inactivos
               if (activas > 0 && detalles.some(d => d.estadoAcceso === "Activo" && d.estadoEspacio !== "Activo")) return (
                 <>
                   <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero actualmente están inactivos.</p>
@@ -243,7 +229,6 @@ export default function SeleccionEspacio() {
           </div>
         )}
 
-        {/* Admin link */}
         {isAdminGeneral && espacios.length > 0 && (
           <div className="flex justify-center">
             <button
@@ -255,21 +240,20 @@ export default function SeleccionEspacio() {
           </div>
         )}
 
-        {/* Diagnóstico solo para admin */}
         {isAdminGeneral && diagnostico && (
           <div className="border border-amber-200 rounded-lg bg-amber-50 text-xs">
             <button
               onClick={() => setShowDiag(v => !v)}
               className="w-full flex items-center justify-between px-4 py-2.5 text-amber-700 font-medium"
             >
-              <span>🔍 Diagnóstico de acceso (solo visible para admin)</span>
+              <span>Diagnostico de acceso (solo visible para admin)</span>
               {showDiag ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {showDiag && (
               <div className="px-4 pb-3 space-y-2 text-amber-800">
                 <div className="space-y-1">
                   <p><span className="font-medium">Correo autenticado:</span> <span className="font-mono">{diagnostico.emailAuth}</span></p>
-                  <p><span className="font-medium">Responsable encontrado:</span> {diagnostico.responsableEncontrado ? "✅ Sí" : "❌ No"}</p>
+                  <p><span className="font-medium">Responsable encontrado:</span> {diagnostico.responsableEncontrado ? "Si" : "No"}</p>
                   {diagnostico.responsableEncontrado && (
                     <>
                       <p><span className="font-medium">Nombre responsable:</span> {diagnostico.responsableNombre}</p>
@@ -289,8 +273,8 @@ export default function SeleccionEspacio() {
                       <div key={i} className="pl-2 border-l-2 border-amber-300 space-y-0.5 py-1">
                         <p><span className="font-medium">Espacio:</span> {d.nombreEspacio}</p>
                         <p><span className="font-medium">espacioId:</span> <span className="font-mono">{d.espacioId}</span></p>
-                        <p><span className="font-medium">Estado acceso:</span> {d.estadoAcceso === "Activo" ? "✅" : "❌"} {d.estadoAcceso}</p>
-                        <p><span className="font-medium">Estado espacio:</span> {d.estadoEspacio === "Activo" ? "✅" : "❌"} {d.estadoEspacio}</p>
+                        <p><span className="font-medium">Estado acceso:</span> {d.estadoAcceso === "Activo" ? "OK" : "ERROR"} {d.estadoAcceso}</p>
+                        <p><span className="font-medium">Estado espacio:</span> {d.estadoEspacio === "Activo" ? "OK" : "ERROR"} {d.estadoEspacio}</p>
                         <p><span className="font-medium">Rol:</span> {d.rolEnEspacio}</p>
                       </div>
                     ))}
@@ -301,18 +285,16 @@ export default function SeleccionEspacio() {
           </div>
         )}
 
-        {/* Logout */}
         <div className="flex justify-center pt-2">
           <button
             onClick={() => base44.auth.logout()}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <LogOut className="h-3.5 w-3.5" /> Cerrar sesión
+            <LogOut className="h-3.5 w-3.5" /> Cerrar sesion
           </button>
         </div>
       </div>
 
-      {/* Key validation modal */}
       <Dialog open={!!claveModal} onOpenChange={closeClaveModal}>
         <DialogContent className="max-w-sm">
           <DialogHeader>

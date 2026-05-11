@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
-import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
 import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
@@ -368,7 +368,7 @@ export default function Configuracion() {
   const [showAdminEspacios, setShowAdminEspacios] = useState(false);
   const { user } = useAuth();
   const { espacioActivo } = useEspacio();
-  const isAdmin = isAdminGlobal(user);
+  const isAdmin = user?.role === "admin";
   const tab = TABS.find(t => t.key === activeTab);
 
   if (!isAdmin) {
