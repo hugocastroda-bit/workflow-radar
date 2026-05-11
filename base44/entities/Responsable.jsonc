@@ -25,9 +25,16 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.espacioId": "{{user.active_space_id}}"
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -37,7 +44,14 @@
           }
         },
         {
-          "data.activo": true
+          "$and": [
+            {
+              "data.espacioId": "{{user.active_space_id}}"
+            },
+            {
+              "data.activo": true
+            }
+          ]
         }
       ]
     },
