@@ -104,20 +104,49 @@ export default function DetallePedido() {
   const cancelEdit = () => { setEditSection(null); setDraft({}); };
 
   const saveEdit = async () => {
+    if (!user) { toast.error("No estás autenticado."); return; }
+    if (!id) { toast.error("Pedido no encontrado."); return; }
+
     setSaving(true);
-    const data = { ...draft };
-    if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
-      data.fecha_cierre_real = new Date().toISOString().split("T")[0];
-    }
-    const responsableCambio = data.responsable && data.responsable !== pedido.responsable;
-    const estadoCambio = data.estado !== pedido.estado;
-    const nuevoEstado = data.estado;
+    console.log("[saveEdit] Sección:", editSection, "| Rol:", user?.role, "| ID:", id);
+
     try {
+      let data;
+
+      if (editSection === "seguimiento") {
+        // Update parcial: solo campos de seguimiento
+        data = {
+          comentarios_avance: draft.comentarios_avance ?? "",
+          proxima_accion: draft.proxima_accion ?? "",
+        };
+        // Admin también puede editar motivo de bloqueo
+        if (isAdmin) {
+          data.motivo_bloqueo = draft.motivo_bloqueo ?? "";
+        }
+        console.log("[saveEdit] Payload seguimiento:", JSON.stringify(data));
+      } else {
+        // Admin: update completo
+        if (!isAdmin) { toast.error("No tienes permisos para editar esta sección."); setSaving(false); return; }
+        data = { ...draft };
+        if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
+          data.fecha_cierre_real = new Date().toISOString().split("T")[0];
+        }
+        console.log("[saveEdit] Payload admin:", JSON.stringify(data));
+      }
+
       await base44.entities.Pedido.update(id, data);
+      console.log("[saveEdit] Update exitoso");
+      toast.success("Cambios guardados correctamente.");
       await load();
+      setEditSection(null);
       setDraft({});
-    } catch {
-      toast.error("No se pudo guardar los cambios. Inténtalo nuevamente.");
+    } catch (err) {
+      console.error("[saveEdit] Error:", err.message, err.response?.data);
+      if (err.response?.status === 403) {
+        toast.error("No tienes permisos para actualizar este pedido.");
+      } else {
+        toast.error("No se pudo guardar los cambios. Inténtalo nuevamente.");
+      }
     } finally {
       setSaving(false);
     }
@@ -192,20 +221,44 @@ export default function DetallePedido() {
   const isBlocked = pedido.estado === "Bloqueado";
   const isClosed = pedido.estado === "Cerrado";
 
-  const EditBar = ({ section }) => editSection === section ? (
-    <div className="flex gap-2">
-      <Button size="sm" onClick={saveEdit} disabled={saving} className="gap-1.5 h-7 text-xs">
-        <Check className="h-3 w-3" /> {saving ? "Guardando…" : "Guardar"}
+  // EditBar para Admin (todas las secciones)
+  const EditBar = ({ section }) => {
+    if (!isAdmin) return null;
+    if (editSection === section) return (
+      <div className="flex gap-2">
+        <Button size="sm" onClick={saveEdit} disabled={saving} className="gap-1.5 h-7 text-xs">
+          <Check className="h-3 w-3" /> {saving ? "Guardando…" : "Guardar"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 text-xs gap-1">
+          <X className="h-3 w-3" /> Cancelar
+        </Button>
+      </div>
+    );
+    return (
+      <Button size="sm" variant="ghost" onClick={() => startEdit(section)} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
+        <Pencil className="h-3 w-3" /> Editar
       </Button>
-      <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 text-xs gap-1">
-        <X className="h-3 w-3" /> Cancelar
+    );
+  };
+
+  // EditBar para sección Seguimiento (Admin + User)
+  const EditBarSeguimiento = () => {
+    if (editSection === "seguimiento") return (
+      <div className="flex gap-2">
+        <Button size="sm" onClick={saveEdit} disabled={saving} className="gap-1.5 h-7 text-xs">
+          <Check className="h-3 w-3" /> {saving ? "Guardando…" : "Guardar"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 text-xs gap-1">
+          <X className="h-3 w-3" /> Cancelar
+        </Button>
+      </div>
+    );
+    return (
+      <Button size="sm" variant="ghost" onClick={() => startEdit("seguimiento")} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
+        <Pencil className="h-3 w-3" /> Editar
       </Button>
-    </div>
-  ) : (
-    <Button size="sm" variant="ghost" onClick={() => startEdit(section)} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
-      <Pencil className="h-3 w-3" /> Editar
-    </Button>
-  );
+    );
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-5">
@@ -366,7 +419,7 @@ export default function DetallePedido() {
       {/* 2. Seguimiento */}
       <Section title="Seguimiento">
         <div className="flex items-center justify-between">
-          <div /> <EditBar section="seguimiento" />
+          <div /> <EditBarSeguimiento />
         </div>
 
         {editSection === "seguimiento" ? (
@@ -379,10 +432,12 @@ export default function DetallePedido() {
               <Label className="text-xs text-muted-foreground">Próxima acción</Label>
               <Input value={draft.proxima_accion || ""} onChange={e => set("proxima_accion", e.target.value)} className="mt-1" />
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Motivo de bloqueo</Label>
-              <Textarea value={draft.motivo_bloqueo || ""} onChange={e => set("motivo_bloqueo", e.target.value)} className="mt-1" rows={2} />
-            </div>
+            {isAdmin && pedido.estado === "Bloqueado" && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Motivo de bloqueo</Label>
+                <Textarea value={draft.motivo_bloqueo || ""} onChange={e => set("motivo_bloqueo", e.target.value)} className="mt-1" rows={2} />
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
