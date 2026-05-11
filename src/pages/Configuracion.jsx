@@ -245,13 +245,20 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const saveEdit = async (id) => {
     setSaving(true);
     try {
-      // Validar correo duplicado en Responsables
-      if (entityKey === "Responsable" && editForm.email) {
+      // Validar correo único normalizado
+      if (editForm.email) {
         const normalized = editForm.email.toLowerCase().trim();
-        const existing = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
-        const isDuplicate = existing.some(e => e.id !== id);
-        if (isDuplicate) {
-          toast.error("Ya existe un responsable con este correo.");
+        // Check in Responsable table
+        const existingResp = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
+        if (existingResp.some(e => e.id !== id)) {
+          toast.error("Este correo ya está registrado y no puede repetirse.");
+          setSaving(false);
+          return;
+        }
+        // Check in User table
+        const existingUsers = await base44.entities.User.list();
+        if (existingUsers.some(u => u.email?.toLowerCase().trim() === normalized)) {
+          toast.error("Este correo ya está registrado y no puede repetirse.");
           setSaving(false);
           return;
         }
@@ -320,12 +327,20 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!newForm.nombre.trim()) return;
     setSaving(true);
     try {
-      // Validar correo duplicado en Responsables
-      if (entityKey === "Responsable" && newForm.email) {
+      // Validar correo único normalizado
+      if (newForm.email) {
         const normalized = newForm.email.toLowerCase().trim();
-        const existing = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
-        if (existing.length > 0) {
-          toast.error("Ya existe un responsable con este correo.");
+        // Check in Responsable table
+        const existingResp = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
+        if (existingResp.length > 0) {
+          toast.error("Este correo ya está registrado y no puede repetirse.");
+          setSaving(false);
+          return;
+        }
+        // Check in User table
+        const existingUsers = await base44.entities.User.list();
+        if (existingUsers.some(u => u.email?.toLowerCase().trim() === normalized)) {
+          toast.error("Este correo ya está registrado y no puede repetirse.");
           setSaving(false);
           return;
         }
@@ -532,7 +547,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                         {item[extraField2] ? (
                           <div className="flex flex-col text-xs">
                             <span>{item[extraField2]}</span>
-                            {item.usuarioEmail && <span className="text-slate-300 text-[10px]">(Usuario: {item.usuarioEmail})</span>}
+                            {item.usuarioId && <span className="text-slate-300 text-[10px]">vinculado</span>}
                           </div>
                         ) : (
                           <span className="text-amber-500">Sin correo</span>

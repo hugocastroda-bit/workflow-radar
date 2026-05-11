@@ -27,8 +27,14 @@ async function loadCatalogs() {
       .catch(e => { console.warn("[PedidoForm] Error loading Solicitantes:", e); return []; });
   }
   if (!cache.responsables) {
-    cache.responsables = await base44.entities.Responsable.filter(f, "nombre")
-      .catch(e => { console.warn("[PedidoForm] Error loading Responsables:", e); return []; });
+    // Load responsables from User table (active users) instead of Responsable catalog
+    cache.responsables = await base44.entities.User.list()
+      .then(users => users.filter(u => u.role && u.email).map(u => ({
+        full_name: u.full_name || u.email,
+        email: u.email,
+        display: `${u.full_name || u.email} — ${u.email}`
+      })))
+      .catch(e => { console.warn("[PedidoForm] Error loading Users as Responsables:", e); return []; });
   }
   if (!cache.procesos) {
     cache.procesos = await base44.entities.Proceso.filter(f, "nombre")
@@ -200,7 +206,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;
 
   const solicitanteOpts = (catalogs.solicitantes || []).map(s => s.nombre);
-  const responsableOpts = (catalogs.responsables || []).map(r => r.nombre);
+  const responsableOpts = (catalogs.responsables || []).map(r => r.display || r.full_name || r.nombre);
   const procesoOpts = (catalogs.procesos || []).map(p => p.nombre);
   const prioridadOpts = (catalogs.prioridades || []).map(p => p.nombre);
 
@@ -238,6 +244,35 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 options={procesoOpts} placeholder="Seleccionar"
               />
             </div>
+            {isAdmin && (
+            <div className="grid gap-3 grid-cols-2">
+              <SearchableSelect
+                label="Responsable"
+                value={form.responsable} onChange={v => handleChange("responsable", v)}
+                options={responsableOpts} placeholder="Sin asignar"
+              />
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
+                <Input
+                  type="date"
+                  value={form.fecha_requerida}
+                  onChange={e => handleChange("fecha_requerida", e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            )}
+            {!isAdmin && (
+            <div>
+              <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
+              <Input
+                type="date"
+                value={form.fecha_requerida}
+                onChange={e => handleChange("fecha_requerida", e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <SearchableSelect
                 label="Prioridad" required
@@ -269,25 +304,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
           )}
 
           {showOptional && (
-           <div className="space-y-3 border-t pt-3">
-           {isAdmin && (
-           <div className="grid grid-cols-2 gap-3">
-             <SearchableSelect
-                 label="Responsable"
-                 value={form.responsable} onChange={v => handleChange("responsable", v)}
-                 options={responsableOpts} placeholder="Sin asignar"
-               />
-               <div>
-                 <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
-                 <Input
-                   type="date"
-                   value={form.fecha_requerida}
-                   onChange={e => handleChange("fecha_requerida", e.target.value)}
-                   className="mt-1"
-                 />
-               </div>
-             </div>
-             )}
+            <div className="space-y-3 border-t pt-3">
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
                 <Textarea
@@ -303,14 +320,14 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
 
           {/* Tracking section (edit mode only) */}
           {pedido && isAdmin && (
-          <div className="space-y-3 border-t pt-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
-            <div className="grid grid-cols-2 gap-3">
-              <SearchableSelect
-                label="Responsable"
-                value={form.responsable} onChange={v => handleChange("responsable", v)}
-                options={responsableOpts} placeholder="Sin asignar"
-              />
+            <div className="space-y-3 border-t pt-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
+              <div className="grid grid-cols-2 gap-3">
+                <SearchableSelect
+                  label="Responsable"
+                  value={form.responsable} onChange={v => handleChange("responsable", v)}
+                  options={responsableOpts} placeholder="Sin asignar"
+                />
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
                   <Input type="date" value={form.fecha_requerida} onChange={e => handleChange("fecha_requerida", e.target.value)} className="mt-1" />
