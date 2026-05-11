@@ -51,14 +51,21 @@ Deno.serve(async (req) => {
       try {
         if (existingResp) {
           // Ya existe responsable con este correo
-          // Actualizar nombre si está vacío
-          if (!existingResp.nombre || existingResp.nombre.trim() === '') {
+          // Actualizar nombre, email normalizado y estado
+          const needsUpdate = 
+            existingResp.nombre !== usuario.full_name ||
+            normalizeEmail(existingResp.email) !== emailNorm ||
+            existingResp.activo !== true;
+          
+          if (needsUpdate) {
             await base44.entities.Responsable.update(existingResp.id, {
               nombre: usuario.full_name,
               email: emailNorm,
+              rol_funcion: usuario.role || 'user',
               activo: true
             });
             responsablesActualizados++;
+            respByEmailNorm[emailNorm] = { ...existingResp, nombre: usuario.full_name, activo: true };
           }
         } else {
           // No existe, crear nuevo

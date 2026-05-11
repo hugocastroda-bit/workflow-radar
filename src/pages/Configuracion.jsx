@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
 import * as XLSX from "xlsx";
+import { invalidateAllCache } from "@/lib/catalog-cache";
 
 const BULK_CONFIG = {
   solicitantes: {
@@ -286,14 +287,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
     setSaving(true);
     try {
+      // Validar correo único si se edita
       if (editForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
-        const normalized = editForm.email.toLowerCase().trim();
-        const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
-        if (existingInTable.some(e => 
-          e.id !== id && 
-          (e.email || '').toLowerCase().trim() === normalized
-        )) {
-          toast.error("Este correo ya está registrado en otro registro y no puede repetirse.");
+        const isUnique = await validateEmailBeforeSave(editForm.email, id);
+        if (!isUnique) {
+          toast.error("Este correo ya está registrado y no puede repetirse.");
           setSaving(false);
           return;
         }
@@ -307,11 +305,28 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       }
 
       await base44.entities[entityKey].update(id, data);
+      
+      // Si es Responsable y cambió el correo, sincronizar con Usuario
+      if (entityKey === "Responsable" && editForm.email && editForm.email !== originalForm.email) {
+        try {
+          await base44.functions.invoke('syncUserWithResponsable', {
+            usuarioId: id,
+            nombre: editForm.nombre.trim(),
+            correo: editForm.email,
+            rol: 'user',
+            estado: true
+          });
+        } catch (syncErr) {
+          console.warn('[Configuracion] Error in responsable sync:', syncErr);
+        }
+      }
+      
       toast.success("Cambios guardados correctamente.");
       setEditingId(null);
       setEditForm({});
       setOriginalForm({});
       invalidateCatalogCache();
+      invalidateAllCache();
       load();
     } catch (err) {
       console.error('[Configuracion] Error saving:', err);
@@ -325,6 +340,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     try {
       await base44.entities[entityKey].update(item.id, { activo: !item.activo });
       invalidateCatalogCache();
+      invalidateAllCache();
       load();
     } catch { toast.error("No se pudo actualizar."); }
   };
@@ -348,6 +364,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         toast.success("Opción eliminada correctamente.");
         setConfirmDelete(null);
         invalidateCatalogCache();
+        invalidateAllCache();
         load();
       }
     } catch { toast.error("No se pudo eliminar la opción. Inténtalo nuevamente."); }
@@ -361,6 +378,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       toast.success("Opción inactivada correctamente.");
       setBlockModal(null);
       invalidateCatalogCache();
+      invalidateAllCache();
       load();
     } catch { toast.error("No se pudo inactivar."); }
   };
@@ -373,12 +391,10 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
     setSaving(true);
     try {
+      // Validar correo único si se ingresa
       if (newForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
-        const normalized = newForm.email.toLowerCase().trim();
-        const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
-        if (existingInTable.some(e => 
-          (e.email || '').toLowerCase().trim() === normalized
-        )) {
+        const isUnique = await validateEmailBeforeSave(newForm.email);
+        if (!isUnique) {
           toast.error("Este correo ya está registrado y no puede repetirse.");
           setSaving(false);
           return;
@@ -392,11 +408,30 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         data[extraField2] = normalized || "";
       }
 
-      await base44.entities[entityKey].create(data);
+      const created = await base44.entities[entityKey].create(data);
+      
+      // Si es Responsable, sincronizar con Usuario
+      if (entityKey === "Responsable" && newForm.email) {
+        try {
+          await base44.functions.invoke('syncUserWithResponsable', {
+            usuarioId: created.id,
+            nombre: newForm.nombre.trim(),
+            correo: newForm.email,
+            rol: 'user',
+            estado: true
+          });
+        } catch (syncErr) {
+          console.warn('[Configuracion] Error in responsable sync:', syncErr);
+        }
+      }
+      
       toast.success("Opción creada correctamente.");
       setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
       setAdding(false);
       invalidateCatalogCache();
+      invalidateAllCache();
+      // Pequeño delay para asegurar que la BD está actualizada
+      await new Promise(resolve => setTimeout(resolve, 300));
       load();
     } catch (err) {
       console.error('[Configuracion] Error adding:', err);
@@ -413,7 +448,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       const res = await base44.functions.invoke('syncUsersToResponsables', {});
       setSyncResult(res.data);
       toast.success("Sincronización completada");
+      // Invalidar todo el caché para forzar recarga en todos lados
       invalidateCatalogCache();
+      invalidateAllCache();
+      // Refrescar lista después de sincronizar
+      await new Promise(resolve => setTimeout(resolve, 500));
       load();
     } catch (err) {
       console.error("Sync error:", err);
@@ -433,12 +472,29 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       setCleanupResult(res.data);
       toast.success("Limpieza de duplicados completada");
       invalidateCatalogCache();
+      invalidateAllCache();
+      // Refrescar lista después de limpiar
+      await new Promise(resolve => setTimeout(resolve, 500));
       load();
     } catch (err) {
       console.error("Cleanup error:", err);
       toast.error("Error en limpieza de duplicados");
     }
     setCleanupLoading(false);
+  };
+
+  const validateEmailBeforeSave = async (email, excludeId = null) => {
+    if (!email || !email.trim()) return true;
+    try {
+      const res = await base44.functions.invoke('validateEmailUnique', {
+        correo: email,
+        excludeUserId: excludeId
+      });
+      return res.data.unique;
+    } catch (err) {
+      console.warn('Validation error:', err);
+      return true;
+    }
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;

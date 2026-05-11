@@ -9,32 +9,34 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
+import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
 
 // Module-level cache
 const catalogCache = {};
 
 export function invalidateCatalogCache() {
+  // Invalidar responsables en global cache system
   Object.keys(catalogCache).forEach(k => delete catalogCache[k]);
 }
 
-async function loadCatalogs() {
+async function loadCatalogs(forceRefresh = false) {
   if (!catalogCache.data) catalogCache.data = {};
   const cache = catalogCache.data;
   const f = { activo: true };
   
-  if (!cache.solicitantes) {
+  if (!cache.solicitantes || forceRefresh) {
     cache.solicitantes = await base44.entities.Solicitante.filter(f, "nombre")
       .catch(e => { console.warn("[PedidoForm] Error loading Solicitantes:", e); return []; });
   }
-  if (!cache.responsables) {
-    cache.responsables = await obtenerResponsablesActivos()
-      .catch(e => { console.warn("[PedidoForm] Error loading Responsables:", e); return []; });
-  }
-  if (!cache.procesos) {
+  // SIEMPRE refrescar responsables: no usar caché, consultar BD directamente
+  // Esto asegura que si se creó/editó un usuario, aparezca el responsable
+  cache.responsables = await obtenerResponsablesActivos()
+    .catch(e => { console.warn("[PedidoForm] Error loading Responsables:", e); return []; });
+  if (!cache.procesos || forceRefresh) {
     cache.procesos = await base44.entities.Proceso.filter(f, "nombre")
       .catch(e => { console.warn("[PedidoForm] Error loading Procesos:", e); return []; });
   }
-  if (!cache.prioridades) {
+  if (!cache.prioridades || forceRefresh) {
     cache.prioridades = await base44.entities.Prioridad.filter(f, "nombre")
       .catch(e => { console.warn("[PedidoForm] Error loading Prioridades:", e); return []; });
   }
@@ -128,10 +130,25 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [catalogs, setCatalogs] = useState({});
   const [showOptional, setShowOptional] = useState(false);
+  
+  // Escuchar cambios de caché global para refrescar responsables
+  useEffect(() => {
+    const unsubscribe = subscribeToCacheChanges((changedType) => {
+      if (!open) return;
+      // Si cambió Responsable o todo el caché, refrescar
+      if (changedType === 'all' || changedType === 'responsables') {
+        loadCatalogs(false)
+          .then(cache => setCatalogs({ ...cache }))
+          .catch(e => console.warn('[PedidoForm] Error reloading catalogs:', e));
+      }
+    });
+    return unsubscribe;
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    loadCatalogs()
+    // Forzar recarga de catalogs cada vez que se abre, especialmente Responsables
+    loadCatalogs(false)
       .then(cache => setCatalogs({ ...cache }))
       .catch(e => { console.error("[PedidoForm] Failed to load catalogs:", e); setCatalogs({}); });
   }, [open]);

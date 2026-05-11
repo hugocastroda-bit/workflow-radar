@@ -5,9 +5,10 @@ export function normalizarCorreo(email) {
   return (email || '').toLowerCase().trim();
 }
 
-// Get active Responsables - deduplicated by email
+// Get active Responsables - deduplicated by email, always return fresh from DB
 export async function obtenerResponsablesActivos() {
   try {
+    // Siempre consultar directamente de la BD para evitar caché antigua
     const responsablesTable = await base44.entities.Responsable.filter(
       { activo: true },
       'nombre'
@@ -18,19 +19,19 @@ export async function obtenerResponsablesActivos() {
     const resultado = [];
 
     for (const r of responsablesTable) {
-      if (!r.nombre) continue;
+      if (!r.nombre || !r.nombre.trim()) continue;
       const emailNorm = normalizarCorreo(r.email || '');
       
-      // Si ya vimos este email, saltar
+      // Si ya vimos este email, saltar (evitar duplicados)
       if (emailNorm && seenEmails[emailNorm]) continue;
       
       if (emailNorm) seenEmails[emailNorm] = true;
       
-      const display = r.email ? `${r.nombre} — ${r.email}` : r.nombre;
+      // Retornar objeto con nombre único (para usar en desplegable)
       resultado.push({
-        nombre: r.nombre,
-        display: display,
-        email: r.email
+        nombre: r.nombre.trim(),
+        display: r.email ? `${r.nombre.trim()} — ${r.email}` : r.nombre.trim(),
+        email: r.email || ''
       });
     }
 
