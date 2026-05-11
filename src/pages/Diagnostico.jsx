@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { Loader2, RefreshCw, CheckCircle, XCircle, AlertTriangle, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -27,7 +27,7 @@ function StatusRow({ label, value, ok, warn }) {
 export default function Diagnostico() {
   const { user } = useAuth();
   const { espacioActivo, membresiaActiva } = useEspacio();
-  const isAdmin = isAdminGlobal(user);
+  const isAdmin = user?.role === "admin";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -179,14 +179,14 @@ export default function Diagnostico() {
         <div className="space-y-4">
           {data.errores?.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-red-700">🚨 Errores detectados</p>
+              <p className="text-xs font-semibold text-red-700">Errores detectados</p>
               {data.errores.map((e, i) => <p key={i} className="text-xs text-red-600">{e}</p>)}
             </div>
           )}
 
           {data.warnings?.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-amber-700">⚠️ Advertencias</p>
+              <p className="text-xs font-semibold text-amber-700">Advertencias</p>
               {data.warnings.map((w, i) => <p key={i} className="text-xs text-amber-700">{w}</p>)}
             </div>
           )}
@@ -199,13 +199,13 @@ export default function Diagnostico() {
           </Section>
 
           <Section title="Responsable vinculado">
-            <StatusRow label="Encontrado" value={data.responsableEncontrado ? "Sí" : "No"} ok={data.responsableEncontrado} />
+            <StatusRow label="Encontrado" value={data.responsableEncontrado ? "Si" : "No"} ok={data.responsableEncontrado} />
             <StatusRow label="Nombre" value={data.responsableNombre} />
             <StatusRow label="Email en registro" value={data.responsableEmail} />
             <StatusRow label="ID" value={data.responsableId} />
-            <StatusRow label="Activo" value={data.responsableActivo === null ? "—" : data.responsableActivo ? "Sí" : "No"} ok={data.responsableActivo} />
+            <StatusRow label="Activo" value={data.responsableActivo === null ? "—" : data.responsableActivo ? "Si" : "No"} ok={data.responsableActivo} />
             {data.responsablesDuplicados?.length > 1 && (
-              <StatusRow label="⚠ Duplicados encontrados" value={data.responsablesDuplicados.join(", ")} warn />
+              <StatusRow label="Duplicados encontrados" value={data.responsablesDuplicados.join(", ")} warn />
             )}
           </Section>
 
@@ -222,7 +222,7 @@ export default function Diagnostico() {
             ))}
           </Section>
 
-          <Section title="Espacio activo (sesión)">
+          <Section title="Espacio activo (sesion)">
             <StatusRow label="ID" value={data.espacioActivoId} ok={!!data.espacioActivoId} />
             <StatusRow label="Nombre" value={data.espacioActivoNombre} />
             <StatusRow label="Estado" value={data.espacioActivoEstado} ok={data.espacioActivoEstado === "Activo"} />
@@ -233,10 +233,10 @@ export default function Diagnostico() {
             <>
               <Section title="Pedidos (espacio activo)">
                 <StatusRow label="Pedidos cargados" value={data.pedidosCargados} />
-                <StatusRow label="Sin espacioId (huérfanos)" value={data.pedidosSinEspacioId} ok={data.pedidosSinEspacioId === 0} warn={data.pedidosSinEspacioId > 0} />
+                <StatusRow label="Sin espacioId (huerfanos)" value={data.pedidosSinEspacioId} ok={data.pedidosSinEspacioId === 0} warn={data.pedidosSinEspacioId > 0} />
               </Section>
 
-              <Section title="Catálogos (espacio activo, activos)">
+              <Section title="Catalogos (espacio activo, activos)">
                 <StatusRow label="Solicitantes" value={data.catalogoSolicitantes} ok={data.catalogoSolicitantes > 0} warn={data.catalogoSolicitantes === 0} />
                 <StatusRow label="Responsables" value={data.catalogoResponsables} ok={data.catalogoResponsables > 0} warn={data.catalogoResponsables === 0} />
                 <StatusRow label="Procesos" value={data.catalogoProcesos} ok={data.catalogoProcesos > 0} warn={data.catalogoProcesos === 0} />
@@ -245,7 +245,7 @@ export default function Diagnostico() {
             </>
           )}
 
-          <p className="text-xs text-slate-400 text-right">Diagnóstico ejecutado: {data.timestamp}</p>
+          <p className="text-xs text-slate-400 text-right">Diagnostico ejecutado: {data.timestamp}</p>
         </div>
       )}
     </div>
