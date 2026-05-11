@@ -131,37 +131,37 @@ export default function Kanban() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
         <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
-          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
             {responsables.sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.solicitante} onValueChange={v => setFilter("solicitante", v)}>
-          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
             {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px] border-slate-200 bg-white"><SelectValue placeholder="Proceso" /></SelectTrigger>
+          <SelectContent>{procesos.sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+        </Select>
         <Select value={filters.estado} onValueChange={v => setFilter("estado", v)}>
-          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[120px] border-slate-200 bg-white"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.prioridad} onValueChange={v => setFilter("prioridad", v)}>
-          <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[100px] border-slate-200 bg-white"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>
             {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
-          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{procesos.sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
-        </Select>
         {hasFilters && (
-          <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors">
-            <X className="h-3 w-3" /> Limpiar
+          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors whitespace-nowrap">
+            <X className="h-3 w-3" /> Limpiar filtros
           </button>
         )}
       </div>
