@@ -23,7 +23,7 @@ export default function Bandeja() {
   const [loading, setLoading]   = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [search, setSearch]     = useState("");
-  const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "" });
+  const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
 
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -46,16 +46,18 @@ export default function Bandeja() {
     if (search && !p.titulo?.toLowerCase().includes(search.toLowerCase()) &&
         !p.solicitante?.toLowerCase().includes(search.toLowerCase()) &&
         !p.responsable?.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filters.estado    && p.estado    !== filters.estado)    return false;
-    if (filters.prioridad && p.prioridad !== filters.prioridad) return false;
-    if (filters.proceso   && p.proceso   !== filters.proceso)   return false;
+    if (filters.estado      && p.estado      !== filters.estado)      return false;
+    if (filters.prioridad   && p.prioridad   !== filters.prioridad)   return false;
+    if (filters.proceso     && p.proceso     !== filters.proceso)     return false;
+    if (filters.responsable && (filters.responsable === "__sin__" ? !!p.responsable : p.responsable !== filters.responsable)) return false;
+    if (filters.solicitante && p.solicitante !== filters.solicitante) return false;
     if (isVencidoFilter && !(p.fecha_requerida < today && p.estado !== "Cerrado")) return false;
     return true;
   });
 
   const hasFilters = Object.values(filters).some(Boolean) || search || isVencidoFilter;
   const clearFilters = () => {
-    setFilters({ estado: "", prioridad: "", proceso: "" });
+    setFilters({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
     setSearch("");
     window.history.replaceState({}, "", "/bandeja");
   };
@@ -117,6 +119,19 @@ export default function Bandeja() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="pl-8 h-8 text-xs w-52" />
         </div>
+        <Select value={filters.responsable} onValueChange={v => setFilters(f => ({ ...f, responsable: v }))}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
+            {[...new Set(pedidos.map(p => p.responsable).filter(Boolean))].sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filters.solicitante} onValueChange={v => setFilters(f => ({ ...f, solicitante: v }))}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
+          <SelectContent>
+            {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <Select value={filters.estado}    onValueChange={v => setFilters(f => ({ ...f, estado: v }))}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
@@ -125,7 +140,6 @@ export default function Bandeja() {
           <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
-
         <Select value={filters.proceso}   onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
           <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>

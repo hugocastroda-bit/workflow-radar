@@ -17,7 +17,7 @@ const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", 
 export default function Kanban() {
   const [pedidos, setPedidos]         = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "" });
+  const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
   const [blockModal, setBlockModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
@@ -31,16 +31,18 @@ export default function Kanban() {
   }, []);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
-  const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "" });
+  const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
   const hasFilters = Object.values(filters).some(Boolean);
 
   const responsables = [...new Set(pedidos.map(p => p.responsable).filter(Boolean))];
   const procesos     = [...new Set(pedidos.map(p => p.proceso).filter(Boolean))];
 
   const filtered = pedidos.filter(p => {
-    if (filters.responsable && p.responsable !== filters.responsable) return false;
+    if (filters.responsable && (filters.responsable === "__sin__" ? !!p.responsable : p.responsable !== filters.responsable)) return false;
     if (filters.prioridad   && p.prioridad   !== filters.prioridad)   return false;
     if (filters.proceso     && p.proceso     !== filters.proceso)     return false;
+    if (filters.solicitante && p.solicitante !== filters.solicitante) return false;
+    if (filters.estado      && p.estado      !== filters.estado)      return false;
     return true;
   });
 
@@ -130,25 +132,33 @@ export default function Kanban() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 items-center">
-        {responsables.length > 0 && (
-          <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
-            <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
-            <SelectContent>{responsables.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}</SelectContent>
-          </Select>
-        )}
+        <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
+            {responsables.sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filters.solicitante} onValueChange={v => setFilter("solicitante", v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
+          <SelectContent>
+            {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filters.estado} onValueChange={v => setFilter("estado", v)}>
+          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
+        </Select>
         <Select value={filters.prioridad} onValueChange={v => setFilter("prioridad", v)}>
           <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>
             {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        {procesos.length > 0 && (
-          <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
-            <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-            <SelectContent>{procesos.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
-          </Select>
-        )}
-
+        <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
+          <SelectContent>{procesos.sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+        </Select>
         {hasFilters && (
           <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors">
             <X className="h-3 w-3" /> Limpiar
