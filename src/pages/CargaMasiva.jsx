@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { useEspacio } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, CheckCircle, AlertCircle, AlertTriangle, Loader2, X } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -19,7 +18,6 @@ function downloadTemplate() {
 }
 
 export default function CargaMasiva() {
-  const { espacioActivo } = useEspacio();
   const fileRef = useRef(null);
   const [catalogs, setCatalogs] = useState(null);
   const [rows, setRows] = useState([]);
@@ -106,18 +104,17 @@ export default function CargaMasiva() {
   const readyRows = rows.filter(r => !r._skip && r._errors.length === 0);
 
   const handleImport = async () => {
-    setImporting(true);
-    const toImport = readyRows.map(r => ({
-      espacioId: espacioActivo?.id,
-      titulo: r["Título"],
-      solicitante: r["Solicitante"],
-      proceso: r["Proceso"],
-      prioridad: r["Prioridad"],
-      responsable: r["Responsable"] || undefined,
-      fecha_requerida: r["Fecha requerida"] || undefined,
-      descripcion: r["Descripción"] || undefined,
-      estado: "Nuevo",
-    }));
+   setImporting(true);
+   const toImport = readyRows.map(r => ({
+     titulo: r["Título"],
+     solicitante: r["Solicitante"],
+     proceso: r["Proceso"],
+     prioridad: r["Prioridad"],
+     responsable: r["Responsable"] || undefined,
+     fecha_requerida: r["Fecha requerida"] || undefined,
+     descripcion: r["Descripción"] || undefined,
+     estado: "Nuevo",
+   }));
 
     const duplicateRows = rows.filter(r => !r._skip && r._errors.length === 0 && r._warnings.length > 0);
     const skipped = rows.filter(r => r._skip);

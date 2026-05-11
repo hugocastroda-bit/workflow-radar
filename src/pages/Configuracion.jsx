@@ -5,11 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
-import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
-import AdminEspaciosModal from "@/components/AdminEspaciosModal";
 
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo" },
@@ -82,7 +79,7 @@ function NotificacionesTab() {
 
 const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", Proceso: "proceso", Prioridad: "prioridad" };
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, espacioId }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -96,8 +93,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
   const load = () => {
     setLoading(true);
-    const query = espacioId ? { espacioId } : {};
-    base44.entities[entityKey].filter(query, "nombre").then(d => { setItems(d); setLoading(false); })
+    base44.entities[entityKey].filter({}, "nombre").then(d => { setItems(d); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
@@ -122,7 +118,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       if (extraField2) data[extraField2] = (editForm[extraField2] || "").toLowerCase().trim();
       await base44.entities[entityKey].update(id, data);
       setEditingId(null);
-      invalidateCatalogCache(espacioId);
+      invalidateCatalogCache();
       load();
     } catch { toast.error("No se pudo guardar. Inténtalo nuevamente."); }
     setSaving(false);
@@ -131,7 +127,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const toggleActivo = async (item) => {
     try {
       await base44.entities[entityKey].update(item.id, { activo: !item.activo });
-      invalidateCatalogCache(espacioId);
+      invalidateCatalogCache();
       load();
     } catch { toast.error("No se pudo actualizar."); }
   };
@@ -142,13 +138,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!confirmDelete) return;
     setDeleteLoading(true);
     try {
-      const campoPedido = CAMPO_PEDIDO[entityKey];
-      let pedidosAsociados = [];
-      if (campoPedido) {
-        const query = { [campoPedido]: confirmDelete.nombre };
-        if (espacioId) query.espacioId = espacioId;
-        pedidosAsociados = await base44.entities.Pedido.filter(query);
-      }
+     const campoPedido = CAMPO_PEDIDO[entityKey];
+     let pedidosAsociados = [];
+     if (campoPedido) {
+       pedidosAsociados = await base44.entities.Pedido.filter({ [campoPedido]: confirmDelete.nombre });
+     }
       if (pedidosAsociados.length > 0) {
         setConfirmDelete(null);
         setBlockModal({ item: confirmDelete, message: "No se puede eliminar esta opción porque tiene información asociada. Puedes inactivarla para que no vuelva a aparecer en nuevos pedidos." });
@@ -156,7 +150,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         await base44.entities[entityKey].delete(confirmDelete.id);
         toast.success("Opción eliminada correctamente.");
         setConfirmDelete(null);
-        invalidateCatalogCache(espacioId);
+        invalidateCatalogCache();
         load();
       }
     } catch { toast.error("No se pudo eliminar la opción. Inténtalo nuevamente."); }
@@ -169,7 +163,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       await base44.entities[entityKey].update(blockModal.item.id, { activo: false });
       toast.success("Opción inactivada correctamente.");
       setBlockModal(null);
-      invalidateCatalogCache(espacioId);
+      invalidateCatalogCache();
       load();
     } catch { toast.error("No se pudo inactivar."); }
   };
@@ -178,15 +172,14 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!newForm.nombre.trim()) return;
     setSaving(true);
     try {
-      const data = { nombre: newForm.nombre.trim(), activo: true };
-      if (espacioId) data.espacioId = espacioId;
-      if (extraField) data[extraField] = newForm[extraField] || "";
-      if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
-      await base44.entities[entityKey].create(data);
-      setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
-      setAdding(false);
-      invalidateCatalogCache(espacioId);
-      load();
+       const data = { nombre: newForm.nombre.trim(), activo: true };
+       if (extraField) data[extraField] = newForm[extraField] || "";
+       if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
+       await base44.entities[entityKey].create(data);
+       setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
+       setAdding(false);
+       invalidateCatalogCache();
+       load();
     } catch { toast.error("No se pudo agregar. Intenta nuevamente."); }
     setSaving(false);
   };
@@ -365,9 +358,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const [gestionarModal, setGestionarModal] = useState(null);
-  const [showAdminEspacios, setShowAdminEspacios] = useState(false);
   const { user } = useAuth();
-  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
   const tab = TABS.find(t => t.key === activeTab);
 
@@ -407,40 +398,23 @@ export default function Configuracion() {
         ))}
       </div>
 
-      {activeTab === "Responsable" && isAdmin && (
-        <div className="flex justify-end -mb-2">
-          <Button size="sm" variant="outline" onClick={() => setShowAdminEspacios(true)} className="gap-1.5 text-xs">
-            <Building2 className="h-3.5 w-3.5" /> Administrar espacios
-          </Button>
-        </div>
-      )}
+
 
       {activeTab === "notificaciones" ? (
         <NotificacionesTab />
       ) : (
         <CatalogoTab
-          key={activeTab + (espacioActivo?.id || "")}
-          entityKey={tab.key}
-          extraField={tab.extra}
-          extraLabel={tab.extraLabel}
-          extraField2={tab.extra2}
-          extraLabel2={tab.extraLabel2}
-          onExtraAction={activeTab === "Responsable" && isAdmin ? (item) => setGestionarModal(item) : null}
-          espacioId={espacioActivo?.id}
-        />
+           key={activeTab}
+           entityKey={tab.key}
+           extraField={tab.extra}
+           extraLabel={tab.extraLabel}
+           extraField2={tab.extra2}
+           extraLabel2={tab.extraLabel2}
+           onExtraAction={null}
+         />
       )}
 
-      <GestionarEspaciosModal
-        responsable={gestionarModal}
-        open={!!gestionarModal}
-        onClose={() => setGestionarModal(null)}
-      />
 
-      <AdminEspaciosModal
-        open={showAdminEspacios}
-        onClose={() => setShowAdminEspacios(false)}
-        user={user}
-      />
     </div>
   );
 }

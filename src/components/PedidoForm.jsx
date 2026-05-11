@@ -5,24 +5,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
-import { useEspacio } from "@/lib/EspacioContext";
 import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
-// Module-level cache keyed by espacioId so switching spaces invalidates catalogs
-const catalogCacheBySpace = {};
+// Module-level cache
+const catalogCache = {};
 
 // Call this from Configuracion after creating/editing/inactivating catalog records
-export function invalidateCatalogCache(espacioId) {
-  if (espacioId) delete catalogCacheBySpace[espacioId];
-  else Object.keys(catalogCacheBySpace).forEach(k => delete catalogCacheBySpace[k]);
+export function invalidateCatalogCache() {
+  Object.keys(catalogCache).forEach(k => delete catalogCache[k]);
 }
 
-async function loadCatalogs(espacioId) {
-  if (!catalogCacheBySpace[espacioId]) catalogCacheBySpace[espacioId] = {};
-  const cache = catalogCacheBySpace[espacioId];
-  const f = espacioId ? { activo: true, espacioId } : { activo: true };
+async function loadCatalogs() {
+  if (!catalogCache.data) catalogCache.data = {};
+  const cache = catalogCache.data;
+  const f = { activo: true };
   
   if (!cache.solicitantes) {
     cache.solicitantes = await base44.entities.Solicitante.filter(f, "nombre")
@@ -125,7 +123,6 @@ function SearchableSelect({ label, value, onChange, options, placeholder, requir
 }
 
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
-  const { espacioActivo } = useEspacio();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [form, setForm] = useState(emptyForm);
@@ -133,14 +130,13 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [catalogs, setCatalogs] = useState({});
   const [showOptional, setShowOptional] = useState(false);
 
-  // Load catalogs filtered by active space; cache per-space
+  // Load catalogs
   useEffect(() => {
     if (!open) return;
-    const espacioId = espacioActivo?.id;
-    loadCatalogs(espacioId)
+    loadCatalogs()
       .then(cache => setCatalogs({ ...cache }))
       .catch(e => { console.error("[PedidoForm] Failed to load catalogs:", e); setCatalogs({}); });
-  }, [open, espacioActivo?.id]);
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -167,10 +163,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   };
 
   const handleSave = async () => {
-    if (!espacioActivo?.id) {
-      toast.error("No hay un espacio activo seleccionado.");
-      return;
-    }
     setSaving(true);
     const data = { ...form };
 
@@ -190,7 +182,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         saved = await base44.entities.Pedido.update(pedido.id, data);
       } else {
         data.estado = "Nuevo";
-        data.espacioId = espacioActivo.id;
         saved = await base44.entities.Pedido.create(data);
       }
       clearTimeout(timeout);

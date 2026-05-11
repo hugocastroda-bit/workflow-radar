@@ -10,7 +10,6 @@ import PedidoForm from "../components/PedidoForm";
 import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio } from "@/lib/EspacioContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
@@ -29,7 +28,6 @@ export default function Bandeja() {
   const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
 
   const { user } = useAuth();
-  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
@@ -42,11 +40,10 @@ export default function Bandeja() {
   useEffect(() => {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
-    if (!espacioActivo?.id) { setLoading(false); return; }
     
     const cargarPedidos = async () => {
       try {
-        const d = await base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date");
+        const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
         setPedidos(filtrarConfidenciales(d, user));
       } catch (err) {
         console.error("[Bandeja] Error cargando pedidos:", err);
@@ -56,7 +53,7 @@ export default function Bandeja() {
       }
     };
     cargarPedidos();
-  }, [espacioActivo?.id, user]);
+  }, [user]);
 
   const today = new Date().toISOString().split("T")[0];
   const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";
@@ -288,11 +285,10 @@ export default function Bandeja() {
         pedido={null}
         onSaved={(saved) => {
           if (saved) {
-            // Prepend new order; apply confidentiality filter
             const filtrado = filtrarConfidenciales([saved], user);
             if (filtrado.length > 0) setPedidos(prev => [saved, ...prev]);
-          } else if (espacioActivo?.id) {
-            base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
+          } else {
+            base44.entities.Pedido.filter({ archivado: false }, "-created_date")
               .then(d => setPedidos(filtrarConfidenciales(d, user)));
           }
         }}

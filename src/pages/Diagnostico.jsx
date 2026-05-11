@@ -1,17 +1,14 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio } from "@/lib/EspacioContext";
-import { Loader2, RefreshCw, CheckCircle, XCircle, AlertTriangle, ShieldOff } from "lucide-react";
+import { Loader2, RefreshCw, CheckCircle, XCircle, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-function StatusRow({ label, value, ok, warn }) {
+function StatusRow({ label, value, ok }) {
   const icon = ok === true
     ? <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
     : ok === false
     ? <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
-    : warn
-    ? <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
     : null;
   return (
     <div className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
@@ -24,129 +21,91 @@ function StatusRow({ label, value, ok, warn }) {
   );
 }
 
+function Section({ title, children }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{title}</p>
+      </div>
+      <div className="px-4 py-1">{children}</div>
+    </div>
+  );
+}
+
 export default function Diagnostico() {
   const { user } = useAuth();
-  const { espacioActivo, membresiaActiva } = useEspacio();
   const isAdmin = user?.role === "admin";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const runDiag = async () => {
     setLoading(true);
-    const emailAuth = (user?.email || "").toLowerCase().trim();
     const now = new Date().toISOString();
-    const result = { timestamp: now, emailAuth, errores: [], warnings: [] };
+    const result = { timestamp: now, errors: [] };
 
     try {
-      // Usuario
+      // User info
       result.userId = user?.id || null;
+      result.userEmail = user?.email || null;
       result.userFullName = user?.full_name || null;
       result.userRole = user?.role || null;
-      result.emailNormalizado = emailAuth;
 
-      // Responsable vinculado
+      // Responsible count
       try {
         const responsables = await base44.entities.Responsable.list();
-        const resp = responsables.find(r => (r.email || "").toLowerCase().trim() === emailAuth);
-        result.responsableEncontrado = !!resp;
-        result.responsableId = resp?.id || null;
-        result.responsableNombre = resp?.nombre || null;
-        result.responsableEmail = resp?.email || null;
-        result.responsableActivo = resp ? resp.activo !== false : null;
-        // Check duplicates
-        const dups = responsables.filter(r => (r.email || "").toLowerCase().trim() === emailAuth);
-        result.responsablesDuplicados = dups.length > 1 ? dups.map(r => r.id) : [];
-        // Check for orphaned responsables
-        const sinEmail = responsables.filter(r => !r.email || !r.email.trim());
-        if (sinEmail.length > 0) {
-          result.warnings.push(`${sinEmail.length} responsables sin correo registrado. Estos no pueden recibir notificaciones.`);
-        }
+        result.totalResponsables = responsables.length;
+        result.activoResponsables = responsables.filter(r => r.activo !== false).length;
       } catch (e) {
-        result.errores.push("Responsable: " + e.message);
-        result.responsableEncontrado = false;
+        result.errors.push("Responsables: " + e.message);
       }
 
-      // Membresías (try multiple email formats)
+      // Solicitors count
       try {
-        let membs = [];
-        for (const correo of [emailAuth, user?.email]) {
-          if (!correo) continue;
-          try {
-            const found = await base44.entities.MembresiaEspacio.filter({ correoUsuario: correo });
-            membs = [...membs, ...found];
-          } catch {}
-        }
-        // Dedup
-        const seen = new Set();
-        membs = membs.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
-        result.totalMembresias = membs.length;
-        result.membresiaActivas = membs.filter(m => m.estado === "Activo").length;
-        result.membresiaInactivas = membs.filter(m => m.estado !== "Activo").length;
-        result.membresiasDetalle = membs.map(m => ({
-          espacioId: m.espacioId,
-          rol: m.rolEnEspacio,
-          estado: m.estado,
-          validadoConClave: m.validadoConClave,
-          correoGuardado: m.correoUsuario,
-        }));
+        const solicitantes = await base44.entities.Solicitante.list();
+        result.totalSolicitantes = solicitantes.length;
+        result.activoSolicitantes = solicitantes.filter(s => s.activo !== false).length;
       } catch (e) {
-        result.errores.push("Membresías: " + e.message);
-        result.totalMembresias = 0;
+        result.errors.push("Solicitantes: " + e.message);
       }
 
-      // Espacio activo (sesión actual)
-      result.espacioActivoId = espacioActivo?.id || null;
-      result.espacioActivoNombre = espacioActivo?.nombreEspacio || null;
-      result.espacioActivoEstado = espacioActivo?.estado || null;
-      result.rolEnEspacioActivo = membresiaActiva?.rolEnEspacio || null;
+      // Processes count
+      try {
+        const procesos = await base44.entities.Proceso.list();
+        result.totalProcesos = procesos.length;
+        result.activoProcesos = procesos.filter(p => p.activo !== false).length;
+      } catch (e) {
+        result.errors.push("Procesos: " + e.message);
+      }
 
-      // Pedidos del espacio activo
-      if (espacioActivo?.id) {
-        try {
-          const pedidos = await base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id });
-          result.pedidosCargados = pedidos.length;
-          result.pedidosSinEspacioId = pedidos.filter(p => !p.espacioId).length;
-          
-          // Check for integrity issues
-          const sinResponsable = pedidos.filter(p => !p.responsable || !p.responsable.trim()).length;
-          const sinSolicitante = pedidos.filter(p => !p.solicitante || !p.solicitante.trim()).length;
-          const sinProceso = pedidos.filter(p => !p.proceso || !p.proceso.trim()).length;
-          const sinPrioridad = pedidos.filter(p => !p.prioridad || !p.prioridad.trim()).length;
-          
-          if (sinResponsable > 0) result.warnings.push(`${sinResponsable} pedidos sin responsable asignado.`);
-          if (sinSolicitante > 0) result.warnings.push(`${sinSolicitante} pedidos sin solicitante.`);
-          if (sinProceso > 0) result.warnings.push(`${sinProceso} pedidos sin proceso.`);
-          if (sinPrioridad > 0) result.warnings.push(`${sinPrioridad} pedidos sin prioridad.`);
-        } catch (e) {
-          result.errores.push("Pedidos: " + e.message);
-          result.pedidosCargados = 0;
-        }
+      // Priorities count
+      try {
+        const prioridades = await base44.entities.Prioridad.list();
+        result.totalPrioridades = prioridades.length;
+        result.activoPrioridades = prioridades.filter(p => p.activo !== false).length;
+      } catch (e) {
+        result.errors.push("Prioridades: " + e.message);
+      }
 
-        // Catálogos
-        try {
-          const [sols, resps, procs, prios] = await Promise.all([
-            base44.entities.Solicitante.filter({ activo: true, espacioId: espacioActivo.id }),
-            base44.entities.Responsable.filter({ activo: true, espacioId: espacioActivo.id }),
-            base44.entities.Proceso.filter({ activo: true, espacioId: espacioActivo.id }),
-            base44.entities.Prioridad.filter({ activo: true, espacioId: espacioActivo.id }),
-          ]);
-          result.catalogoSolicitantes = sols.length;
-          result.catalogoResponsables = resps.length;
-          result.catalogoProcesos = procs.length;
-          result.catalogoPrioridades = prios.length;
-        } catch (e) {
-          result.errores.push("Catálogos: " + e.message);
-        }
+      // Orders stats
+      try {
+        const pedidos = await base44.entities.Pedido.list();
+        result.totalPedidos = pedidos.length;
+        result.pedidosActivos = pedidos.filter(p => !p.archivado).length;
+        result.pedidosArchivados = pedidos.filter(p => p.archivado).length;
+      } catch (e) {
+        result.errors.push("Pedidos: " + e.message);
       }
     } catch (e) {
-      result.errores.push("Error general: " + e.message);
+      result.errors.push("General: " + e.message);
     }
 
     setData(result);
     setLoading(false);
   };
 
-  useEffect(() => { if (isAdmin) runDiag(); }, []);
+  useEffect(() => {
+    if (isAdmin) runDiag();
+  }, [isAdmin]);
 
   if (!isAdmin) {
     return (
@@ -161,8 +120,8 @@ export default function Diagnostico() {
     <div className="p-8 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-800">Panel de diagnóstico</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Solo visible para administradores. Retira esta sección antes de producción final.</p>
+          <h1 className="text-lg font-semibold text-slate-800">Diagnóstico del sistema</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Estado general de la aplicación.</p>
         </div>
         <Button size="sm" variant="outline" onClick={runDiag} disabled={loading} className="gap-1.5 text-xs">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Actualizar
@@ -177,88 +136,37 @@ export default function Diagnostico() {
 
       {data && !loading && (
         <div className="space-y-4">
-          {data.errores?.length > 0 && (
+          {data.errors?.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 space-y-1">
               <p className="text-xs font-semibold text-red-700">Errores detectados</p>
-              {data.errores.map((e, i) => <p key={i} className="text-xs text-red-600">{e}</p>)}
-            </div>
-          )}
-
-          {data.warnings?.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-amber-700">Advertencias</p>
-              {data.warnings.map((w, i) => <p key={i} className="text-xs text-amber-700">{w}</p>)}
+              {data.errors.map((e, i) => (
+                <p key={i} className="text-xs text-red-600">{e}</p>
+              ))}
             </div>
           )}
 
           <Section title="Usuario autenticado">
-            <StatusRow label="Email" value={data.emailAuth} />
-            <StatusRow label="Email normalizado" value={data.emailNormalizado} />
+            <StatusRow label="Email" value={data.userEmail} />
             <StatusRow label="Nombre" value={data.userFullName} />
-            <StatusRow label="Rol global" value={data.userRole} ok={data.userRole === "admin"} />
+            <StatusRow label="Rol" value={data.userRole} ok={data.userRole === "admin"} />
           </Section>
 
-          <Section title="Responsable vinculado">
-            <StatusRow label="Encontrado" value={data.responsableEncontrado ? "Si" : "No"} ok={data.responsableEncontrado} />
-            <StatusRow label="Nombre" value={data.responsableNombre} />
-            <StatusRow label="Email en registro" value={data.responsableEmail} />
-            <StatusRow label="ID" value={data.responsableId} />
-            <StatusRow label="Activo" value={data.responsableActivo === null ? "—" : data.responsableActivo ? "Si" : "No"} ok={data.responsableActivo} />
-            {data.responsablesDuplicados?.length > 1 && (
-              <StatusRow label="Duplicados encontrados" value={data.responsablesDuplicados.join(", ")} warn />
-            )}
+          <Section title="Catálogos">
+            <StatusRow label="Responsables" value={`${data.activoResponsables}/${data.totalResponsables}`} ok={data.totalResponsables > 0} />
+            <StatusRow label="Solicitantes" value={`${data.activoSolicitantes}/${data.totalSolicitantes}`} ok={data.totalSolicitantes > 0} />
+            <StatusRow label="Procesos" value={`${data.activoProcesos}/${data.totalProcesos}`} ok={data.totalProcesos > 0} />
+            <StatusRow label="Prioridades" value={`${data.activoPrioridades}/${data.totalPrioridades}`} ok={data.totalPrioridades > 0} />
           </Section>
 
-          <Section title="Accesos a espacios">
-            <StatusRow label="Total membresías" value={data.totalMembresias} ok={data.totalMembresias > 0} />
-            <StatusRow label="Activas" value={data.membresiaActivas} ok={data.membresiaActivas > 0} />
-            <StatusRow label="Inactivas" value={data.membresiaInactivas} warn={data.membresiaInactivas > 0} />
-            {data.membresiasDetalle?.map((m, i) => (
-              <div key={i} className="ml-4 border-l-2 border-slate-200 pl-3 py-1 space-y-0.5">
-                <p className="text-xs text-slate-600"><span className="font-medium">EspacioId:</span> {m.espacioId}</p>
-                <p className="text-xs text-slate-600"><span className="font-medium">Rol:</span> {m.rol}</p>
-                <p className="text-xs text-slate-600"><span className="font-medium">Estado:</span> <span className={m.estado === "Activo" ? "text-emerald-600" : "text-red-500"}>{m.estado}</span></p>
-              </div>
-            ))}
+          <Section title="Pedidos">
+            <StatusRow label="Total" value={data.totalPedidos} />
+            <StatusRow label="Activos" value={data.pedidosActivos} />
+            <StatusRow label="Archivados" value={data.pedidosArchivados} />
           </Section>
 
-          <Section title="Espacio activo (sesion)">
-            <StatusRow label="ID" value={data.espacioActivoId} ok={!!data.espacioActivoId} />
-            <StatusRow label="Nombre" value={data.espacioActivoNombre} />
-            <StatusRow label="Estado" value={data.espacioActivoEstado} ok={data.espacioActivoEstado === "Activo"} />
-            <StatusRow label="Rol en espacio" value={data.rolEnEspacioActivo} />
-          </Section>
-
-          {data.espacioActivoId && (
-            <>
-              <Section title="Pedidos (espacio activo)">
-                <StatusRow label="Pedidos cargados" value={data.pedidosCargados} />
-                <StatusRow label="Sin espacioId (huerfanos)" value={data.pedidosSinEspacioId} ok={data.pedidosSinEspacioId === 0} warn={data.pedidosSinEspacioId > 0} />
-              </Section>
-
-              <Section title="Catalogos (espacio activo, activos)">
-                <StatusRow label="Solicitantes" value={data.catalogoSolicitantes} ok={data.catalogoSolicitantes > 0} warn={data.catalogoSolicitantes === 0} />
-                <StatusRow label="Responsables" value={data.catalogoResponsables} ok={data.catalogoResponsables > 0} warn={data.catalogoResponsables === 0} />
-                <StatusRow label="Procesos" value={data.catalogoProcesos} ok={data.catalogoProcesos > 0} warn={data.catalogoProcesos === 0} />
-                <StatusRow label="Prioridades" value={data.catalogoPrioridades} ok={data.catalogoPrioridades > 0} warn={data.catalogoPrioridades === 0} />
-              </Section>
-            </>
-          )}
-
-          <p className="text-xs text-slate-400 text-right">Diagnostico ejecutado: {data.timestamp}</p>
+          <p className="text-xs text-slate-400 text-right">Actualizado: {data.timestamp}</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function Section({ title, children }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{title}</p>
-      </div>
-      <div className="px-4 py-1">{children}</div>
     </div>
   );
 }
