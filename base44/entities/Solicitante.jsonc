@@ -37,7 +37,14 @@
           }
         },
         {
-          "data.activo": true
+          "$and": [
+            {
+              "data.espacioId": "{{user.active_space_id}}"
+            },
+            {
+              "data.activo": true
+            }
+          ]
         }
       ]
     },
