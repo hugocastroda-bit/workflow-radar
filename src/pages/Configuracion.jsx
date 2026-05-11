@@ -6,14 +6,16 @@ import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2,
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
+import BulkUploadModal from "@/components/BulkUploadModal";
 
 const TABS = [
-  { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo" },
-  { key: "Responsable",  label: "Responsables",  extra: "rol_funcion", extraLabel: "Rol o función", extra2: "email", extraLabel2: "Correo" },
-  { key: "Proceso",      label: "Procesos",      extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null },
-  { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null },
-  { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null },
+  { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo", bulkType: "solicitantes" },
+  { key: "Responsable",  label: "Responsables",  extra: "rol_funcion", extraLabel: "Rol o función", extra2: "email", extraLabel2: "Correo", bulkType: "responsables" },
+  { key: "Proceso",      label: "Procesos",      extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "procesos" },
+  { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "prioridades" },
+  { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
 ];
 
 function NotificacionesTab() {
@@ -79,7 +81,7 @@ function NotificacionesTab() {
 
 const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", Proceso: "proceso", Prioridad: "prioridad" };
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, bulkType }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -90,11 +92,18 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [confirmDelete, setConfirmDelete] = useState(null); // item
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [blockModal, setBlockModal] = useState(null); // { item, message }
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
 
   const load = () => {
     setLoading(true);
     base44.entities[entityKey].filter({}, "nombre").then(d => { setItems(d); setLoading(false); })
       .catch(() => setLoading(false));
+  };
+
+  const handleBulkImported = () => {
+    setBulkUploadOpen(false);
+    invalidateCatalogCache();
+    load();
   };
 
   useEffect(() => { load(); }, [entityKey]);
@@ -191,11 +200,21 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button size="sm" onClick={() => setBulkUploadOpen(true)} variant="outline" className="gap-1.5 text-xs">
+          <Upload className="h-3.5 w-3.5" /> Carga masiva
+        </Button>
         <Button size="sm" onClick={() => setAdding(true)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs">
           <Plus className="h-3.5 w-3.5" /> Agregar
         </Button>
       </div>
+
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onClose={() => setBulkUploadOpen(false)}
+        type={bulkType}
+        onImported={handleBulkImported}
+      />
 
       {adding && (
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-2">
@@ -411,7 +430,8 @@ export default function Configuracion() {
            extraField2={tab.extra2}
            extraLabel2={tab.extraLabel2}
            onExtraAction={null}
-         />
+           bulkType={tab.bulkType}
+        />
       )}
 
 
