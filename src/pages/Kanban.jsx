@@ -34,10 +34,10 @@ export default function Kanban() {
 
   useEffect(() => {
     if (!espacioActivo?.id) { setLoading(false); return; }
-    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date").then(d => {
-      setPedidos(filtrarConfidenciales(d, user));
-      setLoading(false);
-    });
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
+      .then(d => setPedidos(filtrarConfidenciales(d, user)))
+      .catch(() => toast.error("No se pudieron cargar los pedidos."))
+      .finally(() => setLoading(false));
   }, [espacioActivo?.id]);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
@@ -63,6 +63,7 @@ export default function Kanban() {
     const pedido = pedidos.find(p => p.id === draggableId);
     if (!pedido || pedido.estado === newEstado) return;
 
+    const prevEstado = pedido.estado;
     // Optimistic update
     setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: newEstado } : p));
 
@@ -74,18 +75,28 @@ export default function Kanban() {
     if (newEstado === "Cerrado") {
       updateData.fecha_cierre_real = new Date().toISOString().split("T")[0];
     }
-    await base44.entities.Pedido.update(draggableId, updateData);
 
-    // Trigger notifications in background (non-blocking)
-    if (newEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: draggableId }).catch(() => {});
-    if (newEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: draggableId }).catch(() => {});
+    try {
+      await base44.entities.Pedido.update(draggableId, updateData);
+      // Trigger notifications in background (non-blocking)
+      if (newEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: draggableId }).catch(() => {});
+      if (newEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: draggableId }).catch(() => {});
+    } catch {
+      // Rollback optimistic update on failure
+      setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: prevEstado } : p));
+      toast.error("No se pudo mover el pedido. Inténtalo nuevamente.");
+    }
   };
 
   const saveBlockMotivo = async () => {
     if (!blockModal) return;
-    await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
-    setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
-    setBlockModal(null);
+    try {
+      await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
+      setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
+      setBlockModal(null);
+    } catch {
+      toast.error("No se pudo guardar el motivo de bloqueo.");
+    }
   };
 
   const handleArchive = async (motivo) => {

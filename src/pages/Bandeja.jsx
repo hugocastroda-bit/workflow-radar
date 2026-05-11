@@ -44,10 +44,10 @@ export default function Bandeja() {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
     if (!espacioActivo?.id) { setLoading(false); return; }
-    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date").then(d => {
-      setPedidos(filtrarConfidenciales(d, user));
-      setLoading(false);
-    });
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
+      .then(d => setPedidos(filtrarConfidenciales(d, user)))
+      .catch(() => toast.error("No se pudieron cargar los pedidos."))
+      .finally(() => setLoading(false));
   }, [espacioActivo?.id]);
 
   const today = new Date().toISOString().split("T")[0];

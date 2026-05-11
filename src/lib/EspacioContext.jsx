@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { base44 } from "@/api/base44Client";
 
 // El rol 'admin' en Base44 = 'Administrador Global' en Radar C&T
 export const isAdminGlobal = (user) => user?.role === "admin";
@@ -29,17 +30,31 @@ export default function EspacioProvider() {
   const { user, isLoadingAuth } = useAuth();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("radarct_espacio");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.espacio && parsed?.membresia) {
-          setEspacioActivo(parsed.espacio);
-          setMembresiaActiva(parsed.membresia);
+    const restoreAndValidate = async () => {
+      try {
+        const stored = localStorage.getItem("radarct_espacio");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.espacio?.id && parsed?.membresia) {
+            // Validate the space is still active
+            const espacios = await base44.entities.EspacioEquipo.filter({ estado: "Activo" });
+            const stillActive = espacios.find(e => e.id === parsed.espacio.id);
+            if (stillActive) {
+              setEspacioActivo(stillActive); // use fresh data
+              setMembresiaActiva(parsed.membresia);
+            } else {
+              // Space was deactivated or deleted — clear stored session
+              localStorage.removeItem("radarct_espacio");
+            }
+          }
         }
+      } catch {
+        // If validation fails, clear to force re-selection
+        localStorage.removeItem("radarct_espacio");
       }
-    } catch {}
-    setLoadingEspacio(false);
+      setLoadingEspacio(false);
+    };
+    restoreAndValidate();
   }, []);
 
   useEffect(() => {

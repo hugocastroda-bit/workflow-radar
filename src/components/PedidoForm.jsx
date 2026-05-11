@@ -153,49 +153,38 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   };
 
   const handleSave = async () => {
-    console.log("[PedidoForm] 1. Inicio de creación");
     setSaving(true);
     const data = { ...form };
 
-    // Strip empty optional fields to avoid sending empty strings
+    // Strip empty optional fields
     if (!data.responsable) delete data.responsable;
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
 
-    console.log("[PedidoForm] 2. Validación completada. Campos:", { titulo: data.titulo, solicitante: data.solicitante, proceso: data.proceso, prioridad: data.prioridad });
-
     const timeout = setTimeout(() => {
       setSaving(false);
       toast.error("El guardado está tomando más tiempo de lo esperado. Revisa la conexión o intenta nuevamente.");
-      console.warn("[PedidoForm] TIMEOUT: el guardado superó 8 segundos");
+
     }, 8000);
 
     try {
       let saved;
       if (pedido?.id) {
-        console.log("[PedidoForm] 3. Actualizando pedido", pedido.id);
         saved = await base44.entities.Pedido.update(pedido.id, data);
-        console.log("[PedidoForm] 4. Pedido actualizado:", saved);
       } else {
         data.estado = "Nuevo";
         if (espacioActivo?.id) data.espacioId = espacioActivo.id;
-        console.log("[PedidoForm] 3. Insertando pedido...");
         saved = await base44.entities.Pedido.create(data);
-        console.log("[PedidoForm] 4. Pedido creado correctamente. ID:", saved?.id);
       }
       clearTimeout(timeout);
-      console.log("[PedidoForm] 5. Cerrando modal y actualizando vista");
       setSaving(false);
       if (!pedido) toast.success("Pedido creado correctamente");
       onSaved?.(saved);
-      console.log("[PedidoForm] 6. onSaved ejecutado");
       onClose();
-      console.log("[PedidoForm] 7. Modal cerrado");
-    } catch (err) {
+    } catch {
       clearTimeout(timeout);
       setSaving(false);
-      console.error("[PedidoForm] ERROR en paso de guardado:", err?.message || err);
-      toast.error("No se pudo crear el pedido. Inténtalo nuevamente.");
+      toast.error("No se pudo guardar el pedido. Inténtalo nuevamente.");
     }
   };
 

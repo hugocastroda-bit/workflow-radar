@@ -223,7 +223,7 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
                 className="h-8 text-xs border border-slate-200 rounded-md px-2 bg-white col-span-2"
               >
                 <option value="">Seleccionar espacio…</option>
-                {espaciosDisp.map(e => (
+                {espaciosDisp.filter(e => e.estado === "Activo").map(e => (
                   <option key={e.id} value={e.id}>{e.nombreEspacio}</option>
                 ))}
               </select>

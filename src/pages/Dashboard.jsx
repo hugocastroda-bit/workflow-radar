@@ -59,10 +59,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!espacioActivo?.id) { setLoading(false); return; }
-    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }).then(d => {
-      setPedidos(filtrarConfidenciales(d, user));
-      setLoading(false);
-    });
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id })
+      .then(d => setPedidos(filtrarConfidenciales(d, user)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [espacioActivo?.id]);
 
   if (loading) return (
