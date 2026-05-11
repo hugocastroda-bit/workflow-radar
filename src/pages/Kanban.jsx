@@ -167,7 +167,7 @@ export default function Kanban() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-96">
-      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
     </div>
   );
 
@@ -176,44 +176,44 @@ export default function Kanban() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-800">Tablero Kanban</h1>
-          <p className="text-xs text-slate-400 mt-0.5">{activeCount} pedidos activos · {pedidos.filter(p => p.estado === "Cerrado").length} cerrados</p>
+          <h1 className="text-2xl font-semibold text-foreground">Tablero Kanban</h1>
+          <p className="text-xs text-muted-foreground mt-1">{activeCount} pedidos activos · {pedidos.filter(p => p.estado === "Cerrado").length} cerrados</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
+      <div className="bg-card border border-border rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
         <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
-          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
             {responsables.sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.solicitante} onValueChange={v => setFilter("solicitante", v)}>
-          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Solicitante" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
             {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
-          <SelectTrigger className="h-8 text-xs w-[140px] border-slate-200 bg-white"><SelectValue placeholder="Proceso" /></SelectTrigger>
+         <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>{procesos.sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.estado} onValueChange={v => setFilter("estado", v)}>
-          <SelectTrigger className="h-8 text-xs w-[120px] border-slate-200 bg-white"><SelectValue placeholder="Estado" /></SelectTrigger>
+         <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.prioridad} onValueChange={v => setFilter("prioridad", v)}>
-          <SelectTrigger className="h-8 text-xs w-[100px] border-slate-200 bg-white"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+         <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>
             {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
         {hasFilters && (
-          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors whitespace-nowrap">
-            <X className="h-3 w-3" /> Limpiar filtros
-          </button>
+         <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors whitespace-nowrap">
+           <X className="h-3 w-3" /> Limpiar filtros
+         </button>
         )}
       </div>
 
@@ -252,9 +252,9 @@ export default function Kanban() {
       <Dialog open={!!blockModal} onOpenChange={() => setBlockModal(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-slate-800">Motivo de bloqueo</DialogTitle>
+            <DialogTitle className="text-sm font-semibold text-foreground">Motivo de bloqueo</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-slate-500 mb-3">Registra brevemente por qué este pedido está bloqueado.</p>
+          <p className="text-xs text-muted-foreground mb-3">Registra brevemente por qué este pedido está bloqueado.</p>
           <Textarea
             value={blockModal?.motivo || ""}
             onChange={e => setBlockModal(m => ({ ...m, motivo: e.target.value }))}

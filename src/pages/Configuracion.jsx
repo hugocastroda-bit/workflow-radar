@@ -530,10 +530,10 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                           </td>
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
-                          <button onClick={() => saveEdit(item.id)} disabled={saving} className="p-1.5 rounded hover:bg-emerald-50 text-emerald-600 transition-colors">
+                          <button onClick={() => saveEdit(item.id)} disabled={saving} className="p-1.5 rounded hover:bg-success/10 text-success transition-colors">
                             <Check className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={cancelEdit} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 transition-colors">
+                          <button onClick={cancelEdit} className="p-1.5 rounded hover:bg-secondary text-muted-foreground transition-colors">
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -541,32 +541,32 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                     </>
                   ) : (
                     <>
-                      <td className="px-5 py-2.5 font-medium text-slate-700">{item.nombre}</td>
-                      {extraField && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField] || "—"}</td>}
-                      {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">
+                      <td className="px-5 py-2.5 font-medium text-foreground">{item.nombre}</td>
+                      {extraField && <td className="px-4 py-2.5 text-muted-foreground text-xs">{item[extraField] || "—"}</td>}
+                      {extraField2 && <td className="px-4 py-2.5 text-muted-foreground text-xs">
                         {item[extraField2] ? (
                           <div className="flex flex-col text-xs">
                             <span>{item[extraField2]}</span>
                             {item.usuarioId && <span className="text-slate-300 text-[10px]">vinculado</span>}
                           </div>
                         ) : (
-                          <span className="text-amber-500">Sin correo</span>
+                          <span className="text-warning">Sin correo</span>
                         )}
                       </td>}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
                           {onExtraAction && (
-                            <button onClick={() => onExtraAction(item)} className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors" title="Gestionar espacios">
+                            <button onClick={() => onExtraAction(item)} className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Gestionar espacios">
                               <Building2 className="h-3.5 w-3.5" />
                             </button>
                           )}
-                          <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Editar">
+                          <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors" title="Desactivar">
+                          <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-warning/10 text-muted-foreground hover:text-warning transition-colors" title="Desactivar">
                             <PowerOff className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors" title="Eliminar">
+                          <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors" title="Eliminar">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -589,16 +589,16 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
           <table className="w-full text-sm">
             <tbody>
               {inactivos.map(item => (
-                <tr key={item.id} className="border-b border-slate-50 last:border-0 opacity-60">
-                  <td className="px-5 py-2.5 text-slate-500 line-through">{item.nombre}</td>
-                  {extraField && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField] || "—"}</td>}
-                  {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField2] || "—"}</td>}
+                <tr key={item.id} className="border-b border-border last:border-0 opacity-60">
+                  <td className="px-5 py-2.5 text-muted-foreground line-through">{item.nombre}</td>
+                  {extraField && <td className="px-4 py-2.5 text-muted-foreground text-xs">{item[extraField] || "—"}</td>}
+                  {extraField2 && <td className="px-4 py-2.5 text-muted-foreground text-xs">{item[extraField2] || "—"}</td>}
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors" title="Reactivar">
+                      <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-success/10 text-muted-foreground hover:text-success transition-colors" title="Reactivar">
                         <Power className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors" title="Eliminar">
+                      <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors" title="Eliminar">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>

@@ -79,21 +79,21 @@ export default function Archivados() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-96">
-      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
     </div>
   );
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-800">Archivados</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""} archivado{filtered.length !== 1 ? "s" : ""}</p>
+        <h1 className="text-2xl font-semibold text-foreground">Archivados</h1>
+        <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""} archivado{filtered.length !== 1 ? "s" : ""}</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-60" />
         </div>
@@ -112,56 +112,56 @@ export default function Archivados() {
           </Select>
         )}
         {hasFilters && (
-          <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 rounded hover:bg-slate-100 transition-colors">
-            <X className="h-3 w-3" /> Limpiar
-          </button>
+         <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded hover:bg-secondary transition-colors">
+           <X className="h-3 w-3" /> Limpiar
+         </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="text-left px-5 py-3 font-medium text-slate-500 uppercase tracking-wider">Título</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Solicitante</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Proceso</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Prioridad</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Responsable</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Archivado</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Por</th>
+            <tr className="border-b border-border bg-secondary">
+              <th className="text-left px-5 py-3 font-medium text-muted-foreground uppercase tracking-wider">Título</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Solicitante</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Proceso</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Prioridad</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Responsable</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Archivado</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider">Por</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {filtered.map(p => (
-              <tr key={p.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+              <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/40 transition-colors">
                 <td className="px-5 py-3">
-                  <span className="font-medium text-slate-700 truncate max-w-[200px] block">{p.titulo}</span>
+                  <span className="font-medium text-foreground truncate max-w-[200px] block">{p.titulo}</span>
                   {p.motivo_archivo && (
-                    <span className="text-slate-400 text-xs truncate max-w-[200px] block">{p.motivo_archivo}</span>
+                    <span className="text-muted-foreground text-xs truncate max-w-[200px] block">{p.motivo_archivo}</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-500">{p.solicitante}</td>
-                <td className="px-4 py-3 text-slate-400">{p.proceso}</td>
+                <td className="px-4 py-3 text-foreground">{p.solicitante}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
                 <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
                 <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
-                <td className="px-4 py-3 text-slate-400">{p.responsable || "—"}</td>
-                <td className="px-4 py-3 text-slate-400">{p.fecha_archivado || "—"}</td>
-                <td className="px-4 py-3 text-slate-400 truncate max-w-[120px]">{p.archivado_por || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.fecha_archivado || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.archivado_por || "—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => navigate(`/pedido/${p.id}`)}
-                      className="p-1 rounded text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                      className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                       title="Ver detalle"
                     >
                       <Eye className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => setRestoreTarget(p)}
-                      className="p-1 rounded text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                      className="p-1 rounded text-muted-foreground hover:text-success hover:bg-success/10 transition-colors"
                       title="Restaurar pedido"
                     >
                       <ArchiveRestore className="h-3.5 w-3.5" />
@@ -171,7 +171,7 @@ export default function Archivados() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={9} className="px-5 py-12 text-center text-slate-400">No hay pedidos archivados</td></tr>
+             <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">No hay pedidos archivados</td></tr>
             )}
           </tbody>
         </table>
@@ -181,20 +181,20 @@ export default function Archivados() {
       <Dialog open={!!restoreTarget} onOpenChange={() => setRestoreTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">Restaurar pedido</DialogTitle>
+            <DialogTitle className="text-sm font-semibold text-foreground">Restaurar pedido</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             ¿Deseas restaurar este pedido? Volverá a aparecer en la Bandeja y en el Kanban.
           </p>
           {restoreTarget && (
-            <p className="text-xs text-muted-foreground font-medium bg-slate-50 rounded px-3 py-2 border">
+            <p className="text-xs text-muted-foreground font-medium bg-secondary rounded px-3 py-2 border border-border">
               {restoreTarget.titulo}
             </p>
           )}
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" size="sm" onClick={() => setRestoreTarget(null)} disabled={restoring}>Cancelar</Button>
             <Button size="sm" onClick={handleRestore} disabled={restoring}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white">
+             className="bg-success hover:bg-success/90 text-white">
               {restoring ? "Restaurando…" : "Sí, restaurar pedido"}
             </Button>
           </div>

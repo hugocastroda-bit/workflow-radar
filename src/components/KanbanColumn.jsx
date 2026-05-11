@@ -5,7 +5,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
   return (
     <div className="flex-shrink-0 w-64">
       <div className="flex items-center justify-between mb-2 px-1">
-        <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{status}</h3>
+        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{status}</h3>
         <span className="text-xs text-muted-foreground tabular-nums">{pedidos.length}</span>
       </div>
       <Droppable droppableId={status}>
@@ -13,8 +13,8 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`min-h-[120px] rounded-md p-1.5 transition-colors ${
-              snapshot.isDraggingOver ? "bg-primary/5" : "bg-slate-50"
+            className={`min-h-[120px] rounded-lg p-1.5 transition-colors ${
+              snapshot.isDraggingOver ? "bg-primary/5" : "bg-secondary/30"
             }`}
           >
             {pedidos.map((pedido, index) => (

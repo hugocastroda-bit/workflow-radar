@@ -22,12 +22,12 @@ export default function ConfirmArchivarModal({ open, onClose, onConfirm, archivi
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <Archive className="h-4 w-4 text-slate-500" /> Archivar pedido
+          <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Archive className="h-4 w-4 text-muted-foreground" /> Archivar pedido
           </DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-slate-600 leading-relaxed">
-          ¿Estás seguro de que deseas archivar este pedido? El pedido dejará de aparecer en la Bandeja, Kanban y Dashboard, pero podrás consultarlo desde Archivados.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+         ¿Estás seguro de que deseas archivar este pedido? El pedido dejará de aparecer en la Bandeja, Kanban y Dashboard, pero podrás consultarlo desde Archivados.
         </p>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Motivo de archivo (opcional)</Label>
@@ -42,7 +42,7 @@ export default function ConfirmArchivarModal({ open, onClose, onConfirm, archivi
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="outline" size="sm" onClick={handleClose} disabled={archiving}>Cancelar</Button>
           <Button size="sm" onClick={handleConfirm} disabled={archiving}
-            className="bg-slate-700 hover:bg-slate-600 text-white">
+            className="bg-primary hover:bg-primary/90 text-white">
             {archiving ? "Archivando…" : "Sí, archivar pedido"}
           </Button>
         </div>

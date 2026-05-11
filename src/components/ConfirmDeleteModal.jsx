@@ -7,12 +7,12 @@ export default function ConfirmDeleteModal({ open, onClose, onConfirm, deleting 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Trash2 className="h-4 w-4 text-red-500" /> Borrar pedido
+          <DialogTitle className="flex items-center gap-2 text-base text-foreground">
+            <Trash2 className="h-4 w-4 text-alert" /> Borrar pedido
           </DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-slate-600 mt-1">
-          ¿Estás seguro de que deseas borrar este pedido? Esta acción no se puede deshacer.
+        <p className="text-sm text-muted-foreground mt-1">
+         ¿Estás seguro de que deseas borrar este pedido? Esta acción no se puede deshacer.
         </p>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" size="sm" onClick={onClose} disabled={deleting}>Cancelar</Button>

@@ -26,12 +26,12 @@ const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShad
 
 function StatCard({ label, value, color }) {
   return (
-    <div className={`bg-white border rounded-lg px-5 py-4 ${color || "border-border"}`}>
+    <div className={`bg-card border rounded-lg px-5 py-4 ${color || "border-border"}`}>
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
       <p className={`text-3xl font-semibold mt-1.5 tracking-tight ${
-        color === "border-red-200" ? "text-red-600" :
-        color === "border-amber-200" ? "text-amber-600" :
-        color === "border-emerald-200" ? "text-emerald-700" :
+        color === "border-alert/30" ? "text-alert" :
+        color === "border-warning/30" ? "text-warning" :
+        color === "border-success/30" ? "text-success" :
         "text-foreground"
       }`}>{value}</p>
     </div>
@@ -40,9 +40,9 @@ function StatCard({ label, value, color }) {
 
 function Section({ title, children }) {
   return (
-    <div className="bg-white border border-border rounded-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-border bg-slate-50/60">
-        <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{title}</h3>
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-border bg-secondary">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h3>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -131,10 +131,10 @@ export default function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard label="Abiertos" value={abiertos.length} />
-        <StatCard label="Vencidos" value={vencidos.length} color="border-red-200" />
-        <StatCard label="Bloqueados" value={bloqueados.length} color="border-amber-200" />
-        <StatCard label="Cerrados" value={cerrados.length} color="border-emerald-200" />
-        <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-emerald-200" />
+        <StatCard label="Vencidos" value={vencidos.length} color="border-alert/30" />
+        <StatCard label="Bloqueados" value={bloqueados.length} color="border-warning/30" />
+        <StatCard label="Cerrados" value={cerrados.length} color="border-success/30" />
+        <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-success/30" />
         <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} />
       </div>
 
@@ -171,14 +171,14 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-1.5 flex-1">
-                {byEstado.map((e, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
-                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: e.color }} />
-                    <span className="flex-1 truncate">{e.name}</span>
-                    <span className="font-medium tabular-nums">{e.value}</span>
-                  </div>
-                ))}
-              </div>
+                 {byEstado.map((e, i) => (
+                   <div key={i} className="flex items-center gap-2 text-xs text-foreground">
+                     <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: e.color }} />
+                     <span className="flex-1 truncate">{e.name}</span>
+                     <span className="font-medium tabular-nums">{e.value}</span>
+                   </div>
+                 ))}
+               </div>
             </div>
           ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
         </Section>
@@ -208,7 +208,7 @@ export default function Dashboard() {
             {byPrioridad.map(({ pr, count, bar }) => (
               <div key={pr} className="flex items-center gap-3">
                 <PriorityBadge priority={pr} />
-                <div className="flex-1 bg-slate-100 rounded-full h-2">
+                <div className="flex-1 bg-secondary rounded-full h-2">
                   <div className={`h-2 rounded-full ${bar}`} style={{ width: `${Math.round(count / maxPr * 100)}%` }} />
                 </div>
                 <span className="text-sm font-medium tabular-nums w-6 text-right text-foreground">{count}</span>
@@ -230,12 +230,12 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {ranking.map(r => (
-                  <tr key={r.name} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2 text-slate-700 truncate max-w-[140px]">{r.name}</td>
-                    <td className="py-2 text-right font-medium tabular-nums">{r.activos}</td>
-                    <td className={`py-2 text-right tabular-nums ${r.vencidos > 0 ? "text-red-600 font-medium" : "text-muted-foreground"}`}>{r.vencidos}</td>
-                    <td className={`py-2 text-right tabular-nums ${r.bloqueados > 0 ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>{r.bloqueados}</td>
-                  </tr>
+                  <tr key={r.name} className="border-b border-border last:border-0">
+                      <td className="py-2 text-foreground truncate max-w-[140px]">{r.name}</td>
+                      <td className="py-2 text-right font-medium tabular-nums">{r.activos}</td>
+                      <td className={`py-2 text-right tabular-nums ${r.vencidos > 0 ? "text-alert font-medium" : "text-muted-foreground"}`}>{r.vencidos}</td>
+                      <td className={`py-2 text-right tabular-nums ${r.bloqueados > 0 ? "text-warning font-medium" : "text-muted-foreground"}`}>{r.bloqueados}</td>
+                    </tr>
                 ))}
               </tbody>
             </table>
@@ -245,13 +245,13 @@ export default function Dashboard() {
 
       {/* Alert tables */}
       {vencidos.length > 0 && (
-        <div className="bg-white border border-red-200 rounded-lg overflow-hidden">
-          <div className="px-5 py-3 border-b border-red-100 bg-red-50/40">
-            <h3 className="text-xs font-semibold text-red-700 uppercase tracking-wider">Pedidos vencidos — {vencidos.length}</h3>
+        <div className="bg-card border border-alert/30 rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-alert/20 bg-alert/10">
+            <h3 className="text-xs font-semibold text-alert uppercase tracking-wider">Pedidos vencidos — {vencidos.length}</h3>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-border">
                 <th className="text-left px-5 py-2 text-xs font-medium text-muted-foreground">Título</th>
                 <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Responsable</th>
                 <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Estado</th>
@@ -260,11 +260,11 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {vencidos.slice(0, 10).map(p => (
-                <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)} className="border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50">
+                <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)} className="border-b border-border last:border-0 cursor-pointer hover:bg-secondary/40">
                   <td className="px-5 py-2.5 font-medium text-foreground truncate max-w-[240px]">{p.titulo}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{p.responsable || "—"}</td>
                   <td className="px-4 py-2.5"><StatusBadge status={p.estado} /></td>
-                  <td className="px-4 py-2.5 text-red-600 text-xs font-medium">{p.fecha_requerida}</td>
+                  <td className="px-4 py-2.5 text-alert text-xs font-medium">{p.fecha_requerida}</td>
                 </tr>
               ))}
             </tbody>
@@ -273,13 +273,13 @@ export default function Dashboard() {
       )}
 
       {bloqueados.length > 0 && (
-        <div className="bg-white border border-amber-200 rounded-lg overflow-hidden">
-          <div className="px-5 py-3 border-b border-amber-100 bg-amber-50/40">
-            <h3 className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Pedidos bloqueados — {bloqueados.length}</h3>
+        <div className="bg-card border border-warning/30 rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-warning/20 bg-warning/10">
+            <h3 className="text-xs font-semibold text-warning uppercase tracking-wider">Pedidos bloqueados — {bloqueados.length}</h3>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-border">
                 <th className="text-left px-5 py-2 text-xs font-medium text-muted-foreground">Título</th>
                 <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Responsable</th>
                 <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Motivo</th>
@@ -287,7 +287,7 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {bloqueados.slice(0, 10).map(p => (
-                <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)} className="border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50">
+                <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)} className="border-b border-border last:border-0 cursor-pointer hover:bg-secondary/40">
                   <td className="px-5 py-2.5 font-medium text-foreground truncate max-w-[220px]">{p.titulo}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{p.responsable || "—"}</td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs truncate max-w-[200px]">{p.motivo_bloqueo || "Sin especificar"}</td>

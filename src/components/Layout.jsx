@@ -33,7 +33,7 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
@@ -45,8 +45,8 @@ export default function Layout() {
         </nav>
         <div className="p-3 border-t border-border space-y-1">
           <Link
-            to="/?crear=true"
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full"
+           to="/?crear=true"
+           className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full"
           >
             <Plus className="h-3.5 w-3.5" />
             Nuevo pedido
@@ -54,7 +54,7 @@ export default function Layout() {
 
           <button
             onClick={() => base44.auth.logout()}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full"
           >
             <LogOut className="h-3.5 w-3.5" />
             Salir
@@ -70,7 +70,7 @@ export default function Layout() {
           </div>
           <Link
             to="/?crear=true"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-3 w-3" /> Nuevo
           </Link>
@@ -82,7 +82,7 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
