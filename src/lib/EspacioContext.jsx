@@ -41,18 +41,15 @@ export default function EspacioProvider() {
   }, []);
 
   useEffect(() => {
-    const adminBypassPaths = ["/espacios", "/gestion-espacios"];
-    if (!loadingEspacio && !espacioActivo && !adminBypassPaths.includes(location.pathname)) {
-      if (isAdminGeneral) {
-        // Admin can go to gestion-espacios without a space
-        if (location.pathname !== "/gestion-espacios") {
-          navigate("/espacios", { replace: true });
-        }
-      } else {
-        navigate("/espacios", { replace: true });
-      }
-    }
-  }, [loadingEspacio, espacioActivo, location.pathname, isAdminGeneral]);
+    // Wait for both localStorage check and user to load
+    if (loadingEspacio || user === undefined) return;
+    if (espacioActivo) return;
+    const bypassPaths = ["/espacios", "/gestion-espacios"];
+    if (bypassPaths.includes(location.pathname)) return;
+    // Admin generals can navigate to /gestion-espacios without a space
+    // Everyone else goes to /espacios to select or see the blocked message
+    navigate("/espacios", { replace: true });
+  }, [loadingEspacio, espacioActivo, location.pathname, user]);
 
   const entrarEspacio = (espacio, membresia) => {
     setEspacioActivo(espacio);

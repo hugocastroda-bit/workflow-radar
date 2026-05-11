@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Users, Settings, Key, Check, X, Pencil } from "lucide-react";
+import { Loader2, Plus, Users, Key, ArrowLeft, LayoutGrid } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const ROL_LABELS = {
   "Owner Espacio": "Propietario",
@@ -17,10 +17,8 @@ const ROL_LABELS = {
 
 export default function GestionEspacios() {
   const { user } = useAuth();
-  const { membresiaActiva, espacioActivo } = useEspacio();
+  const navigate = useNavigate();
   const isAppAdmin = user?.role === "admin";
-  const isOwner = membresiaActiva?.rolEnEspacio === "Owner Espacio";
-  const canManage = isOwner || isAppAdmin;
 
   const [espacios, setEspacios] = useState([]);
   const [membresias, setMembresias] = useState([]);
@@ -123,15 +121,34 @@ export default function GestionEspacios() {
 
   if (!isAppAdmin) {
     return (
-      <div className="p-8 flex items-center justify-center h-64">
-        <p className="text-sm text-slate-500">Solo los administradores de la aplicación pueden gestionar espacios.</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <p className="text-sm font-medium text-slate-600">No tienes permisos para administrar espacios.</p>
+          <button onClick={() => navigate("/espacios")} className="text-xs text-slate-400 hover:text-slate-600 underline">Volver</button>
+        </div>
       </div>
     );
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>;
 
   return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Standalone header */}
+      <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/espacios")} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+          <div className="w-px h-4 bg-slate-200" />
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-semibold text-slate-800">Administración global</span>
+          </div>
+        </div>
+        <span className="text-xs text-slate-400">Radar C&T</span>
+      </div>
+
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -256,6 +273,7 @@ export default function GestionEspacios() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }

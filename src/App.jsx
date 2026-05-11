@@ -56,6 +56,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<EspacioProvider />}>
           <Route path="/espacios" element={<SeleccionEspacio />} />
+          <Route path="/gestion-espacios" element={<GestionEspacios />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Bandeja />} />
             <Route path="/bandeja" element={<Bandeja />} />
@@ -65,7 +66,6 @@ const AuthenticatedApp = () => {
             <Route path="/configuracion" element={<Configuracion />} />
             <Route path="/carga-masiva" element={<CargaMasiva />} />
             <Route path="/archivados" element={<Archivados />} />
-            <Route path="/gestion-espacios" element={<GestionEspacios />} />
           </Route>
         </Route>
       </Route>
