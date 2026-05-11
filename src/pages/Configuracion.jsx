@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
+import AdminEspaciosModal from "@/components/AdminEspaciosModal";
 
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo" },
@@ -278,6 +279,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const [gestionarModal, setGestionarModal] = useState(null);
+  const [showAdminEspacios, setShowAdminEspacios] = useState(false);
   const { user } = useAuth();
   const { espacioActivo } = useEspacio();
   const isAdmin = isAdminGlobal(user);
@@ -319,6 +321,14 @@ export default function Configuracion() {
         ))}
       </div>
 
+      {activeTab === "Responsable" && isAdmin && (
+        <div className="flex justify-end -mb-2">
+          <Button size="sm" variant="outline" onClick={() => setShowAdminEspacios(true)} className="gap-1.5 text-xs">
+            <Building2 className="h-3.5 w-3.5" /> Administrar espacios
+          </Button>
+        </div>
+      )}
+
       {activeTab === "notificaciones" ? (
         <NotificacionesTab />
       ) : (
@@ -338,6 +348,12 @@ export default function Configuracion() {
         responsable={gestionarModal}
         open={!!gestionarModal}
         onClose={() => setGestionarModal(null)}
+      />
+
+      <AdminEspaciosModal
+        open={showAdminEspacios}
+        onClose={() => setShowAdminEspacios(false)}
+        user={user}
       />
     </div>
   );
