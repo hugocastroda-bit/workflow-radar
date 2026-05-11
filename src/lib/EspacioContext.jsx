@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
+
+// El rol 'admin' en Base44 = 'Administrador Global' en Radar C&T
+export const isAdminGlobal = (user) => user?.role === "admin";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const EspacioContext = createContext(null);
@@ -23,8 +26,7 @@ export default function EspacioProvider() {
   const [loadingEspacio, setLoadingEspacio] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const isAdminGeneral = user?.role === "admin";
+  const { user, isLoadingAuth } = useAuth();
 
   useEffect(() => {
     try {
@@ -41,15 +43,13 @@ export default function EspacioProvider() {
   }, []);
 
   useEffect(() => {
-    // Wait for both localStorage check and user to load
-    if (loadingEspacio || user === undefined) return;
+    // Wait for localStorage check AND auth to finish loading
+    if (loadingEspacio || isLoadingAuth) return;
     if (espacioActivo) return;
     const bypassPaths = ["/espacios", "/gestion-espacios"];
     if (bypassPaths.includes(location.pathname)) return;
-    // Admin generals can navigate to /gestion-espacios without a space
-    // Everyone else goes to /espacios to select or see the blocked message
     navigate("/espacios", { replace: true });
-  }, [loadingEspacio, espacioActivo, location.pathname, user]);
+  }, [loadingEspacio, isLoadingAuth, espacioActivo, location.pathname]);
 
   const entrarEspacio = (espacio, membresia) => {
     setEspacioActivo(espacio);

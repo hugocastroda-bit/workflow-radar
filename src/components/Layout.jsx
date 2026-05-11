@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import EspacioSwitcher from "./EspacioSwitcher";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio, isEspacioAdmin } from "@/lib/EspacioContext";
+import { useEspacio, isEspacioAdmin, isAdminGlobal } from "@/lib/EspacioContext";
 import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -18,7 +18,7 @@ export default function Layout() {
   const location = useLocation();
   const { user } = useAuth();
   const { espacioActivo, membresiaActiva, salirDeEspacio } = useEspacio();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminGlobal(user);
   const espacioAdmin = isEspacioAdmin(membresiaActiva) || isAdmin;
   const visibleNavItems = navItems.filter((item) => !item.adminOnly || espacioAdmin);
 

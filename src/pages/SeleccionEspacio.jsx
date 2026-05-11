@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio } from "@/lib/EspacioContext";
+import { useEspacio, isAdminGlobal } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings } from "lucide-react";
@@ -20,7 +20,7 @@ export default function SeleccionEspacio() {
   const { user } = useAuth();
   const { entrarEspacio } = useEspacio();
   const navigate = useNavigate();
-  const isAdminGeneral = user?.role === "admin";
+  const isAdminGeneral = isAdminGlobal(user);
   const [loading, setLoading] = useState(true);
   const [espacios, setEspacios] = useState([]);
   const [claveModal, setClaveModal] = useState(null);

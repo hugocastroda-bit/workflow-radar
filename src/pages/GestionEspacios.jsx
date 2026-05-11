@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { isAdminGlobal } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Users, Key, ArrowLeft, LayoutGrid } from "lucide-react";
@@ -18,7 +19,7 @@ const ROL_LABELS = {
 export default function GestionEspacios() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isAppAdmin = user?.role === "admin";
+  const isAppAdmin = isAdminGlobal(user);
 
   const [espacios, setEspacios] = useState([]);
   const [membresias, setMembresias] = useState([]);

@@ -1,17 +1,19 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
+      "title": "Rol global",
       "enum": [
         "admin",
         "user"
-      ]
+      ],
+      "enumLabels": {
+        "admin": "Administrador Global",
+        "user": "Usuario"
+      },
+      "default": "user"
     }
-  },
-  "required": [
-    "role"
-  ],
-  "name": "User",
-  "type": "object"
+  }
 }
