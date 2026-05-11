@@ -33,12 +33,7 @@
           }
         },
         {
-          "data.espacioId": {
-            "$in": "{{user.data.memberSpaceIds}}"
-          }
-        },
-        {
-          "data.activo": true
+          "data.espacioId": "{{user.active_space_id}}"
         }
       ]
     },
