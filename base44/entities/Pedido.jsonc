@@ -197,9 +197,33 @@
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.espacioId": "{{user.active_space_id}}"
+            },
+            {
+              "$or": [
+                {
+                  "created_by": "{{user.email}}"
+                },
+                {
+                  "data.solicitante": "{{user.full_name}}"
+                },
+                {
+                  "data.responsable": "{{user.full_name}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   }
 }
