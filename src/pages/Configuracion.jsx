@@ -129,7 +129,7 @@ function NotificacionesTab() {
 
 const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", Proceso: "proceso", Prioridad: "prioridad" };
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, bulkType }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, bulkType }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [syncing, setSyncing]   = useState(false);
@@ -594,11 +594,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                       </td>}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
-                          {onExtraAction && (
-                            <button onClick={() => onExtraAction(item)} className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Gestionar espacios">
-                              <Building2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
                           <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
@@ -737,7 +732,6 @@ export default function Configuracion() {
            extraLabel={tab.extraLabel}
            extraField2={tab.extra2}
            extraLabel2={tab.extraLabel2}
-           onExtraAction={null}
            bulkType={tab.bulkType}
         />
       )}
