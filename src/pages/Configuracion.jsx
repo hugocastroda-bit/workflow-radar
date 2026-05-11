@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, ArrowRight, Users } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { useEspacio, isAdminGlobal } from "@/lib/EspacioContext";
+import { isAdminGlobal } from "@/lib/EspacioContext";
 import { toast } from "sonner";
+import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
 
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo" },
@@ -13,168 +14,7 @@ const TABS = [
   { key: "Proceso",      label: "Procesos",      extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null },
   { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null },
   { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null },
-  { key: "espacios", label: "Espacios", extra: null, extraLabel: null, extra2: null, extraLabel2: null },
 ];
-
-const ROL_LABELS = {
-  "Owner Espacio": "Propietario",
-  "Admin Espacio": "Administrador",
-  "User Espacio": "Usuario",
-  "Solo lectura": "Solo lectura",
-};
-
-function EspaciosTab({ user }) {
-  const { espacioActivo, entrarEspacio, salirDeEspacio } = useEspacio();
-  const isAdmin = isAdminGlobal(user);
-  const [loading, setLoading] = useState(true);
-  const [misEspacios, setMisEspacios] = useState([]);
-  const [todosEspacios, setTodosEspacios] = useState([]);
-  const [todasMembresias, setTodasMembresias] = useState([]);
-  const [showAsignar, setShowAsignar] = useState(null); // espacioId
-  const [nuevoMiembro, setNuevoMiembro] = useState({ correo: "", rol: "User Espacio" });
-  const [adding, setAdding] = useState(false);
-
-  const load = async () => {
-    const [memb, espacios] = await Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: user.email, estado: "Activo" }),
-      base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
-    ]);
-    let allMemb = memb;
-    if (isAdmin) {
-      allMemb = await base44.entities.MembresiaEspacio.list();
-      setTodasMembresias(allMemb);
-      setTodosEspacios(espacios);
-    }
-    const result = memb.map(m => ({
-      membresia: m,
-      espacio: espacios.find(e => e.id === m.espacioId),
-    })).filter(r => r.espacio);
-    setMisEspacios(result);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const handleCambiar = (espacio, membresia) => {
-    entrarEspacio(espacio, membresia);
-    toast.success(`Cambiaste al espacio "${espacio.nombreEspacio}"`);
-  };
-
-  const handleAgregarMiembro = async (espacioId) => {
-    if (!nuevoMiembro.correo.trim()) return;
-    setAdding(true);
-    await base44.entities.MembresiaEspacio.create({
-      espacioId,
-      correoUsuario: nuevoMiembro.correo.trim().toLowerCase(),
-      rolEnEspacio: nuevoMiembro.rol,
-      estado: "Activo",
-      fechaAlta: new Date().toISOString().split("T")[0],
-      validadoConClave: false,
-    });
-    toast.success("Miembro asignado correctamente");
-    setNuevoMiembro({ correo: "", rol: "User Espacio" });
-    setAdding(false);
-    setShowAsignar(null);
-    load();
-  };
-
-  const toggleMembresia = async (m) => {
-    await base44.entities.MembresiaEspacio.update(m.id, { estado: m.estado === "Activo" ? "Inactivo" : "Activo" });
-    load();
-  };
-
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-slate-400" /></div>;
-
-  return (
-    <div className="space-y-6">
-      {/* Mis espacios */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mis espacios</p>
-        {misEspacios.length === 0 ? (
-          <p className="text-sm text-slate-400 py-4 text-center">No tienes espacios asignados.</p>
-        ) : (
-          <div className="space-y-2">
-            {misEspacios.map(({ espacio, membresia }) => (
-              <div key={espacio.id} className={`bg-white border rounded-lg px-4 py-3 flex items-center justify-between gap-3 ${
-                espacioActivo?.id === espacio.id ? "border-slate-900" : "border-slate-200"
-              }`}>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-800">{espacio.nombreEspacio}</p>
-                    {espacioActivo?.id === espacio.id && (
-                      <span className="text-xs bg-slate-900 text-white px-1.5 py-0.5 rounded">Activo</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400">{ROL_LABELS[membresia.rolEnEspacio] || membresia.rolEnEspacio}</p>
-                </div>
-                {espacioActivo?.id !== espacio.id && (
-                  <Button size="sm" onClick={() => handleCambiar(espacio, membresia)} className="gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white">
-                    Entrar <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Admin: gestión de espacios */}
-      {isAdmin && (
-        <div className="space-y-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Administración de espacios</p>
-          {todosEspacios.map(espacio => {
-            const miembros = todasMembresias.filter(m => m.espacioId === espacio.id);
-            return (
-              <div key={espacio.id} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{espacio.nombreEspacio}</p>
-                    <p className="text-xs text-slate-400">{miembros.filter(m => m.estado === "Activo").length} miembros activos</p>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => setShowAsignar(showAsignar === espacio.id ? null : espacio.id)} className="gap-1.5 text-xs">
-                    <Users className="h-3.5 w-3.5" /> Gestionar miembros
-                  </Button>
-                </div>
-                {showAsignar === espacio.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 space-y-3">
-                    {/* Add member */}
-                    <div className="flex gap-2">
-                      <Input value={nuevoMiembro.correo} onChange={e => setNuevoMiembro(f => ({ ...f, correo: e.target.value }))} placeholder="correo@empresa.com" className="text-xs h-8 flex-1" />
-                      <select value={nuevoMiembro.rol} onChange={e => setNuevoMiembro(f => ({ ...f, rol: e.target.value }))} className="h-8 text-xs border border-slate-200 rounded-md px-2">
-                        {Object.entries(ROL_LABELS).filter(([v]) => v !== "Owner Espacio").map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
-                      <Button size="sm" onClick={() => handleAgregarMiembro(espacio.id)} disabled={adding || !nuevoMiembro.correo.trim()} className="h-8 text-xs bg-slate-900 text-white">
-                        {adding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-                      </Button>
-                    </div>
-                    {/* Member list */}
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                      {miembros.map(m => (
-                        <div key={m.id} className={`flex items-center justify-between px-3 py-2 rounded-md border text-xs ${
-                          m.estado === "Activo" ? "border-slate-100 bg-white" : "border-slate-100 bg-slate-50 opacity-60"
-                        }`}>
-                          <div>
-                            <p className="font-medium text-slate-700">{m.correoUsuario}</p>
-                            <p className="text-slate-400">{ROL_LABELS[m.rolEnEspacio] || m.rolEnEspacio}</p>
-                          </div>
-                          <button onClick={() => toggleMembresia(m)} className={`text-xs px-2 py-0.5 rounded ${
-                            m.estado === "Activo" ? "text-red-500 hover:bg-red-50" : "text-emerald-600 hover:bg-emerald-50"
-                          }`}>
-                            {m.estado === "Activo" ? "Desactivar" : "Activar"}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function NotificacionesTab() {
   const [config, setConfig] = useState(null);
@@ -237,7 +77,7 @@ function NotificacionesTab() {
   );
 }
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2 }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -372,6 +212,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                       {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField2] || <span className="text-amber-500">Sin correo</span>}</td>}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
+                          {onExtraAction && (
+                            <button onClick={() => onExtraAction(item)} className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors" title="Gestionar espacios">
+                              <Building2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
@@ -419,11 +264,10 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
+  const [gestionarModal, setGestionarModal] = useState(null);
   const { user } = useAuth();
-  const { espacioActivo } = useEspacio();
   const isAdmin = isAdminGlobal(user);
   const tab = TABS.find(t => t.key === activeTab);
-  const isNotifTab = activeTab === "notificaciones";
 
   if (!isAdmin) {
     return (
@@ -463,8 +307,6 @@ export default function Configuracion() {
 
       {activeTab === "notificaciones" ? (
         <NotificacionesTab />
-      ) : activeTab === "espacios" ? (
-        <EspaciosTab user={user} />
       ) : (
         <CatalogoTab
           key={activeTab}
@@ -473,8 +315,15 @@ export default function Configuracion() {
           extraLabel={tab.extraLabel}
           extraField2={tab.extra2}
           extraLabel2={tab.extraLabel2}
+          onExtraAction={activeTab === "Responsable" && isAdmin ? (item) => setGestionarModal(item) : null}
         />
       )}
+
+      <GestionarEspaciosModal
+        responsable={gestionarModal}
+        open={!!gestionarModal}
+        onClose={() => setGestionarModal(null)}
+      />
     </div>
   );
 }

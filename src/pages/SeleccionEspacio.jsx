@@ -106,12 +106,12 @@ export default function SeleccionEspacio() {
             {isAdminGeneral ? (
               <>
                 <p className="text-sm font-medium text-slate-600">No tienes espacios asignados todavía.</p>
-                <p className="text-xs text-slate-400">Como administrador general puedes crear y gestionar espacios de equipo.</p>
+                <p className="text-xs text-slate-400">Como administrador puedes asignar espacios a responsables desde Configuración.</p>
                 <Button
-                  onClick={() => navigate("/gestion-espacios")}
+                  onClick={() => navigate("/configuracion")}
                   className="mt-2 gap-2 bg-slate-900 hover:bg-slate-800 text-white"
                 >
-                  <Settings className="h-4 w-4" /> Ir a administración de espacios
+                  <Settings className="h-4 w-4" /> Ir a Configuración de responsables
                 </Button>
               </>
             ) : (
@@ -151,10 +151,10 @@ export default function SeleccionEspacio() {
         {isAdminGeneral && espacios.length > 0 && (
           <div className="flex justify-center">
             <button
-              onClick={() => navigate("/gestion-espacios")}
+              onClick={() => navigate("/configuracion")}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <Settings className="h-3.5 w-3.5" /> Administrar espacios
+              <Settings className="h-3.5 w-3.5" /> Configuración de responsables
             </button>
           </div>
         )}
