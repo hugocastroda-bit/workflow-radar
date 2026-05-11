@@ -147,7 +147,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [blockModal, setBlockModal] = useState(null);
   const fileRef = useRef(null);
-  const useRef = useRef;
   const [bulkRows, setBulkRows] = useState([]);
   const [bulkResult, setBulkResult] = useState(null);
   const [bulkImporting, setBulkImporting] = useState(false);
