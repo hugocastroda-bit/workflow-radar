@@ -24,12 +24,18 @@ const BULK_CONFIG = {
   responsables: {
     entity: "Responsable",
     cols: ["Nombre", "Correo", "Rol / Función"],
-    mapData: (row) => ({
-      nombre: row["Nombre"],
-      email: row["Correo"] || undefined,
-      rol_funcion: row["Rol / Función"] || undefined,
-      activo: true,
-    }),
+    mapData: (row) => {
+      const email = (row["Correo"] || "").toLowerCase().trim();
+      return {
+        nombre: row["Nombre"],
+        email: email || undefined,
+        correoNormalizado: email || undefined,
+        rol_funcion: row["Rol / Función"] || undefined,
+        activo: true,
+        fechaCreacion: new Date().toISOString(),
+        ultimaActualizacion: new Date().toISOString(),
+      };
+    },
     example: [["Gianella Pérez", "gianella@empresa.com", "Analista HRBP"]],
   },
   procesos: {
@@ -239,9 +245,25 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const saveEdit = async (id) => {
     setSaving(true);
     try {
+      // Validar correo duplicado en Responsables
+      if (entityKey === "Responsable" && editForm.email) {
+        const normalized = editForm.email.toLowerCase().trim();
+        const existing = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
+        const isDuplicate = existing.some(e => e.id !== id);
+        if (isDuplicate) {
+          toast.error("Ya existe un responsable con este correo.");
+          setSaving(false);
+          return;
+        }
+      }
       const data = { nombre: editForm.nombre.trim() };
       if (extraField) data[extraField] = editForm[extraField] || "";
-      if (extraField2) data[extraField2] = (editForm[extraField2] || "").toLowerCase().trim();
+      if (extraField2) {
+        const normalized = (editForm[extraField2] || "").toLowerCase().trim();
+        data[extraField2] = normalized;
+        if (entityKey === "Responsable") data.correoNormalizado = normalized;
+      }
+      data.ultimaActualizacion = new Date().toISOString();
       await base44.entities[entityKey].update(id, data);
       setEditingId(null);
       invalidateCatalogCache();
@@ -298,14 +320,32 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!newForm.nombre.trim()) return;
     setSaving(true);
     try {
-       const data = { nombre: newForm.nombre.trim(), activo: true };
-       if (extraField) data[extraField] = newForm[extraField] || "";
-       if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
-       await base44.entities[entityKey].create(data);
-       setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
-       setAdding(false);
-       invalidateCatalogCache();
-       load();
+      // Validar correo duplicado en Responsables
+      if (entityKey === "Responsable" && newForm.email) {
+        const normalized = newForm.email.toLowerCase().trim();
+        const existing = await base44.entities.Responsable.filter({ correoNormalizado: normalized });
+        if (existing.length > 0) {
+          toast.error("Ya existe un responsable con este correo.");
+          setSaving(false);
+          return;
+        }
+      }
+      const data = { nombre: newForm.nombre.trim(), activo: true };
+      if (extraField) data[extraField] = newForm[extraField] || "";
+      if (extraField2) {
+        const normalized = (newForm[extraField2] || "").toLowerCase().trim();
+        data[extraField2] = normalized;
+        if (entityKey === "Responsable") data.correoNormalizado = normalized;
+      }
+      if (entityKey === "Responsable") {
+        data.fechaCreacion = new Date().toISOString();
+        data.ultimaActualizacion = new Date().toISOString();
+      }
+      await base44.entities[entityKey].create(data);
+      setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
+      setAdding(false);
+      invalidateCatalogCache();
+      load();
     } catch { toast.error("No se pudo agregar. Intenta nuevamente."); }
     setSaving(false);
   };
@@ -488,7 +528,16 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                     <>
                       <td className="px-5 py-2.5 font-medium text-slate-700">{item.nombre}</td>
                       {extraField && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField] || "—"}</td>}
-                      {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">{item[extraField2] || <span className="text-amber-500">Sin correo</span>}</td>}
+                      {extraField2 && <td className="px-4 py-2.5 text-slate-400 text-xs">
+                        {item[extraField2] ? (
+                          <div className="flex flex-col text-xs">
+                            <span>{item[extraField2]}</span>
+                            {item.usuarioEmail && <span className="text-slate-300 text-[10px]">(Usuario: {item.usuarioEmail})</span>}
+                          </div>
+                        ) : (
+                          <span className="text-amber-500">Sin correo</span>
+                        )}
+                      </td>}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
                           {onExtraAction && (
