@@ -1,0 +1,82 @@
+{
+  "name": "MembresiaEspacio",
+  "type": "object",
+  "properties": {
+    "espacioId": {
+      "type": "string",
+      "title": "ID del espacio"
+    },
+    "correoUsuario": {
+      "type": "string",
+      "title": "Correo del usuario"
+    },
+    "rolEnEspacio": {
+      "type": "string",
+      "title": "Rol en el espacio",
+      "enum": [
+        "Owner Espacio",
+        "Admin Espacio",
+        "User Espacio",
+        "Solo lectura"
+      ],
+      "default": "User Espacio"
+    },
+    "estado": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "Activo",
+        "Inactivo"
+      ],
+      "default": "Activo"
+    },
+    "fechaAlta": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha de alta"
+    },
+    "validadoConClave": {
+      "type": "boolean",
+      "title": "Validado con clave",
+      "default": false
+    },
+    "ultimaValidacionClave": {
+      "type": "string",
+      "title": "Última validación de clave"
+    }
+  },
+  "required": [
+    "espacioId",
+    "correoUsuario",
+    "rolEnEspacio"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.correoUsuario": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

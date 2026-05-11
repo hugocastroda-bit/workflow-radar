@@ -1,0 +1,59 @@
+{
+  "name": "Solicitante",
+  "type": "object",
+  "properties": {
+    "espacioId": {
+      "type": "string",
+      "title": "ID del espacio de equipo"
+    },
+    "nombre": {
+      "type": "string",
+      "title": "Nombre"
+    },
+    "cargo_area": {
+      "type": "string",
+      "title": "Cargo o área"
+    },
+    "email": {
+      "type": "string",
+      "title": "Correo electrónico"
+    },
+    "activo": {
+      "type": "boolean",
+      "title": "Activo",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.activo": true
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

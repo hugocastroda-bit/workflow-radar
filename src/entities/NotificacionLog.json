@@ -1,0 +1,68 @@
+{
+  "name": "NotificacionLog",
+  "type": "object",
+  "properties": {
+    "pedido_id": {
+      "type": "string",
+      "title": "ID del pedido"
+    },
+    "tipo": {
+      "type": "string",
+      "title": "Tipo de notificación",
+      "enum": [
+        "asignado",
+        "bloqueado",
+        "vencido",
+        "cerrado"
+      ]
+    },
+    "destinatario": {
+      "type": "string",
+      "title": "Email destinatario"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha de envío"
+    },
+    "estado_envio": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "enviado",
+        "error",
+        "omitido"
+      ]
+    },
+    "error": {
+      "type": "string",
+      "title": "Detalle del error"
+    }
+  },
+  "required": [
+    "pedido_id",
+    "tipo"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
