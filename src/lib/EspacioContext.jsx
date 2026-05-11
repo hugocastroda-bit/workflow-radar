@@ -3,22 +3,10 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 
-// El rol 'admin' en Base44 = 'Administrador Global' en Radar C&T
-export const isAdminGlobal = (user) => user?.role === "admin";
-
 const EspacioContext = createContext(null);
 
 export function useEspacio() {
   return useContext(EspacioContext);
-}
-
-// Roles with elevated permissions (owner + admin of space)
-export function isEspacioAdmin(membresia) {
-  return membresia?.rolEnEspacio === "Owner Espacio" || membresia?.rolEnEspacio === "Admin Espacio";
-}
-
-export function isEspacioReadOnly(membresia) {
-  return membresia?.rolEnEspacio === "Solo lectura";
 }
 
 export default function EspacioProvider() {

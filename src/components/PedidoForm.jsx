@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import { useEspacio } from "@/lib/EspacioContext";
+import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -125,6 +126,8 @@ function SearchableSelect({ label, value, onChange, options, placeholder, requir
 
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const { espacioActivo } = useEspacio();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [catalogs, setCatalogs] = useState({});
@@ -275,23 +278,30 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
           )}
 
           {showOptional && (
-            <div className="space-y-3 border-t pt-3">
-              <div className="grid grid-cols-2 gap-3">
-                <SearchableSelect
-                  label="Responsable"
-                  value={form.responsable} onChange={v => handleChange("responsable", v)}
-                  options={responsableOpts} placeholder="Sin asignar"
-                />
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
-                  <Input
-                    type="date"
-                    value={form.fecha_requerida}
-                    onChange={e => handleChange("fecha_requerida", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
+           <div className="space-y-3 border-t pt-3">
+             <div className="grid grid-cols-2 gap-3">
+               {isAdmin ? (
+                 <SearchableSelect
+                   label="Responsable"
+                   value={form.responsable} onChange={v => handleChange("responsable", v)}
+                   options={responsableOpts} placeholder="Sin asignar"
+                 />
+               ) : (
+                 <div>
+                   <Label className="text-xs font-medium text-muted-foreground">Responsable</Label>
+                   <div className="mt-1 h-9 rounded-md border border-input bg-slate-50 px-3 py-2 text-xs text-slate-400">Sin asignar</div>
+                 </div>
+               )}
+               <div>
+                 <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
+                 <Input
+                   type="date"
+                   value={form.fecha_requerida}
+                   onChange={e => handleChange("fecha_requerida", e.target.value)}
+                   className="mt-1"
+                 />
+               </div>
+             </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
                 <Textarea
@@ -306,15 +316,15 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
           )}
 
           {/* Tracking section (edit mode only) */}
-          {pedido && (
-            <div className="space-y-3 border-t pt-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
-              <div className="grid grid-cols-2 gap-3">
-                <SearchableSelect
-                  label="Responsable"
-                  value={form.responsable} onChange={v => handleChange("responsable", v)}
-                  options={responsableOpts} placeholder="Sin asignar"
-                />
+          {pedido && isAdmin && (
+           <div className="space-y-3 border-t pt-4">
+             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
+             <div className="grid grid-cols-2 gap-3">
+               <SearchableSelect
+                 label="Responsable"
+                 value={form.responsable} onChange={v => handleChange("responsable", v)}
+                 options={responsableOpts} placeholder="Sin asignar"
+               />
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
                   <Input type="date" value={form.fecha_requerida} onChange={e => handleChange("fecha_requerida", e.target.value)} className="mt-1" />

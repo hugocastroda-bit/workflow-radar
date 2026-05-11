@@ -57,7 +57,7 @@ export default function Kanban() {
   });
 
   const handleDragEnd = async (result) => {
-    if (!result.destination) return;
+    if (!isAdmin || !result.destination) return;
     const { draggableId, destination } = result;
     const newEstado = destination.droppableId;
     const pedido = pedidos.find(p => p.id === draggableId);

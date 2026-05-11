@@ -41,11 +41,6 @@
           }
         },
         {
-          "data.espacioId": {
-            "$in": "{{user.data.memberSpaceIds}}"
-          }
-        },
-        {
           "data.activo": true
         }
       ]
