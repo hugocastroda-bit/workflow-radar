@@ -13,7 +13,6 @@ import { toast } from "sonner";
 // Module-level cache
 const catalogCache = {};
 
-// Call this from Configuracion after creating/editing/inactivating catalog records
 export function invalidateCatalogCache() {
   Object.keys(catalogCache).forEach(k => delete catalogCache[k]);
 }
@@ -51,7 +50,6 @@ const emptyForm = {
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
 };
 
-// Searchable dropdown component
 function SearchableSelect({ label, value, onChange, options, placeholder, required }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -131,7 +129,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const [catalogs, setCatalogs] = useState({});
   const [showOptional, setShowOptional] = useState(false);
 
-  // Load catalogs
   useEffect(() => {
     if (!open) return;
     loadCatalogs()
@@ -167,32 +164,9 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     setSaving(true);
     const data = { ...form };
 
-    // Strip empty optional fields
     if (!data.responsable) delete data.responsable;
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
-
-    // Validar que responsable no sea duplicado o inválido
-    if (data.responsable) {
-      const parts = data.responsable.split(' — ');
-      if (parts.length === 2) {
-        const [nombre, email] = parts;
-        const emailNorm = email.toLowerCase().trim();
-        try {
-          const existentes = await base44.entities.Responsable.filter(m => 
-            (m.email || '').toLowerCase().trim() === emailNorm
-          ).catch(() => []);
-          if (existentes.length > 1) {
-            setSaving(false);
-            toast.error("Error: duplicados detectados. Ejecuta limpieza desde Configuración.");
-            return;
-          }
-        } catch (err) {
-          console.warn('[PedidoForm] Warning checking responsable duplicates:', err);
-          // No bloquear si no se puede validar
-        }
-      }
-    }
 
     const timeout = setTimeout(() => {
       setSaving(false);
@@ -237,7 +211,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         </DialogHeader>
 
         <div className="space-y-4 mt-1">
-          {/* Required fields */}
           <div className="space-y-3">
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Título *</Label>
@@ -261,25 +234,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 options={procesoOpts} placeholder="Seleccionar"
               />
             </div>
-            {isAdmin && (
-            <div className="grid gap-3 grid-cols-2">
-              <SearchableSelect
-                label="Responsable"
-                value={form.responsable} onChange={v => handleChange("responsable", v)}
-                options={responsableOpts} placeholder="Sin asignar"
-              />
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
-                <Input
-                  type="date"
-                  value={form.fecha_requerida}
-                  onChange={e => handleChange("fecha_requerida", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            )}
-            {!isAdmin && (
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
               <Input
@@ -289,15 +243,14 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 className="mt-1"
               />
             </div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 grid-cols-2">
               <SearchableSelect
                 label="Prioridad" required
                 value={form.prioridad} onChange={v => handleChange("prioridad", v)}
                 options={prioridadOpts} placeholder="Seleccionar"
               />
               {pedido && (
-                <div className="relative">
+                <div>
                   <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
                   <SearchableSelect
                     label="" value={form.estado} onChange={v => handleChange("estado", v)}
@@ -306,9 +259,15 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 </div>
               )}
             </div>
+            {isAdmin && (
+              <SearchableSelect
+                label="Responsable"
+                value={form.responsable} onChange={v => handleChange("responsable", v)}
+                options={responsableOpts} placeholder="Sin asignar"
+              />
+            )}
           </div>
 
-          {/* Optional fields toggle */}
           {!pedido && (
             <button
               type="button"
@@ -335,21 +294,9 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             </div>
           )}
 
-          {/* Tracking section (edit mode only) */}
           {pedido && isAdmin && (
             <div className="space-y-3 border-t pt-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Seguimiento</p>
-              <div className="grid grid-cols-2 gap-3">
-                <SearchableSelect
-                  label="Responsable"
-                  value={form.responsable} onChange={v => handleChange("responsable", v)}
-                  options={responsableOpts} placeholder="Sin asignar"
-                />
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
-                  <Input type="date" value={form.fecha_requerida} onChange={e => handleChange("fecha_requerida", e.target.value)} className="mt-1" />
-                </div>
-              </div>
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
                 <Textarea value={form.descripcion} onChange={e => handleChange("descripcion", e.target.value)} className="mt-1" rows={2} />
@@ -375,7 +322,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             </div>
           )}
 
-          {/* Close section */}
           {pedido && form.estado === "Cerrado" && (
             <div className="space-y-3 border-t pt-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cierre</p>
