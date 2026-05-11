@@ -31,9 +31,11 @@ export default function Archivados() {
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
     if (!espacioActivo?.id) { setLoading(false); return; }
+    setLoading(true);
     base44.entities.Pedido.filter({ archivado: true, espacioId: espacioActivo.id }, "-fecha_archivado")
-      .then(d => { setPedidos(d); setLoading(false); });
-  }, [isAdmin]);
+      .then(d => { setPedidos(d); setLoading(false); })
+      .catch(() => { toast.error("No se pudieron cargar los archivados."); setLoading(false); });
+  }, [isAdmin, espacioActivo?.id]);
 
   if (!isAdmin) {
     return (

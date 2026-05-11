@@ -277,7 +277,10 @@ export default function Bandeja() {
         pedido={null}
         onSaved={(saved) => {
           if (saved) setPedidos(prev => [saved, ...prev]);
-          else base44.entities.Pedido.list("-created_date").then(setPedidos);
+          else if (espacioActivo?.id) {
+            base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
+              .then(d => setPedidos(filtrarConfidenciales(d, user)));
+          }
         }}
       />
     </div>

@@ -9,29 +9,28 @@ import { useEspacio } from "@/lib/EspacioContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
-// Module-level cache so catalogs persist across modal opens
-const catalogCache = {
-  solicitantes: null,
-  responsables: null,
-  procesos: null,
-  prioridades: null,
-};
+// Module-level cache keyed by espacioId so switching spaces invalidates catalogs
+const catalogCacheBySpace = {};
 
-async function loadCatalogs() {
+async function loadCatalogs(espacioId) {
+  if (!catalogCacheBySpace[espacioId]) catalogCacheBySpace[espacioId] = {};
+  const cache = catalogCacheBySpace[espacioId];
+  const f = espacioId ? { activo: true, espacioId } : { activo: true };
   const promises = [];
-  if (!catalogCache.solicitantes) promises.push(
-    base44.entities.Solicitante.filter({ activo: true }, "nombre").then(d => { catalogCache.solicitantes = d; })
+  if (!cache.solicitantes) promises.push(
+    base44.entities.Solicitante.filter(f, "nombre").then(d => { cache.solicitantes = d; })
   );
-  if (!catalogCache.responsables) promises.push(
-    base44.entities.Responsable.filter({ activo: true }, "nombre").then(d => { catalogCache.responsables = d; })
+  if (!cache.responsables) promises.push(
+    base44.entities.Responsable.filter(f, "nombre").then(d => { cache.responsables = d; })
   );
-  if (!catalogCache.procesos) promises.push(
-    base44.entities.Proceso.filter({ activo: true }, "nombre").then(d => { catalogCache.procesos = d; })
+  if (!cache.procesos) promises.push(
+    base44.entities.Proceso.filter(f, "nombre").then(d => { cache.procesos = d; })
   );
-  if (!catalogCache.prioridades) promises.push(
-    base44.entities.Prioridad.filter({ activo: true }, "nombre").then(d => { catalogCache.prioridades = d; })
+  if (!cache.prioridades) promises.push(
+    base44.entities.Prioridad.filter(f, "nombre").then(d => { cache.prioridades = d; })
   );
   await Promise.all(promises);
+  return cache;
 }
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
@@ -119,14 +118,15 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const { espacioActivo } = useEspacio();
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [catalogs, setCatalogs] = useState({ ...catalogCache });
+  const [catalogs, setCatalogs] = useState({});
   const [showOptional, setShowOptional] = useState(false);
 
-  // Load catalogs in background when modal opens
+  // Load catalogs filtered by active space; cache per-space
   useEffect(() => {
     if (!open) return;
-    loadCatalogs().then(() => setCatalogs({ ...catalogCache }));
-  }, [open]);
+    const espacioId = espacioActivo?.id;
+    loadCatalogs(espacioId).then(cache => setCatalogs({ ...cache }));
+  }, [open, espacioActivo?.id]);
 
   useEffect(() => {
     if (open) {

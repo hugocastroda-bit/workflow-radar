@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { isAdminGlobal } from "@/lib/EspacioContext";
+import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
 
@@ -77,7 +77,7 @@ function NotificacionesTab() {
   );
 }
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, onExtraAction, espacioId }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -88,27 +88,35 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
   const load = () => {
     setLoading(true);
-    base44.entities[entityKey].list("nombre").then(d => { setItems(d); setLoading(false); });
+    const query = espacioId ? { espacioId } : {};
+    base44.entities[entityKey].filter(query, "nombre").then(d => { setItems(d); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, [entityKey]);
 
   const startEdit = (item) => {
     setEditingId(item.id);
-    setEditForm({ nombre: item.nombre, [extraField]: item[extraField] || "" });
+    setEditForm({
+      nombre: item.nombre,
+      ...(extraField ? { [extraField]: item[extraField] || "" } : {}),
+      ...(extraField2 ? { [extraField2]: item[extraField2] || "" } : {}),
+    });
   };
 
   const cancelEdit = () => { setEditingId(null); setEditForm({}); };
 
   const saveEdit = async (id) => {
     setSaving(true);
-    const data = { nombre: editForm.nombre };
-    if (extraField) data[extraField] = editForm[extraField];
-    if (extraField2) data[extraField2] = editForm[extraField2];
-    await base44.entities[entityKey].update(id, data);
+    try {
+      const data = { nombre: editForm.nombre.trim() };
+      if (extraField) data[extraField] = editForm[extraField] || "";
+      if (extraField2) data[extraField2] = (editForm[extraField2] || "").toLowerCase().trim();
+      await base44.entities[entityKey].update(id, data);
+      setEditingId(null);
+      load();
+    } catch { toast.error("No se pudo guardar. Inténtalo nuevamente."); }
     setSaving(false);
-    setEditingId(null);
-    load();
   };
 
   const toggleActivo = async (item) => {
@@ -120,8 +128,9 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!newForm.nombre.trim()) return;
     setSaving(true);
     const data = { nombre: newForm.nombre.trim(), activo: true };
+    if (espacioId) data.espacioId = espacioId;
     if (extraField) data[extraField] = newForm[extraField] || "";
-    if (extraField2) data[extraField2] = newForm[extraField2] || "";
+    if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
     await base44.entities[entityKey].create(data);
     setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
     setAdding(false);
@@ -266,6 +275,7 @@ export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const [gestionarModal, setGestionarModal] = useState(null);
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
   const isAdmin = isAdminGlobal(user);
   const tab = TABS.find(t => t.key === activeTab);
 
@@ -309,13 +319,14 @@ export default function Configuracion() {
         <NotificacionesTab />
       ) : (
         <CatalogoTab
-          key={activeTab}
+          key={activeTab + (espacioActivo?.id || "")}
           entityKey={tab.key}
           extraField={tab.extra}
           extraLabel={tab.extraLabel}
           extraField2={tab.extra2}
           extraLabel2={tab.extraLabel2}
           onExtraAction={activeTab === "Responsable" && isAdmin ? (item) => setGestionarModal(item) : null}
+          espacioId={espacioActivo?.id}
         />
       )}
 
