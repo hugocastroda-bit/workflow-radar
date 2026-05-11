@@ -16,11 +16,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // 1. Obtener todos los usuarios
-    const users = await base44.entities.User.list();
+    // 1. Obtener todos los usuarios (usar service role para listar)
+    const users = await base44.asServiceRole.entities.User.list();
     
     // 2. Obtener todos los responsables existentes
-    const responsables = await base44.entities.Responsable.list();
+    const responsables = await base44.asServiceRole.entities.Responsable.list();
     
     // 3. Crear mapas por correo normalizado para búsqueda rápida
     const respByEmailNorm = {};
@@ -58,18 +58,18 @@ Deno.serve(async (req) => {
             existingResp.activo !== true;
           
           if (needsUpdate) {
-            await base44.entities.Responsable.update(existingResp.id, {
-              nombre: usuario.full_name,
-              email: emailNorm,
-              rol_funcion: usuario.role || 'user',
-              activo: true
-            });
+           await base44.asServiceRole.entities.Responsable.update(existingResp.id, {
+             nombre: usuario.full_name,
+             email: emailNorm,
+             rol_funcion: usuario.role || 'user',
+             activo: true
+           });
             responsablesActualizados++;
             respByEmailNorm[emailNorm] = { ...existingResp, nombre: usuario.full_name, activo: true };
           }
         } else {
           // No existe, crear nuevo
-          const newResp = await base44.entities.Responsable.create({
+          const newResp = await base44.asServiceRole.entities.Responsable.create({
             nombre: usuario.full_name,
             email: emailNorm,
             rol_funcion: usuario.role || 'user',
