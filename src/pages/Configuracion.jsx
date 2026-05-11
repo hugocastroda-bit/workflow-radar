@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ResponsableEditModal from "@/components/ResponsableEditModal";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -137,12 +138,14 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [originalForm, setOriginalForm] = useState({});
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingResponsable, setEditingResponsable] = useState(null);
   const [newForm, setNewForm]   = useState({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
   const [adding, setAdding]     = useState(false);
   const [saving, setSaving]     = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null); // item
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [blockModal, setBlockModal] = useState(null); // { item, message }
+  const [blockModal, setBlockModal] = useState(null);
   const fileRef = useRef(null);
   const [bulkRows, setBulkRows] = useState([]);
   const [bulkResult, setBulkResult] = useState(null);
@@ -153,16 +156,12 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     try {
       let d = await base44.entities[entityKey].filter({}, "nombre");
       
-      // Si es Responsable, deduplicar por email
       if (entityKey === "Responsable") {
         const seenEmails = {};
         const dedup = [];
         for (const item of d) {
           const email = (item.email || '').toLowerCase().trim();
-          if (email && seenEmails[email]) {
-            // Saltar duplicado
-            continue;
-          }
+          if (email && seenEmails[email]) continue;
           if (email) seenEmails[email] = true;
           dedup.push(item);
         }
@@ -258,14 +257,19 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   useEffect(() => { load(); }, [entityKey]);
 
   const startEdit = (item) => {
-    const formData = {
-      nombre: item.nombre,
-      ...(extraField ? { [extraField]: item[extraField] || "" } : {}),
-      ...(extraField2 ? { [extraField2]: item[extraField2] || "" } : {}),
-    };
-    setEditingId(item.id);
-    setEditForm({ ...formData });
-    setOriginalForm({ ...formData });
+    if (entityKey === "Responsable") {
+      setEditingResponsable(item);
+      setEditModalOpen(true);
+    } else {
+      const formData = {
+        nombre: item.nombre,
+        ...(extraField ? { [extraField]: item[extraField] || "" } : {}),
+        ...(extraField2 ? { [extraField2]: item[extraField2] || "" } : {}),
+      };
+      setEditingId(item.id);
+      setEditForm({ ...formData });
+      setOriginalForm({ ...formData });
+    }
   };
 
   const cancelEdit = () => {
@@ -275,7 +279,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   };
 
   const saveEdit = async (id) => {
-    // Validar nombre
     if (!editForm.nombre || !editForm.nombre.trim()) {
       toast.error("El nombre es obligatorio.");
       return;
@@ -283,10 +286,8 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
     setSaving(true);
     try {
-      // Validar correo único normalizado (solo para Responsable y Solicitante)
       if (editForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = editForm.email.toLowerCase().trim();
-        // Check in current entity table - excluir el registro actual
         const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
         if (existingInTable.some(e => 
           e.id !== id && 
@@ -298,7 +299,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         }
       }
 
-      // Construir datos a actualizar
       const data = { nombre: editForm.nombre.trim() };
       if (extraField) data[extraField] = editForm[extraField] || "";
       if (extraField2) {
@@ -306,7 +306,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         data[extraField2] = normalized || "";
       }
 
-      // Actualizar el MISMO ID, no crear nuevo
       await base44.entities[entityKey].update(id, data);
       toast.success("Cambios guardados correctamente.");
       setEditingId(null);
@@ -336,11 +335,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     if (!confirmDelete) return;
     setDeleteLoading(true);
     try {
-     const campoPedido = CAMPO_PEDIDO[entityKey];
-     let pedidosAsociados = [];
-     if (campoPedido) {
-       pedidosAsociados = await base44.entities.Pedido.filter({ [campoPedido]: confirmDelete.nombre });
-     }
+      const campoPedido = CAMPO_PEDIDO[entityKey];
+      let pedidosAsociados = [];
+      if (campoPedido) {
+        pedidosAsociados = await base44.entities.Pedido.filter({ [campoPedido]: confirmDelete.nombre });
+      }
       if (pedidosAsociados.length > 0) {
         setConfirmDelete(null);
         setBlockModal({ item: confirmDelete, message: "No se puede eliminar esta opción porque tiene información asociada. Puedes inactivarla para que no vuelva a aparecer en nuevos pedidos." });
@@ -374,7 +373,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
     setSaving(true);
     try {
-      // Validar correo único normalizado (solo para Responsable y Solicitante)
       if (newForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = newForm.email.toLowerCase().trim();
         const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
@@ -635,19 +633,19 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                   {editingId === item.id ? (
                     <>
                       <td className="px-4 py-2.5" colSpan={extraField2 ? 3 : extraField ? 2 : 1}>
-                            <div className={`grid gap-2 ${extraField2 ? "grid-cols-3" : extraField ? "grid-cols-2" : "grid-cols-1"}`}>
-                              <Input value={editForm.nombre} onChange={e => setEditForm(f => ({ ...f, nombre: e.target.value }))}
-                                className="h-7 text-xs" />
-                              {extraField && (
-                                <Input value={editForm[extraField] || ""} onChange={e => setEditForm(f => ({ ...f, [extraField]: e.target.value }))}
-                                  placeholder={extraLabel} className="h-7 text-xs" />
-                              )}
-                              {extraField2 && (
-                                <Input value={editForm[extraField2] || ""} onChange={e => setEditForm(f => ({ ...f, [extraField2]: e.target.value }))}
-                                  placeholder={extraLabel2} className="h-7 text-xs" type="email" />
-                              )}
-                            </div>
-                          </td>
+                        <div className={`grid gap-2 ${extraField2 ? "grid-cols-3" : extraField ? "grid-cols-2" : "grid-cols-1"}`}>
+                          <Input value={editForm.nombre} onChange={e => setEditForm(f => ({ ...f, nombre: e.target.value }))}
+                            className="h-7 text-xs" />
+                          {extraField && (
+                            <Input value={editForm[extraField] || ""} onChange={e => setEditForm(f => ({ ...f, [extraField]: e.target.value }))}
+                              placeholder={extraLabel} className="h-7 text-xs" />
+                          )}
+                          {extraField2 && (
+                            <Input value={editForm[extraField2] || ""} onChange={e => setEditForm(f => ({ ...f, [extraField2]: e.target.value }))}
+                              placeholder={extraLabel2} className="h-7 text-xs" type="email" />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
                           <button onClick={() => saveEdit(item.id)} disabled={saving} className="p-1.5 rounded hover:bg-success/10 text-success transition-colors">
@@ -675,15 +673,28 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                       </td>}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="flex items-center gap-1 justify-end">
-                          <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Editar">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-warning/10 text-muted-foreground hover:text-warning transition-colors" title="Desactivar">
-                            <PowerOff className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors" title="Eliminar">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {entityKey === "Responsable" ? (
+                            <>
+                              <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Editar">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors" title="Eliminar">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => startEdit(item)} className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Editar">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => toggleActivo(item)} className="p-1.5 rounded hover:bg-warning/10 text-muted-foreground hover:text-warning transition-colors" title="Desactivar">
+                                <PowerOff className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteRequest(item)} className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors" title="Eliminar">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </>
@@ -748,11 +759,24 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
             <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-warning" /> No se puede eliminar</DialogTitle></DialogHeader>
             <p className="text-sm text-muted-foreground">{blockModal.message}</p>
             <div className="flex justify-end gap-2 pt-1">
-             <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
-             <Button size="sm" onClick={handleInactivarDesdeBloqueo} className="bg-warning hover:bg-warning/90 text-white">Inactivar opción</Button>
+              <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
+              <Button size="sm" onClick={handleInactivarDesdeBloqueo} className="bg-warning hover:bg-warning/90 text-white">Inactivar opción</Button>
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Modal de edición para Responsables */}
+      {entityKey === "Responsable" && (
+        <ResponsableEditModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingResponsable(null);
+          }}
+          responsable={editingResponsable}
+          onSaved={() => load()}
+        />
       )}
     </div>
   );
@@ -801,23 +825,19 @@ export default function Configuracion() {
         ))}
       </div>
 
-
-
       {activeTab === "notificaciones" ? (
         <NotificacionesTab />
       ) : (
         <CatalogoTab
-           key={activeTab}
-           entityKey={tab.key}
-           extraField={tab.extra}
-           extraLabel={tab.extraLabel}
-           extraField2={tab.extra2}
-           extraLabel2={tab.extraLabel2}
-           bulkType={tab.bulkType}
+          key={activeTab}
+          entityKey={tab.key}
+          extraField={tab.extra}
+          extraLabel={tab.extraLabel}
+          extraField2={tab.extra2}
+          extraLabel2={tab.extraLabel2}
+          bulkType={tab.bulkType}
         />
       )}
-
-
     </div>
   );
 }
