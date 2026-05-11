@@ -41,7 +41,7 @@
           }
         },
         {
-          "data.espacioId": "{{user.active_space_id}}"
+          "data.email": "{{user.email}}"
         }
       ]
     },

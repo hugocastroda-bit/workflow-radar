@@ -43,9 +43,16 @@
       }
     },
     "read": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.estado": "Activo"
+        }
+      ]
     },
     "update": {
       "user_condition": {
