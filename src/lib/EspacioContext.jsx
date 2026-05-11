@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 
 // El rol 'admin' en Base44 = 'Administrador Global' en Radar C&T
 export const isAdminGlobal = (user) => user?.role === "admin";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const EspacioContext = createContext(null);
 
