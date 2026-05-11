@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const EspacioContext = createContext(null);
@@ -22,6 +23,8 @@ export default function EspacioProvider() {
   const [loadingEspacio, setLoadingEspacio] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdminGeneral = user?.role === "admin";
 
   useEffect(() => {
     try {
@@ -38,10 +41,18 @@ export default function EspacioProvider() {
   }, []);
 
   useEffect(() => {
-    if (!loadingEspacio && !espacioActivo && location.pathname !== "/espacios") {
-      navigate("/espacios", { replace: true });
+    const adminBypassPaths = ["/espacios", "/gestion-espacios"];
+    if (!loadingEspacio && !espacioActivo && !adminBypassPaths.includes(location.pathname)) {
+      if (isAdminGeneral) {
+        // Admin can go to gestion-espacios without a space
+        if (location.pathname !== "/gestion-espacios") {
+          navigate("/espacios", { replace: true });
+        }
+      } else {
+        navigate("/espacios", { replace: true });
+      }
     }
-  }, [loadingEspacio, espacioActivo, location.pathname]);
+  }, [loadingEspacio, espacioActivo, location.pathname, isAdminGeneral]);
 
   const entrarEspacio = (espacio, membresia) => {
     setEspacioActivo(espacio);

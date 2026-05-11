@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { useEspacio } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Lock, ArrowRight, LogOut, LogIn } from "lucide-react";
+import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -18,6 +19,8 @@ const ROL_LABELS = {
 export default function SeleccionEspacio() {
   const { user } = useAuth();
   const { entrarEspacio } = useEspacio();
+  const navigate = useNavigate();
+  const isAdminGeneral = user?.role === "admin";
   const [loading, setLoading] = useState(true);
   const [espacios, setEspacios] = useState([]);
   const [claveModal, setClaveModal] = useState(null);
@@ -99,9 +102,24 @@ export default function SeleccionEspacio() {
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         ) : espacios.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl p-10 text-center space-y-2">
-            <p className="text-sm font-medium text-slate-600">No tienes acceso a ningún espacio.</p>
-            <p className="text-xs text-slate-400">Contacta al administrador para que te asigne a un espacio de equipo.</p>
+          <div className="bg-white border border-slate-200 rounded-xl p-10 text-center space-y-3">
+            {isAdminGeneral ? (
+              <>
+                <p className="text-sm font-medium text-slate-600">No tienes espacios asignados todavía.</p>
+                <p className="text-xs text-slate-400">Como administrador general puedes crear y gestionar espacios de equipo.</p>
+                <Button
+                  onClick={() => navigate("/gestion-espacios")}
+                  className="mt-2 gap-2 bg-slate-900 hover:bg-slate-800 text-white"
+                >
+                  <Settings className="h-4 w-4" /> Ir a administración de espacios
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-slate-600">No tienes acceso a ningún espacio.</p>
+                <p className="text-xs text-slate-400">Contacta al administrador para que te asigne a un espacio de equipo.</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -126,6 +144,18 @@ export default function SeleccionEspacio() {
                 </Button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Admin link */}
+        {isAdminGeneral && espacios.length > 0 && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => navigate("/gestion-espacios")}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" /> Administrar espacios
+            </button>
           </div>
         )}
 
