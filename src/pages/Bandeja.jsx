@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import * as XLSX from "xlsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
@@ -140,6 +141,29 @@ export default function Bandeja() {
     setSavingConf(false);
   };
 
+  const exportToExcel = () => {
+    const data = filtered.map(p => ({
+      "Título": p.titulo,
+      "Solicitante": p.solicitante,
+      "Responsable": p.responsable || "—",
+      "Proceso": p.proceso,
+      "Prioridad": p.prioridad,
+      "Estado": p.estado,
+      "Fecha Requerida": p.fecha_requerida || "—",
+      "Comentarios de Avance": p.comentarios_avance || "—",
+      "Próxima Acción": p.proxima_accion || "—",
+      "Confidencial": p.confidencial ? "Sí" : "No",
+      "Creado": p.created_date?.split("T")[0] || "—",
+      "Actualizado": p.updated_date?.split("T")[0] || "—",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+    XLSX.writeFile(wb, `pedidos_${new Date().toISOString().split("T")[0]}.xlsx`);
+    toast.success(`Exportados ${data.length} pedidos`);
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-96">
       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -153,9 +177,14 @@ export default function Bandeja() {
           <h1 className="text-2xl font-semibold text-foreground">Bandeja de pedidos</h1>
           <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
-        <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5">
-          <Plus className="h-3.5 w-3.5" /> Nuevo pedido
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={exportToExcel} disabled={filtered.length === 0} className="gap-1.5">
+            📊 Exportar a Excel
+          </Button>
+          <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5">
+            <Plus className="h-3.5 w-3.5" /> Nuevo pedido
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
