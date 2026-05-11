@@ -1,7 +1,8 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import EspacioSwitcher from "./EspacioSwitcher";
 import { useAuth } from "@/lib/AuthContext";
 import { useEspacio, isEspacioAdmin } from "@/lib/EspacioContext";
-import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid, ChevronRight } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
@@ -29,9 +30,7 @@ export default function Layout() {
           <h1 className="text-sm font-semibold text-slate-800 truncate" title={espacioActivo?.nombreEspacio}>
             {espacioActivo?.nombreEspacio || "Sin espacio"}
           </h1>
-          <button onClick={salirDeEspacio} className="mt-1 text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-0.5">
-            <ChevronRight className="h-3 w-3" /> Cambiar espacio
-          </button>
+          <EspacioSwitcher />
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           {visibleNavItems.map((item) => {
