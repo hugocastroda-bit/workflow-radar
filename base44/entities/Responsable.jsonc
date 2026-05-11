@@ -10,6 +10,10 @@
       "type": "string",
       "title": "Rol o funci\u00f3n"
     },
+    "email": {
+      "type": "string",
+      "title": "Correo electr\u00f3nico"
+    },
     "activo": {
       "type": "boolean",
       "title": "Activo",

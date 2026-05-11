@@ -65,6 +65,10 @@ export default function Kanban() {
       updateData.fecha_cierre_real = new Date().toISOString().split("T")[0];
     }
     await base44.entities.Pedido.update(draggableId, updateData);
+
+    // Trigger notifications in background (non-blocking)
+    if (newEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: draggableId }).catch(() => {});
+    if (newEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: draggableId }).catch(() => {});
   };
 
   const saveBlockMotivo = async () => {

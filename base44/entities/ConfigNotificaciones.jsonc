@@ -1,0 +1,49 @@
+{
+  "name": "ConfigNotificaciones",
+  "type": "object",
+  "properties": {
+    "notif_asignado": {
+      "type": "boolean",
+      "title": "Nuevo pedido asignado",
+      "default": true
+    },
+    "notif_bloqueado": {
+      "type": "boolean",
+      "title": "Pedido bloqueado",
+      "default": true
+    },
+    "notif_vencido": {
+      "type": "boolean",
+      "title": "Pedido vencido",
+      "default": false
+    },
+    "notif_cerrado": {
+      "type": "boolean",
+      "title": "Pedido cerrado",
+      "default": false
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

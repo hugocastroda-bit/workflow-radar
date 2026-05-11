@@ -10,6 +10,10 @@
       "type": "string",
       "title": "Cargo o \u00e1rea"
     },
+    "email": {
+      "type": "string",
+      "title": "Correo electr\u00f3nico"
+    },
     "activo": {
       "type": "boolean",
       "title": "Activo",
