@@ -2,10 +2,6 @@
   "name": "Solicitante",
   "type": "object",
   "properties": {
-    "espacioId": {
-      "type": "string",
-      "title": "ID del espacio de equipo"
-    },
     "nombre": {
       "type": "string",
       "title": "Nombre"

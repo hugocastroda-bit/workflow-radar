@@ -2,10 +2,6 @@
   "name": "Pedido",
   "type": "object",
   "properties": {
-    "espacioId": {
-      "type": "string",
-      "title": "ID del espacio de equipo"
-    },
     "titulo": {
       "type": "string",
       "title": "T\u00edtulo del pedido"
@@ -18,37 +14,9 @@
       "type": "string",
       "title": "Solicitante"
     },
-    "sede": {
-      "type": "string",
-      "title": "Sede",
-      "enum": [
-        "Cl\u00ednica Delgado",
-        "Cl\u00ednica Bellavista",
-        "OncoCenter",
-        "Cantella",
-        "Medicina Nuclear",
-        "Asistencia M\u00e9dica",
-        "Corporativo",
-        "Otro"
-      ]
-    },
     "proceso": {
       "type": "string",
-      "title": "Proceso",
-      "enum": [
-        "Selecci\u00f3n",
-        "Bienestar",
-        "SST",
-        "Clima",
-        "Liderazgo",
-        "ACI",
-        "Onboarding",
-        "Comunicaciones internas",
-        "Legal laboral",
-        "Compensaciones",
-        "Gesti\u00f3n de talento",
-        "Otros"
-      ]
+      "title": "Proceso"
     },
     "prioridad": {
       "type": "string",
@@ -111,10 +79,6 @@
       "format": "date",
       "title": "Fecha real de cierre"
     },
-    "calendar_event_id": {
-      "type": "string",
-      "title": "ID evento Google Calendar"
-    },
     "archivado": {
       "type": "boolean",
       "title": "Archivado",
@@ -160,16 +124,9 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.espacioId": "{{user.active_space_id}}"
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
       "$or": [
@@ -180,9 +137,6 @@
         },
         {
           "$and": [
-            {
-              "data.espacioId": "{{user.active_space_id}}"
-            },
             {
               "$or": [
                 {
