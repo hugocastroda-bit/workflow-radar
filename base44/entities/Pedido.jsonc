@@ -159,12 +159,11 @@
     "prioridad"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "data.espacioId": "{{user.active_space_id}}"
+    },
     "read": {
       "$or": [
-        {
-          "data.confidencial": false
-        },
         {
           "user_condition": {
             "role": "admin"
@@ -178,6 +177,16 @@
         },
         {
           "data.responsable": "{{user.full_name}}"
+        },
+        {
+          "$and": [
+            {
+              "data.confidencial": false
+            },
+            {
+              "data.espacioId": "{{user.active_space_id}}"
+            }
+          ]
         }
       ]
     },
