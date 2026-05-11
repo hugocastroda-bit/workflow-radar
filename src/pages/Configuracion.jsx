@@ -1,14 +1,56 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
-import BulkUploadModal from "@/components/BulkUploadModal";
+import * as XLSX from "xlsx";
+
+const BULK_CONFIG = {
+  solicitantes: {
+    entity: "Solicitante",
+    cols: ["Nombre", "Correo", "Área / Cargo"],
+    mapData: (row) => ({
+      nombre: row["Nombre"],
+      email: row["Correo"] || undefined,
+      cargo_area: row["Área / Cargo"] || undefined,
+      activo: true,
+    }),
+    example: [["Paola Montenegro", "paola@empresa.com", "Gestión Humana"]],
+  },
+  responsables: {
+    entity: "Responsable",
+    cols: ["Nombre", "Correo", "Rol / Función"],
+    mapData: (row) => ({
+      nombre: row["Nombre"],
+      email: row["Correo"] || undefined,
+      rol_funcion: row["Rol / Función"] || undefined,
+      activo: true,
+    }),
+    example: [["Gianella Pérez", "gianella@empresa.com", "Analista HRBP"]],
+  },
+  procesos: {
+    entity: "Proceso",
+    cols: ["Nombre"],
+    mapData: (row) => ({
+      nombre: row["Nombre"],
+      activo: true,
+    }),
+    example: [["Selección"]],
+  },
+  prioridades: {
+    entity: "Prioridad",
+    cols: ["Nombre"],
+    mapData: (row) => ({
+      nombre: row["Nombre"],
+      activo: true,
+    }),
+    example: [["Alta"]],
+  },
+};
 
 const TABS = [
   { key: "Solicitante",  label: "Solicitantes",  extra: "cargo_area",  extraLabel: "Cargo o área",  extra2: "email", extraLabel2: "Correo", bulkType: "solicitantes" },
@@ -92,7 +134,10 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [confirmDelete, setConfirmDelete] = useState(null); // item
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [blockModal, setBlockModal] = useState(null); // { item, message }
-  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const fileRef = useRef(null);
+  const [bulkRows, setBulkRows] = useState([]);
+  const [bulkResult, setBulkResult] = useState(null);
+  const [bulkImporting, setBulkImporting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -100,10 +145,82 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       .catch(() => setLoading(false));
   };
 
-  const handleBulkImported = () => {
-    setBulkUploadOpen(false);
-    invalidateCatalogCache();
-    load();
+  const downloadTemplate = () => {
+    const cfg = BULK_CONFIG[bulkType];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([cfg.cols, ...cfg.example]);
+    XLSX.utils.book_append_sheet(wb, ws, entityKey);
+    XLSX.writeFile(wb, `plantilla_${bulkType}.xlsx`);
+  };
+
+  const handleBulkFile = async (file) => {
+    if (!file) return;
+    setBulkResult(null);
+    const cfg = BULK_CONFIG[bulkType];
+    let existing = [];
+    try {
+      existing = await base44.entities[cfg.entity].list();
+    } catch (e) {
+      console.warn("Error fetching existing:", e);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+        const parsed = data.map((rawRow, idx) => {
+          const row = {};
+          for (const col of cfg.cols) {
+            row[col] = (rawRow[col] || "").toString().trim();
+          }
+          const errors = [];
+          const warnings = [];
+          
+          if (!row["Nombre"]?.trim()) {
+            errors.push("Falta nombre");
+          }
+          const isDup = existing.some(r => (r.nombre || "").toLowerCase().trim() === (row["Nombre"] || "").toLowerCase().trim());
+          if (isDup) warnings.push("Duplicado");
+          if (row["Correo"]?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row["Correo"])) {
+            errors.push("Email inválido");
+          }
+          return { ...row, _idx: idx + 2, _errors: errors, _warnings: warnings, _skip: false };
+        });
+        setBulkRows(parsed);
+      } catch (err) {
+        toast.error("Error leyendo archivo");
+        setBulkRows([]);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleBulkImport = async () => {
+    const cfg = BULK_CONFIG[bulkType];
+    const readyRows = bulkRows.filter(r => !r._skip && r._errors.length === 0);
+    const toImport = readyRows.map(r => cfg.mapData(r));
+    setBulkImporting(true);
+    try {
+      await base44.entities[cfg.entity].bulkCreate(toImport);
+      const duplicates = bulkRows.filter(r => !r._skip && r._errors.length === 0 && r._warnings.length > 0).length;
+      setBulkResult({
+        total: bulkRows.length,
+        imported: toImport.length,
+        errors: bulkRows.filter(r => r._errors.length > 0).length,
+        duplicates,
+        skipped: bulkRows.filter(r => r._skip).length,
+      });
+      invalidateCatalogCache();
+      load();
+      toast.success("Carga masiva completada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error importando");
+    }
+    setBulkImporting(false);
   };
 
   useEffect(() => { load(); }, [entityKey]);
@@ -201,7 +318,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-2">
-        <Button size="sm" onClick={() => setBulkUploadOpen(true)} variant="outline" className="gap-1.5 text-xs">
+        <Button size="sm" onClick={() => setBulkRows([])} variant="outline" className="gap-1.5 text-xs">
           <Upload className="h-3.5 w-3.5" /> Carga masiva
         </Button>
         <Button size="sm" onClick={() => setAdding(true)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs">
@@ -209,12 +326,100 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         </Button>
       </div>
 
-      <BulkUploadModal
-        open={bulkUploadOpen}
-        onClose={() => setBulkUploadOpen(false)}
-        type={bulkType}
-        onImported={handleBulkImported}
-      />
+      {bulkRows.length === 0 && !bulkResult && (
+        <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">Carga masiva de registros</p>
+            <Button size="sm" variant="ghost" onClick={downloadTemplate} className="gap-1 text-xs h-7">
+              <Download className="h-3 w-3" /> Plantilla
+            </Button>
+          </div>
+          <div
+            className="border-2 border-dashed border-slate-200 rounded p-6 text-center cursor-pointer hover:border-slate-400 transition"
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); handleBulkFile(e.dataTransfer.files[0]); }}
+          >
+            <Upload className="h-5 w-5 text-slate-300 mx-auto mb-1" />
+            <p className="text-xs text-slate-500">Sube Excel o CSV</p>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => handleBulkFile(e.target.files[0])} />
+          </div>
+        </div>
+      )}
+
+      {bulkRows.length > 0 && !bulkResult && (
+        <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium">{bulkRows.length} filas</p>
+            <Button size="sm" variant="ghost" onClick={() => setBulkRows([])} className="text-xs h-7">Cancelar</Button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b bg-slate-50">
+                  <th className="px-2 py-2 text-left font-medium text-slate-600">#</th>
+                  {BULK_CONFIG[bulkType].cols.map(c => <th key={c} className="px-2 py-2 text-left font-medium text-slate-600">{c}</th>)}
+                  <th className="px-2 py-2 text-left font-medium text-slate-600">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bulkRows.map((row, i) => {
+                  const hasErr = row._errors.length > 0;
+                  const hasWarn = row._warnings.length > 0;
+                  return (
+                    <tr key={i} className={`border-b text-xs ${row._skip ? "opacity-40" : hasErr ? "bg-red-50/40" : hasWarn ? "bg-yellow-50/30" : ""}`}>
+                      <td className="px-2 py-1 text-slate-400">{row._idx}</td>
+                      {BULK_CONFIG[bulkType].cols.map(c => <td key={c} className="px-2 py-1 truncate max-w-[100px] text-slate-700">{row[c] || "—"}</td>)}
+                      <td className="px-2 py-1">
+                        {row._skip ? (
+                          <span className="text-slate-400">Omitido</span>
+                        ) : hasErr ? (
+                          <span className="text-red-600 flex items-center gap-0.5"><AlertCircle className="h-3 w-3" /> Error</span>
+                        ) : hasWarn ? (
+                          <span className="text-amber-600 flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /> Dup</span>
+                        ) : (
+                          <span className="text-green-600 flex items-center gap-0.5"><CheckCircle className="h-3 w-3" /> OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {bulkRows.some(r => r._errors.length > 0 || r._warnings.length > 0) && (
+            <div className="space-y-1 text-xs">
+              {bulkRows.filter(r => (r._errors.length > 0 || r._warnings.length > 0) && !r._skip).map((row, i) => (
+                <div key={i} className={`rounded px-2 py-1 ${row._errors.length > 0 ? "bg-red-50 text-red-700" : "bg-yellow-50 text-yellow-700"}`}>
+                  <span className="font-medium">Fila {row._idx}:</span> {[...row._errors, ...row._warnings].join(" · ")}
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setBulkRows([])} className="text-xs h-7">Cancelar</Button>
+            <Button size="sm" onClick={handleBulkImport} disabled={bulkImporting || bulkRows.filter(r => !r._skip && r._errors.length === 0).length === 0} className="text-xs h-7 gap-1">
+              {bulkImporting ? <Loader2 className="h-3 w-3 animate-spin" /> : `Importar (${bulkRows.filter(r => !r._skip && r._errors.length === 0).length})`}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {bulkResult && (
+        <div className="border border-green-200 rounded-lg p-4 bg-green-50 space-y-2">
+          <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+            <CheckCircle className="h-4 w-4" /> Importación completada
+          </div>
+          <ul className="text-xs text-slate-600 space-y-0.5 ml-6 list-disc">
+            <li>Leídas: {bulkResult.total}</li>
+            <li>Importadas: {bulkResult.imported}</li>
+            <li>Duplicados: {bulkResult.duplicates}</li>
+            <li>Errores: {bulkResult.errors}</li>
+            <li>Omitidas: {bulkResult.skipped}</li>
+          </ul>
+          <Button size="sm" variant="outline" onClick={() => { setBulkResult(null); setBulkRows([]); }} className="text-xs h-7 mt-2">Cerrar</Button>
+        </div>
+      )}
 
       {adding && (
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-2">
