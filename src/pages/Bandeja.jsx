@@ -16,6 +16,7 @@ import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
 import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
+import { eventBus } from "@/lib/eventBus";
 
 const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 // PROCESOS derivados dinámicamente de los pedidos cargados (no lista estática)
@@ -54,6 +55,41 @@ export default function Bandeja() {
       }
     };
     cargarPedidos();
+
+    // Escuchar eventos de cambios en pedidos
+    const unsubscribePedidoCreado = eventBus.on('pedidoCreado', (pedido) => {
+      const filtrado = filtrarConfidenciales([pedido], user);
+      if (filtrado.length > 0) {
+        setPedidos(prev => [pedido, ...prev]);
+      }
+    });
+
+    const unsubscribePedidoActualizado = eventBus.on('pedidoActualizado', (pedido) => {
+      setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p));
+    });
+
+    const unsubscribePedidoArchivado = eventBus.on('pedidoArchivado', (pedidoId) => {
+      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+    });
+
+    const unsubscribePedidoRestaurado = eventBus.on('pedidoRestaurado', (pedido) => {
+      const filtrado = filtrarConfidenciales([pedido], user);
+      if (filtrado.length > 0) {
+        setPedidos(prev => [pedido, ...prev]);
+      }
+    });
+
+    const unsubscribePedidoEliminado = eventBus.on('pedidoEliminado', (pedidoId) => {
+      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+    });
+
+    return () => {
+      unsubscribePedidoCreado();
+      unsubscribePedidoActualizado();
+      unsubscribePedidoArchivado();
+      unsubscribePedidoRestaurado();
+      unsubscribePedidoEliminado();
+    };
   }, [user]);
 
   const today = new Date().toISOString().split("T")[0];

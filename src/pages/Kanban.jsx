@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { eventBus } from "@/lib/eventBus";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -45,6 +46,35 @@ export default function Kanban() {
       .then(d => setPedidos(filtrarConfidenciales(d, user)))
       .catch(() => toast.error("No se pudieron cargar los pedidos."))
       .finally(() => setLoading(false));
+
+    // Escuchar eventos de cambios en pedidos
+    const unsubscribePedidoCreado = eventBus.on('pedidoCreado', (pedido) => {
+      setPedidos(prev => [pedido, ...prev]);
+    });
+
+    const unsubscribePedidoActualizado = eventBus.on('pedidoActualizado', (pedido) => {
+      setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p));
+    });
+
+    const unsubscribePedidoArchivado = eventBus.on('pedidoArchivado', (pedidoId) => {
+      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+    });
+
+    const unsubscribePedidoRestaurado = eventBus.on('pedidoRestaurado', (pedido) => {
+      setPedidos(prev => [pedido, ...prev]);
+    });
+
+    const unsubscribePedidoEliminado = eventBus.on('pedidoEliminado', (pedidoId) => {
+      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+    });
+
+    return () => {
+      unsubscribePedidoCreado();
+      unsubscribePedidoActualizado();
+      unsubscribePedidoArchivado();
+      unsubscribePedidoRestaurado();
+      unsubscribePedidoEliminado();
+    };
   }, [user]);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
@@ -83,7 +113,8 @@ export default function Kanban() {
     }
 
     try {
-      await base44.entities.Pedido.update(draggableId, updateData);
+      const updatedPedido = await base44.entities.Pedido.update(draggableId, updateData);
+      eventBus.emit('pedidoActualizado', updatedPedido);
     } catch (err) {
       console.error("[Kanban] Error moviendo pedido:", err);
       setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: prevEstado } : p));
@@ -118,6 +149,7 @@ export default function Kanban() {
       setPedidos(prev => prev.filter(p => p.id !== archiveTarget.id));
       setArchiveTarget(null);
       toast.success("Pedido archivado correctamente");
+      eventBus.emit('pedidoArchivado', archiveTarget.id);
     } catch (err) {
       console.error("[Kanban] Error archivando:", err);
       toast.error("No se pudo archivar el pedido.");
@@ -133,6 +165,7 @@ export default function Kanban() {
       setPedidos(prev => prev.filter(p => p.id !== deleteTarget.id));
       setDeleteTarget(null);
       toast.success("Pedido borrado correctamente");
+      eventBus.emit('pedidoEliminado', deleteTarget.id);
     } catch (err) {
       console.error("[Kanban] Error borrando:", err);
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");

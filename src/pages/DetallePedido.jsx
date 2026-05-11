@@ -19,6 +19,7 @@ import { canVerConfidencial } from "@/lib/confidencial";
 import { toast } from "sonner";
 import SearchableSelect from "@/components/SearchableSelect";
 import { obtenerResponsablesActivos } from "@/lib/sync-utils";
+import { eventBus } from "@/lib/eventBus";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -173,6 +174,8 @@ export default function DetallePedido() {
       await load();
       setEditSection(null);
       setDraft({});
+      // Emitir evento para que otras vistas se actualicen
+      eventBus.emit('pedidoActualizado', pedido);
     } catch (err) {
       console.error("[saveEdit] Error:", err.message, err.response?.data);
       if (err.response?.status === 403) {
@@ -198,6 +201,7 @@ export default function DetallePedido() {
         ...(motivo ? { motivo_archivo: motivo } : {}),
       });
       toast.success("Pedido archivado");
+      eventBus.emit('pedidoArchivado', id);
       navigate("/archivados");
     } catch {
       toast.error("No se pudo archivar el pedido.");
@@ -210,10 +214,12 @@ export default function DetallePedido() {
     if (!isAdmin) return;
     setRestoring(true);
     try {
+      const pedidoData = await base44.entities.Pedido.get(id);
       await base44.entities.Pedido.update(id, { archivado: false, fecha_archivado: null, archivado_por: null });
       toast.success("Pedido restaurado correctamente");
       await load();
       setShowRestore(false);
+      eventBus.emit('pedidoRestaurado', pedidoData);
     } catch {
       toast.error("No se pudo restaurar el pedido.");
     }
@@ -226,6 +232,7 @@ export default function DetallePedido() {
     try {
       await base44.entities.Pedido.delete(id);
       toast.success("Pedido borrado correctamente");
+      eventBus.emit('pedidoEliminado', id);
       navigate("/");
     } catch {
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");

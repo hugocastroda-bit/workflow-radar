@@ -11,6 +11,7 @@ import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
+import { eventBus } from "@/lib/eventBus";
 
 // Module-level cache
 const catalogCache = {};
@@ -132,7 +133,10 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
       }
       clearTimeout(timeout);
       setSaving(false);
-      if (!pedido) toast.success("Pedido creado correctamente");
+      if (!pedido) {
+       toast.success("Pedido creado correctamente");
+       eventBus.emit('pedidoCreado', saved);
+      }
       onSaved?.(saved);
       onClose();
     } catch (err) {
