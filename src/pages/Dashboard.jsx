@@ -10,6 +10,7 @@ import {
 import { Loader2 } from "lucide-react";
 import _ from "lodash";
 import { useAuth } from "@/lib/AuthContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { filtrarConfidenciales } from "@/lib/confidencial";
 
 const DONUT_COLORS = {
@@ -54,13 +55,15 @@ export default function Dashboard() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
 
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false }).then(d => {
+    if (!espacioActivo?.id) { setLoading(false); return; }
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }).then(d => {
       setPedidos(filtrarConfidenciales(d, user));
       setLoading(false);
     });
-  }, []);
+  }, [espacioActivo?.id]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">

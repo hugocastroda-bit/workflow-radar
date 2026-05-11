@@ -10,6 +10,7 @@ import PedidoForm from "../components/PedidoForm";
 import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
@@ -29,6 +30,7 @@ export default function Bandeja() {
   const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
 
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
@@ -41,7 +43,8 @@ export default function Bandeja() {
   useEffect(() => {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
-    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => {
+    if (!espacioActivo?.id) { setLoading(false); return; }
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date").then(d => {
       setPedidos(filtrarConfidenciales(d, user));
       setLoading(false);
     });

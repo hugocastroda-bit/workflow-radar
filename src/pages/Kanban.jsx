@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import { filtrarConfidenciales } from "@/lib/confidencial";
+import { useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -28,10 +29,12 @@ export default function Kanban() {
   const [confidencialTarget, setConfidencialTarget] = useState(null);
   const [savingConf, setSavingConf] = useState(false);
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => {
+    if (!espacioActivo?.id) { setLoading(false); return; }
+    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date").then(d => {
       setPedidos(filtrarConfidenciales(d, user));
       setLoading(false);
     });

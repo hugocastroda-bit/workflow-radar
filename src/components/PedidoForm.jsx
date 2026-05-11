@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
+import { useEspacio } from "@/lib/EspacioContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -115,6 +116,7 @@ function SearchableSelect({ label, value, onChange, options, placeholder, requir
 }
 
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
+  const { espacioActivo } = useEspacio();
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [catalogs, setCatalogs] = useState({ ...catalogCache });
@@ -176,6 +178,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         console.log("[PedidoForm] 4. Pedido actualizado:", saved);
       } else {
         data.estado = "Nuevo";
+        if (espacioActivo?.id) data.espacioId = espacioActivo.id;
         console.log("[PedidoForm] 3. Insertando pedido...");
         saved = await base44.entities.Pedido.create(data);
         console.log("[PedidoForm] 4. Pedido creado correctamente. ID:", saved?.id);

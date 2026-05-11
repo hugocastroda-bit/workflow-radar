@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Bell } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
 
 const TABS = [
@@ -258,6 +259,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
   const tab = TABS.find(t => t.key === activeTab);
   const isNotifTab = activeTab === "notificaciones";

@@ -9,6 +9,9 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './components/Layout';
 
 import Bandeja from './pages/Bandeja';
+import SeleccionEspacio from './pages/SeleccionEspacio';
+import GestionEspacios from './pages/GestionEspacios';
+import EspacioProvider from './lib/EspacioContext';
 import Kanban from './pages/Kanban';
 import Dashboard from './pages/Dashboard';
 import DetallePedido from './pages/DetallePedido';
@@ -51,15 +54,19 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Bandeja />} />
-          <Route path="/bandeja" element={<Bandeja />} />
-          <Route path="/kanban" element={<Kanban />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pedido/:id" element={<DetallePedido />} />
-          <Route path="/configuracion" element={<Configuracion />} />
-          <Route path="/carga-masiva" element={<CargaMasiva />} />
-          <Route path="/archivados" element={<Archivados />} />
+        <Route element={<EspacioProvider />}>
+          <Route path="/espacios" element={<SeleccionEspacio />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Bandeja />} />
+            <Route path="/bandeja" element={<Bandeja />} />
+            <Route path="/kanban" element={<Kanban />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pedido/:id" element={<DetallePedido />} />
+            <Route path="/configuracion" element={<Configuracion />} />
+            <Route path="/carga-masiva" element={<CargaMasiva />} />
+            <Route path="/archivados" element={<Archivados />} />
+            <Route path="/gestion-espacios" element={<GestionEspacios />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

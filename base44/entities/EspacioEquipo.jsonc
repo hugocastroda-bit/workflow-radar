@@ -1,0 +1,57 @@
+{
+  "name": "EspacioEquipo",
+  "type": "object",
+  "properties": {
+    "nombreEspacio": {
+      "type": "string",
+      "title": "Nombre del espacio"
+    },
+    "descripcion": {
+      "type": "string",
+      "title": "Descripci\u00f3n"
+    },
+    "estado": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "Activo",
+        "Inactivo"
+      ],
+      "default": "Activo"
+    },
+    "creadoPor": {
+      "type": "string",
+      "title": "Creado por"
+    },
+    "claveAccesoHash": {
+      "type": "string",
+      "title": "Hash de la clave de acceso"
+    },
+    "requiereClave": {
+      "type": "boolean",
+      "title": "Requiere clave",
+      "default": false
+    }
+  },
+  "required": [
+    "nombreEspacio"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

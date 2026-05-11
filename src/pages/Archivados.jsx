@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { useEspacio } from "@/lib/EspacioContext";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ const PRIORIDADES = ["Alta","Media","Baja"];
 export default function Archivados() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { espacioActivo } = useEspacio();
   const isAdmin = user?.role === "admin";
 
   const [pedidos, setPedidos] = useState([]);
@@ -28,7 +30,8 @@ export default function Archivados() {
 
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
-    base44.entities.Pedido.filter({ archivado: true }, "-fecha_archivado")
+    if (!espacioActivo?.id) { setLoading(false); return; }
+    base44.entities.Pedido.filter({ archivado: true, espacioId: espacioActivo.id }, "-fecha_archivado")
       .then(d => { setPedidos(d); setLoading(false); });
   }, [isAdmin]);
 
