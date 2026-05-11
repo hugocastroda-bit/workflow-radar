@@ -17,10 +17,10 @@ import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
 import { canVerConfidencial } from "@/lib/confidencial";
 import { toast } from "sonner";
+import SearchableSelect from "@/components/SearchableSelect";
+import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
-const PROCESOS = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
-const PRIORIDADES = ["Alta", "Media", "Baja"];
 
 function Field({ label, value, highlight, mono }) {
   return (
@@ -60,6 +60,30 @@ export default function DetallePedido() {
   const [savingConf, setSavingConf] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [catalogs, setCatalogs] = useState({});
+  const [loadingCatalogs, setLoadingCatalogs] = useState(false);
+
+  const loadCatalogs = async () => {
+    setLoadingCatalogs(true);
+    try {
+      const [solicitantes, responsables, procesos, prioridades] = await Promise.all([
+        base44.entities.Solicitante.filter({ activo: true }, "nombre").catch(() => []),
+        obtenerResponsablesActivos().catch(() => []),
+        base44.entities.Proceso.filter({ activo: true }, "nombre").catch(() => []),
+        base44.entities.Prioridad.filter({ activo: true }, "nombre").catch(() => []),
+      ]);
+      setCatalogs({
+        solicitantes: solicitantes.map(s => s.nombre),
+        responsables,
+        procesos: procesos.map(p => p.nombre),
+        prioridades: prioridades.map(p => p.nombre),
+      });
+    } catch (err) {
+      console.error('[DetallePedido] Error loading catalogs:', err);
+    } finally {
+      setLoadingCatalogs(false);
+    }
+  };
 
   const load = async () => {
     try {
@@ -94,7 +118,10 @@ export default function DetallePedido() {
     setSavingConf(false);
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    load();
+    loadCatalogs();
+  }, [id]);
 
   const startEdit = (section) => {
     setDraft({ ...pedido });
@@ -127,6 +154,12 @@ export default function DetallePedido() {
       } else {
         // Admin: update completo
         if (!isAdmin) { toast.error("No tienes permisos para editar esta sección."); setSaving(false); return; }
+        // Validar campos obligatorios
+        if (!draft.titulo?.trim()) { toast.error("El título es obligatorio."); setSaving(false); return; }
+        if (!draft.solicitante?.trim()) { toast.error("El solicitante es obligatorio."); setSaving(false); return; }
+        if (!draft.proceso?.trim()) { toast.error("El proceso es obligatorio."); setSaving(false); return; }
+        if (!draft.prioridad?.trim()) { toast.error("La prioridad es obligatoria."); setSaving(false); return; }
+        if (!draft.estado?.trim()) { toast.error("El estado es obligatorio."); setSaving(false); return; }
         data = { ...draft };
         if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
           data.fecha_cierre_real = new Date().toISOString().split("T")[0];
@@ -350,7 +383,7 @@ export default function DetallePedido() {
         {editSection === "general" ? (
           <div className="space-y-4">
             <div>
-              <Label className="text-xs text-muted-foreground">Título</Label>
+              <Label className="text-xs text-muted-foreground">Título *</Label>
               <Input value={draft.titulo || ""} onChange={e => set("titulo", e.target.value)} className="mt-1" />
             </div>
             <div>
@@ -358,39 +391,51 @@ export default function DetallePedido() {
               <Textarea value={draft.descripcion || ""} onChange={e => set("descripcion", e.target.value)} className="mt-1" rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground">Solicitante</Label>
-                <Input value={draft.solicitante || ""} onChange={e => set("solicitante", e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Responsable</Label>
-                <Input value={draft.responsable || ""} onChange={e => set("responsable", e.target.value)} className="mt-1" />
-              </div>
+              <SearchableSelect
+                label="Solicitante *"
+                value={draft.solicitante || ""}
+                onChange={v => set("solicitante", v)}
+                options={catalogs.solicitantes || []}
+                placeholder="Seleccionar"
+                required
+              />
+              <SearchableSelect
+                label="Responsable"
+                value={draft.responsable || ""}
+                onChange={v => set("responsable", v)}
+                options={[
+                  ...(catalogs.responsables || []).map(r => `${r.nombre} — ${r.email || ''}`),
+                ]}
+                placeholder="Sin responsable"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground">Proceso</Label>
-                <Select value={draft.proceso} onValueChange={v => set("proceso", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              <SearchableSelect
+                label="Proceso *"
+                value={draft.proceso || ""}
+                onChange={v => set("proceso", v)}
+                options={catalogs.procesos || []}
+                placeholder="Seleccionar"
+                required
+              />
+              <SearchableSelect
+                label="Prioridad *"
+                value={draft.prioridad || ""}
+                onChange={v => set("prioridad", v)}
+                options={catalogs.prioridades || []}
+                placeholder="Seleccionar"
+                required
+              />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground">Prioridad</Label>
-                <Select value={draft.prioridad} onValueChange={v => set("prioridad", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Estado</Label>
-                <Select value={draft.estado} onValueChange={v => set("estado", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <SearchableSelect
+                label="Estado *"
+                value={draft.estado || ""}
+                onChange={v => set("estado", v)}
+                options={ESTADOS}
+                placeholder="Seleccionar"
+                required
+              />
               <div>
                 <Label className="text-xs text-muted-foreground">Fecha requerida</Label>
                 <Input type="date" value={draft.fecha_requerida || ""} onChange={e => set("fecha_requerida", e.target.value)} className="mt-1" />
