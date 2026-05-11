@@ -18,8 +18,7 @@ import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 
 const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
-const PRIORIDADES = ["Alta", "Media", "Baja"];
-const PROCESOS   = ["Selección", "Bienestar", "SST", "Clima", "Liderazgo", "ACI", "Onboarding", "Comunicaciones internas", "Legal laboral", "Compensaciones", "Gestión de talento", "Otros"];
+// PROCESOS derivados dinámicamente de los pedidos cargados (no lista estática)
 
 export default function Bandeja() {
   const navigate = useNavigate();
@@ -172,7 +171,7 @@ export default function Bandeja() {
         </Select>
         <Select value={filters.proceso} onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
           <SelectTrigger className="h-8 text-xs w-[140px] border-slate-200 bg-white"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>{[...new Set(pedidos.map(p => p.proceso).filter(Boolean))].sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.estado} onValueChange={v => setFilters(f => ({ ...f, estado: v }))}>
           <SelectTrigger className="h-8 text-xs w-[120px] border-slate-200 bg-white"><SelectValue placeholder="Estado" /></SelectTrigger>
@@ -180,7 +179,7 @@ export default function Bandeja() {
         </Select>
         <Select value={filters.prioridad} onValueChange={v => setFilters(f => ({ ...f, prioridad: v }))}>
           <SelectTrigger className="h-8 text-xs w-[100px] border-slate-200 bg-white"><SelectValue placeholder="Prioridad" /></SelectTrigger>
-          <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>{[...new Set(pedidos.map(p => p.prioridad).filter(Boolean))].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         {hasFilters && (
           <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors whitespace-nowrap">
@@ -276,8 +275,11 @@ export default function Bandeja() {
         onClose={() => setFormOpen(false)}
         pedido={null}
         onSaved={(saved) => {
-          if (saved) setPedidos(prev => [saved, ...prev]);
-          else if (espacioActivo?.id) {
+          if (saved) {
+            // Prepend new order; apply confidentiality filter
+            const filtrado = filtrarConfidenciales([saved], user);
+            if (filtrado.length > 0) setPedidos(prev => [saved, ...prev]);
+          } else if (espacioActivo?.id) {
             base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
               .then(d => setPedidos(filtrarConfidenciales(d, user)));
           }

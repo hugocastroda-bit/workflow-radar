@@ -41,21 +41,26 @@ export default function GestionEspacios() {
   const [duplicados, setDuplicados] = useState([]);
 
   const load = async () => {
-    const [esp, memb] = await Promise.all([
-      base44.entities.EspacioEquipo.list("nombreEspacio"),
-      base44.entities.MembresiaEspacio.list("correoUsuario"),
-    ]);
-    setEspacios(esp);
-    setMembresias(memb);
-    setLoading(false);
-    // Detect duplicates
-    const groups = {};
-    esp.forEach(e => {
-      const key = normName(e.nombreEspacio);
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(e);
-    });
-    setDuplicados(Object.values(groups).filter(g => g.length > 1));
+    try {
+      const [esp, memb] = await Promise.all([
+        base44.entities.EspacioEquipo.list("nombreEspacio"),
+        base44.entities.MembresiaEspacio.list("correoUsuario"),
+      ]);
+      setEspacios(esp);
+      setMembresias(memb);
+      // Detect duplicates
+      const groups = {};
+      esp.forEach(e => {
+        const key = normName(e.nombreEspacio);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(e);
+      });
+      setDuplicados(Object.values(groups).filter(g => g.length > 1));
+    } catch {
+      toast.error("No se pudieron cargar los espacios.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -72,27 +77,32 @@ export default function GestionEspacios() {
       const buf = await crypto.subtle.digest("SHA-256", encoder.encode(nuevoForm.clave.trim()));
       claveAccesoHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
     }
-    const espacio = await base44.entities.EspacioEquipo.create({
-      nombreEspacio: nuevoForm.nombreEspacio.trim(),
-      descripcion: nuevoForm.descripcion.trim() || undefined,
-      estado: "Activo",
-      creadoPor: user?.email,
-      requiereClave: nuevoForm.requiereClave,
-      ...(claveAccesoHash ? { claveAccesoHash } : {}),
-    });
-    await base44.entities.MembresiaEspacio.create({
-      espacioId: espacio.id,
-      correoUsuario: user.email,
-      rolEnEspacio: "Owner Espacio",
-      estado: "Activo",
-      fechaAlta: new Date().toISOString().split("T")[0],
-      validadoConClave: true,
-    });
-    toast.success("Espacio creado correctamente");
-    setShowNuevo(false);
-    setNuevoForm({ nombreEspacio: "", descripcion: "", requiereClave: false, clave: "" });
-    setSaving(false);
-    load();
+    try {
+      const espacio = await base44.entities.EspacioEquipo.create({
+        nombreEspacio: nuevoForm.nombreEspacio.trim(),
+        descripcion: nuevoForm.descripcion.trim() || undefined,
+        estado: "Activo",
+        creadoPor: user?.email,
+        requiereClave: nuevoForm.requiereClave,
+        ...(claveAccesoHash ? { claveAccesoHash } : {}),
+      });
+      await base44.entities.MembresiaEspacio.create({
+        espacioId: espacio.id,
+        correoUsuario: user.email.toLowerCase().trim(),
+        rolEnEspacio: "Owner Espacio",
+        estado: "Activo",
+        fechaAlta: new Date().toISOString().split("T")[0],
+        validadoConClave: true,
+      });
+      toast.success("Espacio creado correctamente");
+      setShowNuevo(false);
+      setNuevoForm({ nombreEspacio: "", descripcion: "", requiereClave: false, clave: "" });
+      load();
+    } catch {
+      toast.error("No se pudo crear el espacio. Inténtalo nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleResetClave = async () => {

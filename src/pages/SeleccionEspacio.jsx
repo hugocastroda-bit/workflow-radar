@@ -37,8 +37,10 @@ export default function SeleccionEspacio() {
       const emailAuth = user.email.toLowerCase().trim();
       const emailExacto = user.email; // Email exacto del sistema (como lo usa el RLS)
 
-      // Paso 1: Buscar responsable activo cuyo correo coincida con el usuario autenticado
-      const todosResponsables = await base44.entities.Responsable.list();
+      // Paso 1: Buscar responsable cuyo correo coincida con el usuario autenticado
+      // Usamos list() para que admin vea todos; usuarios normales solo ven los activos por RLS
+      let todosResponsables = [];
+      try { todosResponsables = await base44.entities.Responsable.list(); } catch { todosResponsables = []; }
       const responsable = todosResponsables.find(
         r => (r.email || "").toLowerCase().trim() === emailAuth
       );

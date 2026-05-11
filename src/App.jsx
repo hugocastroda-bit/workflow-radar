@@ -18,6 +18,7 @@ import DetallePedido from './pages/DetallePedido';
 import Configuracion from './pages/Configuracion';
 import CargaMasiva from './pages/CargaMasiva';
 import Archivados from './pages/Archivados';
+import Diagnostico from './pages/Diagnostico';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
             <Route path="/configuracion" element={<Configuracion />} />
             <Route path="/carga-masiva" element={<CargaMasiva />} />
             <Route path="/archivados" element={<Archivados />} />
+            <Route path="/diagnostico" element={<Diagnostico />} />
           </Route>
         </Route>
       </Route>

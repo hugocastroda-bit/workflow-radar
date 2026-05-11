@@ -12,6 +12,12 @@ import { toast } from "sonner";
 // Module-level cache keyed by espacioId so switching spaces invalidates catalogs
 const catalogCacheBySpace = {};
 
+// Call this from Configuracion after creating/editing/inactivating catalog records
+export function invalidateCatalogCache(espacioId) {
+  if (espacioId) delete catalogCacheBySpace[espacioId];
+  else Object.keys(catalogCacheBySpace).forEach(k => delete catalogCacheBySpace[k]);
+}
+
 async function loadCatalogs(espacioId) {
   if (!catalogCacheBySpace[espacioId]) catalogCacheBySpace[espacioId] = {};
   const cache = catalogCacheBySpace[espacioId];

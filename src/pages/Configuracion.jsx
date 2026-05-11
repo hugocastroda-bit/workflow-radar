@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuth } from "@/lib/AuthContext";
 import { isAdminGlobal, useEspacio } from "@/lib/EspacioContext";
 import { toast } from "sonner";
+import { invalidateCatalogCache } from "@/components/PedidoForm";
 import GestionarEspaciosModal from "@/components/GestionarEspaciosModal";
 import AdminEspaciosModal from "@/components/AdminEspaciosModal";
 
@@ -121,6 +122,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       if (extraField2) data[extraField2] = (editForm[extraField2] || "").toLowerCase().trim();
       await base44.entities[entityKey].update(id, data);
       setEditingId(null);
+      invalidateCatalogCache(espacioId);
       load();
     } catch { toast.error("No se pudo guardar. Inténtalo nuevamente."); }
     setSaving(false);
@@ -129,6 +131,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const toggleActivo = async (item) => {
     try {
       await base44.entities[entityKey].update(item.id, { activo: !item.activo });
+      invalidateCatalogCache(espacioId);
       load();
     } catch { toast.error("No se pudo actualizar."); }
   };
@@ -153,6 +156,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         await base44.entities[entityKey].delete(confirmDelete.id);
         toast.success("Opción eliminada correctamente.");
         setConfirmDelete(null);
+        invalidateCatalogCache(espacioId);
         load();
       }
     } catch { toast.error("No se pudo eliminar la opción. Inténtalo nuevamente."); }
@@ -165,6 +169,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       await base44.entities[entityKey].update(blockModal.item.id, { activo: false });
       toast.success("Opción inactivada correctamente.");
       setBlockModal(null);
+      invalidateCatalogCache(espacioId);
       load();
     } catch { toast.error("No se pudo inactivar."); }
   };
@@ -180,6 +185,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       await base44.entities[entityKey].create(data);
       setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
       setAdding(false);
+      invalidateCatalogCache(espacioId);
       load();
     } catch { toast.error("No se pudo agregar. Intenta nuevamente."); }
     setSaving(false);

@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import EspacioSwitcher from "./EspacioSwitcher";
 import { useAuth } from "@/lib/AuthContext";
 import { useEspacio, isEspacioAdmin, isAdminGlobal } from "@/lib/EspacioContext";
-import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid, Bug } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
@@ -62,6 +62,11 @@ export default function Layout() {
           {isAdmin && (
             <Link to="/gestion-espacios" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors w-full">
               <LayoutGrid className="h-3.5 w-3.5" /> Espacios
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/diagnostico" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors w-full">
+              <Bug className="h-3.5 w-3.5" /> Diagnóstico
             </Link>
           )}
           <button
