@@ -26,6 +26,10 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
 
   const emailNorm = (responsable?.email || "").toLowerCase().trim();
 
+  // Correo normalizado que se debe guardar en MembresiaEspacio.correoUsuario
+  // DEBE coincidir exactamente con lo que busca SeleccionEspacio
+  const correoGuardar = emailNorm;
+
   const load = async () => {
     setLoading(true);
     try {

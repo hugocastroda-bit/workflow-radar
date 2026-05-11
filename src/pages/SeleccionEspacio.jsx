@@ -34,28 +34,66 @@ export default function SeleccionEspacio() {
     if (!user?.email) return;
     setLoading(true);
     try {
-      const emailNorm = user.email.toLowerCase().trim();
-      const [membresias, todosEspacios] = await Promise.all([
-        base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
-        base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
-      ]);
+      const emailAuth = user.email.toLowerCase().trim();
+      const emailExacto = user.email; // Email exacto del sistema (como lo usa el RLS)
+
+      // Paso 1: Buscar responsable activo cuyo correo coincida con el usuario autenticado
+      const todosResponsables = await base44.entities.Responsable.list();
+      const responsable = todosResponsables.find(
+        r => (r.email || "").toLowerCase().trim() === emailAuth
+      );
+
+      // Paso 2: Obtener todos los espacios activos
+      const todosEspacios = await base44.entities.EspacioEquipo.filter({ estado: "Activo" });
+
+      // Paso 3: Buscar membresías por correo autenticado
+      // RLS valida data.correoUsuario === user.email (case-sensitive del sistema)
+      // Probamos el email exacto del sistema Y el normalizado para cubrir ambos casos
+      const correosABuscar = new Set([emailExacto, emailAuth]);
+      if (responsable?.email) {
+        correosABuscar.add(responsable.email); // email tal como está guardado en Responsable
+        correosABuscar.add((responsable.email || "").toLowerCase().trim());
+      }
+
+      let todasMembresias = [];
+      for (const correo of correosABuscar) {
+        try {
+          const memb = await base44.entities.MembresiaEspacio.filter({ correoUsuario: correo });
+          todasMembresias = [...todasMembresias, ...memb];
+        } catch { /* ignorar errores individuales */ }
+      }
+      // Deduplicar por id
+      const seen = new Set();
+      const membresias = todasMembresias.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
+
       const activas = membresias.filter(m => m.estado === "Activo");
       const result = activas
         .map(m => ({ membresia: m, espacio: todosEspacios.find(e => e.id === m.espacioId) }))
-        .filter(r => r.espacio);
+        .filter(r => r.espacio && r.espacio.estado === "Activo");
+
       setDiagnostico({
-        emailNorm,
+        emailAuth,
+        responsableEncontrado: !!responsable,
+        responsableId: responsable?.id || null,
+        responsableNombre: responsable?.nombre || null,
+        responsableCorreo: responsable?.email || null,
+        responsableEstado: responsable?.activo === false ? "Inactivo" : (responsable ? "Activo" : null),
         totalMembresias: membresias.length,
         activas: activas.length,
         espaciosEncontrados: result.length,
-        detalles: membresias.map(m => ({
-          espacioId: m.espacioId,
-          espacio: todosEspacios.find(e => e.id === m.espacioId),
-          estado: m.estado,
-        })),
+        detalles: membresias.map(m => {
+          const esp = todosEspacios.find(e => e.id === m.espacioId);
+          return {
+            espacioId: m.espacioId,
+            nombreEspacio: esp?.nombreEspacio || "(no encontrado)",
+            estadoAcceso: m.estado,
+            estadoEspacio: esp?.estado || "(no encontrado)",
+            rolEnEspacio: m.rolEnEspacio,
+          };
+        }),
       });
       setEspacios(result);
-    } catch {
+    } catch (err) {
       toast.error("No se pudieron cargar los espacios. Intenta nuevamente.");
     } finally {
       setLoading(false);
@@ -135,24 +173,38 @@ export default function SeleccionEspacio() {
           <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3">
             {(() => {
               if (!diagnostico) return null;
-              const { totalMembresias, activas, detalles } = diagnostico;
-              const tieneInactivas = detalles.some(d => d.estado !== "Activo");
-              const tieneEspaciosInactivos = detalles.some(d => d.estado === "Activo" && !d.espacio);
-              if (totalMembresias === 0) return (
+              const { responsableEncontrado, totalMembresias, activas, detalles } = diagnostico;
+              // Caso 1: No hay responsable con ese correo
+              if (!responsableEncontrado) return (
                 <>
-                  <p className="text-sm font-medium text-slate-600">No tienes espacios asignados.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador para que registre tu correo como responsable y te asigne a un espacio.</p>
+                  <p className="text-sm font-medium text-slate-600">No existe un responsable registrado con tu correo.</p>
+                  <p className="text-xs text-slate-400">Pide al administrador que te registre como responsable con el correo: <span className="font-mono">{diagnostico.emailAuth}</span></p>
                 </>
               );
-              if (activas === 0 && tieneInactivas) return (
+              // Caso 2: Hay responsable pero sin accesos
+              if (totalMembresias === 0) return (
+                <>
+                  <p className="text-sm font-medium text-slate-600">Tu usuario está registrado, pero aún no tiene espacios asignados.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador para que asigne un espacio a tu usuario.</p>
+                </>
+              );
+              // Caso 3: Tiene accesos pero están inactivos
+              if (activas === 0 && detalles.some(d => d.estadoAcceso !== "Activo")) return (
+                <>
+                  <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero los accesos están inactivos.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador para activar tu acceso.</p>
+                </>
+              );
+              // Caso 4: Accesos activos pero espacios inactivos
+              if (activas > 0 && detalles.some(d => d.estadoAcceso === "Activo" && d.estadoEspacio !== "Activo")) return (
                 <>
                   <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero actualmente están inactivos.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador para activar tu acceso.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador para reactivar el espacio.</p>
                 </>
               );
               return (
                 <>
-                  <p className="text-sm font-medium text-slate-600">Tu usuario está registrado, pero aún no tiene espacios activos asignados.</p>
+                  <p className="text-sm font-medium text-slate-600">No se encontraron espacios disponibles.</p>
                   <p className="text-xs text-slate-400">Contacta al administrador.</p>
                 </>
               );
@@ -212,17 +264,32 @@ export default function SeleccionEspacio() {
               {showDiag ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {showDiag && (
-              <div className="px-4 pb-3 space-y-1 text-amber-800">
-                <p><span className="font-medium">Correo autenticado:</span> {diagnostico.emailNorm}</p>
-                <p><span className="font-medium">Total accesos registrados:</span> {diagnostico.totalMembresias}</p>
-                <p><span className="font-medium">Accesos activos:</span> {diagnostico.activas}</p>
-                <p><span className="font-medium">Espacios mostrados:</span> {diagnostico.espaciosEncontrados}</p>
+              <div className="px-4 pb-3 space-y-2 text-amber-800">
+                <div className="space-y-1">
+                  <p><span className="font-medium">Correo autenticado:</span> <span className="font-mono">{diagnostico.emailAuth}</span></p>
+                  <p><span className="font-medium">Responsable encontrado:</span> {diagnostico.responsableEncontrado ? "✅ Sí" : "❌ No"}</p>
+                  {diagnostico.responsableEncontrado && (
+                    <>
+                      <p><span className="font-medium">Nombre responsable:</span> {diagnostico.responsableNombre}</p>
+                      <p><span className="font-medium">Correo en Responsable:</span> <span className="font-mono">{diagnostico.responsableCorreo}</span></p>
+                      <p><span className="font-medium">responsableId:</span> <span className="font-mono text-xs">{diagnostico.responsableId}</span></p>
+                      <p><span className="font-medium">Estado responsable:</span> {diagnostico.responsableEstado}</p>
+                    </>
+                  )}
+                  <p><span className="font-medium">Accesos encontrados:</span> {diagnostico.totalMembresias}</p>
+                  <p><span className="font-medium">Accesos activos:</span> {diagnostico.activas}</p>
+                  <p><span className="font-medium">Espacios visibles:</span> {diagnostico.espaciosEncontrados}</p>
+                </div>
                 {diagnostico.detalles.length > 0 && (
                   <div className="mt-2 space-y-1">
                     <p className="font-medium">Detalle de accesos:</p>
                     {diagnostico.detalles.map((d, i) => (
-                      <div key={i} className="pl-2 border-l-2 border-amber-300">
-                        <p>Espacio: {d.espacio?.nombreEspacio || d.espacioId} — Estado acceso: {d.estado} — Espacio activo: {d.espacio ? "Sí" : "No encontrado"}</p>
+                      <div key={i} className="pl-2 border-l-2 border-amber-300 space-y-0.5 py-1">
+                        <p><span className="font-medium">Espacio:</span> {d.nombreEspacio}</p>
+                        <p><span className="font-medium">espacioId:</span> <span className="font-mono">{d.espacioId}</span></p>
+                        <p><span className="font-medium">Estado acceso:</span> {d.estadoAcceso === "Activo" ? "✅" : "❌"} {d.estadoAcceso}</p>
+                        <p><span className="font-medium">Estado espacio:</span> {d.estadoEspacio === "Activo" ? "✅" : "❌"} {d.estadoEspacio}</p>
+                        <p><span className="font-medium">Rol:</span> {d.rolEnEspacio}</p>
                       </div>
                     ))}
                   </div>
