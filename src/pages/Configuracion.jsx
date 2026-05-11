@@ -136,6 +136,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [syncResult, setSyncResult] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [originalForm, setOriginalForm] = useState({});
   const [newForm, setNewForm]   = useState({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
   const [adding, setAdding]     = useState(false);
   const [saving, setSaving]     = useState(false);
@@ -257,23 +258,35 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   useEffect(() => { load(); }, [entityKey]);
 
   const startEdit = (item) => {
-    setEditingId(item.id);
-    setEditForm({
+    const formData = {
       nombre: item.nombre,
       ...(extraField ? { [extraField]: item[extraField] || "" } : {}),
       ...(extraField2 ? { [extraField2]: item[extraField2] || "" } : {}),
-    });
+    };
+    setEditingId(item.id);
+    setEditForm({ ...formData });
+    setOriginalForm({ ...formData });
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditForm({}); };
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
+    setOriginalForm({});
+  };
 
   const saveEdit = async (id) => {
+    // Validar nombre
+    if (!editForm.nombre || !editForm.nombre.trim()) {
+      toast.error("El nombre es obligatorio.");
+      return;
+    }
+
     setSaving(true);
     try {
       // Validar correo único normalizado (solo para Responsable y Solicitante)
       if (editForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = editForm.email.toLowerCase().trim();
-        // Check in current entity table
+        // Check in current entity table - excluir el registro actual
         const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
         if (existingInTable.some(e => 
           e.id !== id && 
@@ -284,20 +297,29 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
           return;
         }
       }
+
+      // Construir datos a actualizar
       const data = { nombre: editForm.nombre.trim() };
       if (extraField) data[extraField] = editForm[extraField] || "";
       if (extraField2) {
         const normalized = (editForm[extraField2] || "").toLowerCase().trim();
-        data[extraField2] = normalized;
-        if (entityKey === "Responsable") data.correoNormalizado = normalized;
+        data[extraField2] = normalized || "";
       }
-      data.ultimaActualizacion = new Date().toISOString();
+
+      // Actualizar el MISMO ID, no crear nuevo
       await base44.entities[entityKey].update(id, data);
+      toast.success("Cambios guardados correctamente.");
       setEditingId(null);
+      setEditForm({});
+      setOriginalForm({});
       invalidateCatalogCache();
       load();
-    } catch { toast.error("No se pudo guardar. Inténtalo nuevamente."); }
-    setSaving(false);
+    } catch (err) {
+      console.error('[Configuracion] Error saving:', err);
+      toast.error("No se pudo guardar. Inténtalo nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleActivo = async (item) => {
@@ -345,40 +367,45 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   };
 
   const handleAdd = async () => {
-    if (!newForm.nombre.trim()) return;
+    if (!newForm.nombre || !newForm.nombre.trim()) {
+      toast.error("El nombre es obligatorio.");
+      return;
+    }
+
     setSaving(true);
     try {
       // Validar correo único normalizado (solo para Responsable y Solicitante)
       if (newForm.email && (entityKey === "Responsable" || entityKey === "Solicitante")) {
         const normalized = newForm.email.toLowerCase().trim();
-        // Check in current entity table
         const existingInTable = await base44.entities[entityKey].filter({}).catch(() => []);
         if (existingInTable.some(e => 
           (e.email || '').toLowerCase().trim() === normalized
         )) {
-          toast.error("Este correo ya está registrado en otro registro y no puede repetirse.");
+          toast.error("Este correo ya está registrado y no puede repetirse.");
           setSaving(false);
           return;
         }
       }
+
       const data = { nombre: newForm.nombre.trim(), activo: true };
       if (extraField) data[extraField] = newForm[extraField] || "";
       if (extraField2) {
         const normalized = (newForm[extraField2] || "").toLowerCase().trim();
-        data[extraField2] = normalized;
-        if (entityKey === "Responsable") data.correoNormalizado = normalized;
+        data[extraField2] = normalized || "";
       }
-      if (entityKey === "Responsable") {
-        data.fechaCreacion = new Date().toISOString();
-        data.ultimaActualizacion = new Date().toISOString();
-      }
+
       await base44.entities[entityKey].create(data);
+      toast.success("Opción creada correctamente.");
       setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
       setAdding(false);
       invalidateCatalogCache();
       load();
-    } catch { toast.error("No se pudo agregar. Intenta nuevamente."); }
-    setSaving(false);
+    } catch (err) {
+      console.error('[Configuracion] Error adding:', err);
+      toast.error("No se pudo agregar. Inténtalo nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSync = async () => {

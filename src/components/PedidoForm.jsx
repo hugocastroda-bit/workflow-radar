@@ -172,19 +172,24 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
 
-    // Validar que responsable no sea duplicado
+    // Validar que responsable no sea duplicado o inválido
     if (data.responsable) {
-      const [nombre, email] = data.responsable.split(' — ');
-      if (email) {
+      const parts = data.responsable.split(' — ');
+      if (parts.length === 2) {
+        const [nombre, email] = parts;
         const emailNorm = email.toLowerCase().trim();
-        const existentes = await base44.entities.Responsable.filter(m => 
-          (m.email || '').toLowerCase().trim() === emailNorm && 
-          m.id !== (pedido?.id || '')
-        ).catch(() => []);
-        if (existentes.length > 1) {
-          setSaving(false);
-          toast.error("Error: duplicados detectados. Ejecuta limpieza desde Configuración.");
-          return;
+        try {
+          const existentes = await base44.entities.Responsable.filter(m => 
+            (m.email || '').toLowerCase().trim() === emailNorm
+          ).catch(() => []);
+          if (existentes.length > 1) {
+            setSaving(false);
+            toast.error("Error: duplicados detectados. Ejecuta limpieza desde Configuración.");
+            return;
+          }
+        } catch (err) {
+          console.warn('[PedidoForm] Warning checking responsable duplicates:', err);
+          // No bloquear si no se puede validar
         }
       }
     }
