@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
 const priorityStyles = {
-  "Alta": "text-red-700 bg-red-50 border-red-200",
-  "Media": "text-yellow-700 bg-yellow-50 border-yellow-200",
-  "Baja": "text-slate-500 bg-slate-50 border-slate-200",
+  "Alta": "text-alert bg-alert/10 border-alert/30",
+  "Media": "text-yellow bg-yellow/10 border-yellow/30",
+  "Baja": "text-slate-600 bg-slate-50 border-slate-200",
 };
 
 export default function PriorityBadge({ priority }) {

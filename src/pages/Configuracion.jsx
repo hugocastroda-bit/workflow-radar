@@ -365,7 +365,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     setSaving(false);
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-slate-400" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
 
   const activos   = items.filter(i => i.activo !== false);
   const inactivos = items.filter(i => i.activo === false);
@@ -376,45 +376,45 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         <Button size="sm" onClick={() => setBulkRows([])} variant="outline" className="gap-1.5 text-xs">
           <Upload className="h-3.5 w-3.5" /> Carga masiva
         </Button>
-        <Button size="sm" onClick={() => setAdding(true)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs">
+        <Button size="sm" onClick={() => setAdding(true)} className="gap-1.5 text-xs">
           <Plus className="h-3.5 w-3.5" /> Agregar
         </Button>
       </div>
 
       {bulkRows.length === 0 && !bulkResult && (
-        <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+        <div className="border border-border rounded-lg p-4 space-y-3 bg-card">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">Carga masiva de registros</p>
+            <p className="text-xs text-muted-foreground">Carga masiva de registros</p>
             <Button size="sm" variant="ghost" onClick={downloadTemplate} className="gap-1 text-xs h-7">
               <Download className="h-3 w-3" /> Plantilla
             </Button>
           </div>
           <div
-            className="border-2 border-dashed border-slate-200 rounded p-6 text-center cursor-pointer hover:border-slate-400 transition"
+            className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/30 transition"
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); handleBulkFile(e.dataTransfer.files[0]); }}
           >
-            <Upload className="h-5 w-5 text-slate-300 mx-auto mb-1" />
-            <p className="text-xs text-slate-500">Sube Excel o CSV</p>
+            <Upload className="h-5 w-5 text-muted-foreground/30 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground">Sube Excel o CSV</p>
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => handleBulkFile(e.target.files[0])} />
           </div>
         </div>
       )}
 
       {bulkRows.length > 0 && !bulkResult && (
-        <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+        <div className="border border-border rounded-lg p-4 space-y-3 bg-card">
           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium">{bulkRows.length} filas</p>
+            <p className="text-sm font-medium text-foreground">{bulkRows.length} filas</p>
             <Button size="sm" variant="ghost" onClick={() => setBulkRows([])} className="text-xs h-7">Cancelar</Button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b bg-slate-50">
-                  <th className="px-2 py-2 text-left font-medium text-slate-600">#</th>
-                  {BULK_CONFIG[bulkType].cols.map(c => <th key={c} className="px-2 py-2 text-left font-medium text-slate-600">{c}</th>)}
-                  <th className="px-2 py-2 text-left font-medium text-slate-600">Estado</th>
+                <tr className="border-b border-border bg-secondary">
+                  <th className="px-2 py-2 text-left font-medium text-muted-foreground">#</th>
+                  {BULK_CONFIG[bulkType].cols.map(c => <th key={c} className="px-2 py-2 text-left font-medium text-muted-foreground">{c}</th>)}
+                  <th className="px-2 py-2 text-left font-medium text-muted-foreground">Estado</th>
                 </tr>
               </thead>
               <tbody>
@@ -461,11 +461,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       )}
 
       {bulkResult && (
-        <div className="border border-green-200 rounded-lg p-4 bg-green-50 space-y-2">
-          <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+        <div className="border border-success/30 rounded-lg p-4 bg-success/10 space-y-2">
+          <div className="flex items-center gap-2 text-success font-medium text-sm">
             <CheckCircle className="h-4 w-4" /> Importación completada
           </div>
-          <ul className="text-xs text-slate-600 space-y-0.5 ml-6 list-disc">
+          <ul className="text-xs text-muted-foreground space-y-0.5 ml-6 list-disc">
             <li>Leídas: {bulkResult.total}</li>
             <li>Importadas: {bulkResult.imported}</li>
             <li>Duplicados: {bulkResult.duplicates}</li>
@@ -477,8 +477,8 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       )}
 
       {adding && (
-        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-2">
-          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Nueva opción</p>
+        <div className="border border-border rounded-lg p-4 bg-secondary/40 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nueva opción</p>
           <div className={`grid gap-2 ${extraField2 ? "grid-cols-3" : extraField ? "grid-cols-2" : "grid-cols-1"}`}>
             <Input value={newForm.nombre} onChange={e => setNewForm(f => ({ ...f, nombre: e.target.value }))}
               placeholder="Nombre *" className="h-8 text-sm" />
@@ -493,7 +493,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => { setAdding(false); setNewForm({ nombre: "", [extraField]: "" }); }} className="text-xs h-7">Cancelar</Button>
-            <Button size="sm" onClick={handleAdd} disabled={saving || !newForm.nombre.trim()} className="text-xs h-7 bg-slate-900 hover:bg-slate-800 text-white">
+            <Button size="sm" onClick={handleAdd} disabled={saving || !newForm.nombre.trim()} className="text-xs h-7">
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Guardar"}
             </Button>
           </div>
@@ -501,12 +501,12 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       )}
 
       {/* Active items */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Activos ({activos.length})</span>
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="px-5 py-2.5 bg-secondary border-b border-border">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Activos ({activos.length})</span>
         </div>
         {activos.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-slate-400 text-center">Sin opciones activas</p>
+          <p className="px-5 py-6 text-sm text-muted-foreground text-center">Sin opciones activas</p>
         ) : (
           <table className="w-full text-sm">
             <tbody>
@@ -582,9 +582,9 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
       {/* Inactive items */}
       {inactivos.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Inactivos ({inactivos.length})</span>
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="px-5 py-2.5 bg-secondary border-b border-border">
+            <span className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Inactivos ({inactivos.length})</span>
           </div>
           <table className="w-full text-sm">
             <tbody>
@@ -614,11 +614,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       {confirmDelete && (
         <Dialog open onOpenChange={() => setConfirmDelete(null)}>
           <DialogContent className="max-w-sm">
-            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-amber-500" /> Eliminar opción</DialogTitle></DialogHeader>
-            <p className="text-sm text-slate-600">¿Estás seguro de que deseas eliminar <strong>{confirmDelete.nombre}</strong>? Esta acción no se puede deshacer si no tiene información asociada.</p>
+            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-warning" /> Eliminar opción</DialogTitle></DialogHeader>
+            <p className="text-sm text-muted-foreground">¿Estás seguro de que deseas eliminar <strong>{confirmDelete.nombre}</strong>? Esta acción no se puede deshacer si no tiene información asociada.</p>
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outline" size="sm" onClick={() => setConfirmDelete(null)} disabled={deleteLoading}>Cancelar</Button>
-              <Button size="sm" onClick={handleDeleteConfirm} disabled={deleteLoading} className="bg-red-600 hover:bg-red-700 text-white">
+              <Button size="sm" onClick={handleDeleteConfirm} disabled={deleteLoading} className="bg-alert hover:bg-alert/90 text-white">
                 {deleteLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Sí, eliminar"}
               </Button>
             </div>
@@ -630,11 +630,11 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
       {blockModal && (
         <Dialog open onOpenChange={() => setBlockModal(null)}>
           <DialogContent className="max-w-sm">
-            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-amber-500" /> No se puede eliminar</DialogTitle></DialogHeader>
-            <p className="text-sm text-slate-600">{blockModal.message}</p>
+            <DialogHeader><DialogTitle className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-warning" /> No se puede eliminar</DialogTitle></DialogHeader>
+            <p className="text-sm text-muted-foreground">{blockModal.message}</p>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
-              <Button size="sm" onClick={handleInactivarDesdeBloqueo} className="bg-amber-600 hover:bg-amber-700 text-white">Inactivar opción</Button>
+             <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
+             <Button size="sm" onClick={handleInactivarDesdeBloqueo} className="bg-warning hover:bg-warning/90 text-white">Inactivar opción</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -654,9 +654,9 @@ export default function Configuracion() {
     return (
       <div className="p-8 max-w-3xl mx-auto">
         <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-          <ShieldOff className="h-8 w-8 text-slate-300" />
-          <p className="text-sm font-medium text-slate-600">No tienes permisos para acceder a esta sección.</p>
-          <p className="text-xs text-slate-400">Solo los usuarios Admin pueden gestionar la configuración.</p>
+          <ShieldOff className="h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm font-medium text-foreground">No tienes permisos para acceder a esta sección.</p>
+          <p className="text-xs text-muted-foreground">Solo los usuarios Admin pueden gestionar la configuración.</p>
         </div>
       </div>
     );
@@ -665,20 +665,20 @@ export default function Configuracion() {
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-800">Configuración</h1>
-        <p className="text-xs text-slate-400 mt-0.5">Administra las listas maestras de los desplegables del formulario</p>
+        <h1 className="text-2xl font-semibold text-foreground">Configuración</h1>
+        <p className="text-xs text-muted-foreground mt-1">Administra las listas maestras de los desplegables del formulario</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-slate-200">
+      <div className="flex gap-1 border-b border-border">
         {TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
             className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${
               activeTab === t.key
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {t.label}

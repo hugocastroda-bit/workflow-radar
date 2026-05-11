@@ -53,6 +53,34 @@ module.exports = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
+  			success: {
+  				DEFAULT: '#34C759',
+  				light: '#E9F8EF'
+  			},
+  			alert: {
+  				DEFAULT: '#FF3B30',
+  				light: '#FFF1F0'
+  			},
+  			warning: {
+  				DEFAULT: '#FF9500',
+  				light: '#FFF4E5'
+  			},
+  			yellow: {
+  				DEFAULT: '#FFD60A',
+  				light: '#FFFEF0'
+  			},
+  			slate: {
+  				50: '#F9FAFB',
+  				100: '#F5F5F7',
+  				200: '#E5E5EA',
+  				300: '#D2D2D7',
+  				400: '#A2A2A7',
+  				500: '#8E8E93',
+  				600: '#6E6E73',
+  				700: '#515155',
+  				800: '#424245',
+  				900: '#1D1D1F'
+  			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +90,11 @@ module.exports = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			status: {
+  				closed: '#34C759',
+  				ovdue: '#FF3B30',
+  				blocked: '#FF9500'
   			}
   		},
   		keyframes: {

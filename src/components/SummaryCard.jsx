@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
 const variantStyles = {
-  default: { card: "", value: "text-foreground" },
-  danger: { card: "border-red-200", value: "text-red-600" },
-  warning: { card: "border-amber-200", value: "text-amber-600" },
-  success: { card: "border-emerald-200", value: "text-emerald-700" },
-  info: { card: "", value: "text-foreground" },
+  default: { card: "border-border", value: "text-foreground" },
+  danger: { card: "border-alert/30", value: "text-alert" },
+  warning: { card: "border-warning/30", value: "text-warning" },
+  success: { card: "border-success/30", value: "text-success" },
+  info: { card: "border-border", value: "text-foreground" },
 };
 
 export default function SummaryCard({ title, value, variant = "default", onClick }) {

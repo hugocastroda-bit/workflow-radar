@@ -142,7 +142,7 @@ export default function Bandeja() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-96">
-      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
     </div>
   );
 
@@ -150,65 +150,65 @@ export default function Bandeja() {
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-800">Bandeja de pedidos</h1>
-          <p className="text-xs text-slate-400 mt-0.5">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
+          <h1 className="text-2xl font-semibold text-foreground">Bandeja de pedidos</h1>
+          <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
-        <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white">
+        <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5">
           <Plus className="h-3.5 w-3.5" /> Nuevo pedido
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
+      <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar título..." className="pl-8 h-8 text-xs w-44 border-slate-200" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar título..." className="pl-8 h-8 text-xs w-44" />
         </div>
-        <div className="w-px h-5 bg-slate-200 mx-0.5 hidden sm:block" />
+        <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
         <Select value={filters.responsable} onValueChange={v => setFilters(f => ({ ...f, responsable: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
             {[...new Set(pedidos.map(p => p.responsable).filter(Boolean))].sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.solicitante} onValueChange={v => setFilters(f => ({ ...f, solicitante: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[130px] border-slate-200 bg-white"><SelectValue placeholder="Solicitante" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
             {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.proceso} onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[140px] border-slate-200 bg-white"><SelectValue placeholder="Proceso" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>{[...new Set(pedidos.map(p => p.proceso).filter(Boolean))].sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.estado} onValueChange={v => setFilters(f => ({ ...f, estado: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[120px] border-slate-200 bg-white"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.prioridad} onValueChange={v => setFilters(f => ({ ...f, prioridad: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[100px] border-slate-200 bg-white"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+          <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>{[...new Set(pedidos.map(p => p.prioridad).filter(Boolean))].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         {hasFilters && (
-          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors whitespace-nowrap">
+          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-secondary transition-colors whitespace-nowrap">
             <X className="h-3 w-3" /> Limpiar filtros
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="text-left px-5 py-3 font-medium text-slate-500 uppercase tracking-wider">Título</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Solicitante</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Responsable</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Prioridad</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Proceso</th>
-              <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase tracking-wider">Fecha req.</th>
+            <tr className="border-b border-border bg-secondary">
+              <th className="text-left px-5 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Título</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Solicitante</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Responsable</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Estado</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prioridad</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Proceso</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Fecha req.</th>
               {isAdmin && <th className="px-4 py-3" />}
             </tr>
           </thead>
@@ -217,31 +217,31 @@ export default function Bandeja() {
               const isOverdue = p.fecha_requerida < today && p.estado !== "Cerrado";
               return (
                 <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
-                  className={`border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 transition-colors ${isOverdue ? "bg-red-50/30" : ""}`}
+                  className={`border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/40 transition-colors ${isOverdue ? "bg-alert/5" : ""}`}
                 >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {isOverdue && <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />}
-                      <span className="font-medium text-slate-700 truncate max-w-[200px]">{p.titulo}</span>
+                      {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
+                      <span className="font-medium text-foreground truncate max-w-[200px]">{p.titulo}</span>
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{p.solicitante}</td>
-                  <td className="px-4 py-3 text-slate-500">{p.responsable || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
                   <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
                   <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
-                  <td className="px-4 py-3 text-slate-400">{p.proceso}</td>
-                  <td className={`px-4 py-3 font-medium ${isOverdue ? "text-red-500" : "text-slate-400"}`}>{p.fecha_requerida}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
+                  <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
                   {isAdmin && (
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-slate-300 hover:text-violet-600 hover:bg-violet-50 transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
+                        <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
                           {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
                         </button>
-                        <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Archivar">
+                        <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Archivar">
                           <Archive className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Borrar">
+                        <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" title="Borrar">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -251,7 +251,7 @@ export default function Bandeja() {
               );
             })}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-5 py-12 text-center text-slate-400">No se encontraron pedidos</td></tr>
+              <tr><td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">No se encontraron pedidos</td></tr>
             )}
           </tbody>
         </table>
