@@ -121,6 +121,25 @@ export default function Dashboard() {
 
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
+  // Carga de trabajo: cerrados esta semana vs abiertos por responsable
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekStartStr = weekStart.toISOString().split("T")[0];
+
+  const cargaPorResponsable = {};
+  pedidos.forEach(p => {
+    const resp = p.responsable || "Sin asignar";
+    if (!cargaPorResponsable[resp]) {
+      cargaPorResponsable[resp] = { responsable: resp, cerradosHoy: 0, abiertos: 0 };
+    }
+    if (p.estado === "Cerrado" && p.updated_date && p.updated_date.split("T")[0] >= weekStartStr) {
+      cargaPorResponsable[resp].cerradosHoy++;
+    } else if (p.estado !== "Cerrado") {
+      cargaPorResponsable[resp].abiertos++;
+    }
+  });
+  const cargaData = Object.values(cargaPorResponsable).sort((a, b) => (b.abiertos + b.cerradosHoy) - (a.abiertos + b.cerradosHoy));
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div>
@@ -242,6 +261,38 @@ export default function Dashboard() {
           ) : <p className="text-sm text-muted-foreground">Sin responsables asignados</p>}
         </Section>
       </div>
+
+      {/* Carga de trabajo: Cerrados semana vs Abiertos */}
+      <Section title="Carga de trabajo — Cerrados (semana) vs Abiertos">
+        {cargaData.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-secondary">
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Cerrados (semana)</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Abiertos</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Total activos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cargaData.map((item, idx) => (
+                  <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-secondary/30">
+                    <td className="px-4 py-2.5 font-medium text-foreground">{item.responsable}</td>
+                    <td className="px-4 py-2.5 text-center"><span className="inline-block px-2.5 py-1 rounded-full bg-success/10 text-success font-medium">{item.cerradosHoy}</span></td>
+                    <td className="px-4 py-2.5 text-center"><span className={`inline-block px-2.5 py-1 rounded-full font-medium ${
+                      item.abiertos > 5 ? "bg-alert/10 text-alert" :
+                      item.abiertos > 2 ? "bg-warning/10 text-warning" :
+                      "bg-muted text-foreground"
+                    }`}>{item.abiertos}</span></td>
+                    <td className="px-4 py-2.5 text-center text-muted-foreground font-medium">{item.abiertos + item.cerradosHoy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
+      </Section>
 
       {/* Alert tables */}
       {vencidos.length > 0 && (
