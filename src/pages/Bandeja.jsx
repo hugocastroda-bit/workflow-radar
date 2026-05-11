@@ -48,7 +48,7 @@ export default function Bandeja() {
       setPedidos(filtrarConfidenciales(d, user));
       setLoading(false);
     });
-  }, []);
+  }, [espacioActivo?.id]);
 
   const today = new Date().toISOString().split("T")[0];
   const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";

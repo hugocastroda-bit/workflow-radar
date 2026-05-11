@@ -38,7 +38,7 @@ export default function Kanban() {
       setPedidos(filtrarConfidenciales(d, user));
       setLoading(false);
     });
-  }, []);
+  }, [espacioActivo?.id]);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
   const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
