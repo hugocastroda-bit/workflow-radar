@@ -115,8 +115,8 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: responsableEmail,
           subject: `Pedido vencido: ${pedido.titulo}`,
-          body: `Hola ${pedido.responsable},\n\nEl siguiente pedido figura como vencido:\n\nPedido: ${pedido.titulo}\nProceso: ${pedido.proceso || "-"}\nPrioridad: ${pedido.prioridad || "-"}\nFecha requerida: ${pedido.fecha_requerida}\n\nPor favor, revisa el pedido y actualiza su estado o fecha requerida si corresponde.\n\nRadar C&T`,
-          from_name: "Radar C&T",
+          body: `Hola ${pedido.responsable},\n\nEl siguiente pedido figura como vencido:\n\nPedido: ${pedido.titulo}\nProceso: ${pedido.proceso || "-"}\nPrioridad: ${pedido.prioridad || "-"}\nFecha requerida: ${pedido.fecha_requerida}\n\nPor favor, revisa el pedido y actualiza su estado o fecha requerida si corresponde.\n\nRadar Gesti\u00f3n Humana`,
+          from_name: "Radar Gestión Humana",
         });
         await base44.asServiceRole.entities.NotificacionLog.create({
           pedido_id: pedido.id,

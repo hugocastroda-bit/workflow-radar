@@ -9,7 +9,7 @@ function buildEmail(tipo, pedido, responsableEmail, solicitanteEmail) {
     emails.push({
       to: responsableEmail,
       subject: `Nuevo pedido asignado: ${pedido.titulo}`,
-      body: `Hola ${pedido.responsable},\n\nSe te ha asignado un nuevo pedido en Radar C&T.\n\nPedido: ${pedido.titulo}\nSolicitante: ${pedido.solicitante}\nProceso: ${pedido.proceso}\nPrioridad: ${pedido.prioridad}\nFecha requerida: ${pedido.fecha_requerida || "—"}\n\nPor favor, ingresa a Radar C&T para revisar el detalle y actualizar el avance.`,
+      body: `Hola ${pedido.responsable},\n\nSe te ha asignado un nuevo pedido en Radar Gestión Humana.\n\nPedido: ${pedido.titulo}\nSolicitante: ${pedido.solicitante}\nProceso: ${pedido.proceso}\nPrioridad: ${pedido.prioridad}\nFecha requerida: ${pedido.fecha_requerida || "—"}\n\nPor favor, ingresa a Radar Gestión Humana para revisar el detalle y actualizar el avance.`,
     });
   }
 
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           to: emailData.to,
           subject: emailData.subject,
           body: emailData.body,
-          from_name: "Radar C&T",
+          from_name: "Radar Gesti\u00f3n Humana",
         });
 
         await base44.asServiceRole.entities.NotificacionLog.create({
