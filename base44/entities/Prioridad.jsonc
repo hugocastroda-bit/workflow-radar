@@ -21,7 +21,31 @@
         "role": "admin"
       }
     },
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.espacioId": "{{user.active_space_id}}"
+            },
+            {
+              "data.activo": true
+            }
+          ]
+        },
+        {
+          "data.espacioId": {
+            "$exists": false
+          },
+          "data.activo": true
+        }
+      ]
+    },
     "update": {
       "user_condition": {
         "role": "admin"
