@@ -16,6 +16,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
+const STAGE_COLORS = {
+  "Nuevo": { accent: "#0066CC", background: "#EAF3FF" },
+  "Por priorizar": { accent: "#8E8E93", background: "#F0F0F5" },
+  "Asignado": { accent: "#00A3E0", background: "#E6F7FF" },
+  "En curso": { accent: "#34C759", background: "#E9F8EF" },
+  "Bloqueado": { accent: "#FF9500", background: "#FFF4E5" },
+  "En revisión": { accent: "#AF52DE", background: "#F3ECFF" },
+  "Cerrado": { accent: "#30A46C", background: "#E6F4EA" }
+};
+
 export default function Kanban() {
   const [pedidos, setPedidos]         = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -220,10 +230,22 @@ export default function Kanban() {
       {/* Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-6">
-          {ESTADOS.map(estado => (
-            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} onArchive={isAdmin ? setArchiveTarget : null} onConfidencial={isAdmin ? setConfidencialTarget : null} />
-          ))}
-        </div>
+          {ESTADOS.map(estado => {
+           const colors = STAGE_COLORS[estado];
+           return (
+             <KanbanColumn
+               key={estado}
+               status={estado}
+               pedidos={grouped[estado]}
+               onDelete={isAdmin ? setDeleteTarget : null}
+               onArchive={isAdmin ? setArchiveTarget : null}
+               onConfidencial={isAdmin ? setConfidencialTarget : null}
+               accentColor={colors.accent}
+               backgroundColor={colors.background}
+             />
+           );
+          })}
+          </div>
       </DragDropContext>
 
       <ConfirmArchivarModal

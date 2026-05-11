@@ -1,11 +1,11 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import KanbanCard from "./KanbanCard";
 
-export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onConfidencial }) {
+export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onConfidencial, accentColor, backgroundColor }) {
   return (
     <div className="flex-shrink-0 w-64">
-      <div className="flex items-center justify-between mb-2 px-1">
-        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{status}</h3>
+      <div className="flex items-center justify-between mb-3 px-1 pb-2 border-b-2" style={{ borderColor: accentColor }}>
+        <h3 className="text-xs font-semibold uppercase tracking-wide" style={{ color: accentColor }}>{status}</h3>
         <span className="text-xs text-muted-foreground tabular-nums">{pedidos.length}</span>
       </div>
       <Droppable droppableId={status}>
@@ -13,9 +13,10 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`min-h-[120px] rounded-lg p-1.5 transition-colors ${
-              snapshot.isDraggingOver ? "bg-primary/5" : "bg-secondary/30"
-            }`}
+            className="min-h-[120px] rounded-lg p-1.5 transition-colors"
+            style={{
+              backgroundColor: snapshot.isDraggingOver ? accentColor + "08" : backgroundColor
+            }}
           >
             {pedidos.map((pedido, index) => (
               <Draggable key={pedido.id} draggableId={pedido.id} index={index}>
