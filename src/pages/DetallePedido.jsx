@@ -9,10 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
+import ConfidencialBadge from "../components/ConfidencialBadge";
+import { canVerConfidencial } from "@/lib/confidencial";
 import { toast } from "sonner";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
@@ -53,6 +56,8 @@ export default function DetallePedido() {
   const [showRestore, setShowRestore] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showConfidencial, setShowConfidencial] = useState(false);
+  const [savingConf, setSavingConf] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -60,6 +65,28 @@ export default function DetallePedido() {
     const data = await base44.entities.Pedido.get(id);
     setPedido(data);
     setLoading(false);
+  };
+
+  const handleConfidencial = async (motivo) => {
+    if (!isAdmin) return;
+    setSavingConf(true);
+    const marcar = !pedido.confidencial;
+    try {
+      await base44.entities.Pedido.update(id, {
+        confidencial: marcar,
+        ...(marcar ? {
+          marcado_confidencial_por: user?.full_name || user?.email,
+          fecha_marcado_confidencial: new Date().toISOString().split("T")[0],
+          motivo_confidencial: motivo || null,
+        } : { marcado_confidencial_por: null, fecha_marcado_confidencial: null, motivo_confidencial: null }),
+      });
+      toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
+      await load();
+      setShowConfidencial(false);
+    } catch {
+      toast.error("No se pudo actualizar el pedido.");
+    }
+    setSavingConf(false);
   };
 
   useEffect(() => { load(); }, [id]);
@@ -146,6 +173,18 @@ export default function DetallePedido() {
   if (loading) return <div className="flex items-center justify-center h-96"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!pedido) return <div className="p-8 text-sm text-muted-foreground">Pedido no encontrado</div>;
 
+  // Access control for confidential pedidos
+  if (!canVerConfidencial(pedido, user)) {
+    return (
+      <div className="p-8 max-w-xl mx-auto flex flex-col items-center justify-center h-64 gap-3 text-center">
+        <Lock className="h-8 w-8 text-slate-300" />
+        <p className="text-sm font-medium text-slate-600">No tienes permisos para acceder a este pedido.</p>
+        <p className="text-xs text-slate-400">Este pedido es confidencial y solo está disponible para usuarios autorizados.</p>
+        <button onClick={() => navigate(-1)} className="text-xs text-slate-500 underline mt-2">Volver</button>
+      </div>
+    );
+  }
+
   const today = new Date().toISOString().split("T")[0];
   const isArchived = !!pedido.archivado;
   const isOverdue = pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
@@ -184,6 +223,7 @@ export default function DetallePedido() {
                   <AlertTriangle className="h-3 w-3" /> Vencido
                 </span>
               )}
+              {pedido.confidencial && <ConfidencialBadge />}
             </div>
             <div className="flex items-center gap-1.5">
               <StatusBadge status={pedido.estado} />
@@ -208,6 +248,11 @@ export default function DetallePedido() {
                   <Archive className="h-3 w-3" /> Archivar pedido
                 </button>
               )}
+              <button onClick={() => setShowConfidencial(true)}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 transition-colors">
+                {pedido.confidencial ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                {pedido.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}
+              </button>
               <button onClick={() => setShowDelete(true)}
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors">
                 <Trash2 className="h-3 w-3" /> Borrar pedido
@@ -453,6 +498,14 @@ export default function DetallePedido() {
         onClose={() => setShowDelete(false)}
         onConfirm={handleDelete}
         deleting={deleting}
+      />
+
+      <ConfirmConfidencialModal
+        open={showConfidencial}
+        onClose={() => setShowConfidencial(false)}
+        onConfirm={handleConfidencial}
+        marcar={!pedido.confidencial}
+        saving={savingConf}
       />
     </div>
   );

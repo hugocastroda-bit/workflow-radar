@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Trash2, Archive } from "lucide-react";
+import { Trash2, Archive, Lock, LockOpen } from "lucide-react";
 import PriorityBadge from "./PriorityBadge";
+import ConfidencialBadge from "./ConfidencialBadge";
 
-export default function KanbanCard({ pedido, provided, onDelete, onArchive }) {
+export default function KanbanCard({ pedido, provided, onDelete, onArchive, onConfidencial }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -23,7 +24,10 @@ export default function KanbanCard({ pedido, provided, onDelete, onArchive }) {
         "border-border"
       }`}
     >
-      <p className="text-[13px] font-medium text-foreground leading-snug line-clamp-2">{pedido.titulo}</p>
+      <div className="flex items-start gap-1.5 mb-1">
+        <p className="text-[13px] font-medium text-foreground leading-snug line-clamp-2 flex-1">{pedido.titulo}</p>
+        {pedido.confidencial && <ConfidencialBadge size="xs" />}
+      </div>
       <div className="flex items-center justify-between mt-2 gap-2">
         <PriorityBadge priority={pedido.prioridad} />
         <span className={`text-xs ${isOverdue ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
@@ -33,8 +37,17 @@ export default function KanbanCard({ pedido, provided, onDelete, onArchive }) {
       {pedido.responsable && (
         <p className="text-xs text-muted-foreground mt-1.5 truncate">{pedido.responsable}</p>
       )}
-      {isAdmin && (onDelete || onArchive) && (
+      {isAdmin && (onDelete || onArchive || onConfidencial) && (
         <div className="flex justify-end mt-1.5 gap-1">
+          {onConfidencial && (
+            <button
+              onClick={e => { e.stopPropagation(); onConfidencial({ id: pedido.id, marcar: !pedido.confidencial }); }}
+              className="p-0.5 rounded text-slate-300 hover:text-violet-600 transition-colors"
+              title={pedido.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}
+            >
+              {pedido.confidencial ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+            </button>
+          )}
           {onArchive && (
             <button
               onClick={e => { e.stopPropagation(); onArchive(pedido); }}

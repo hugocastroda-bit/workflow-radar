@@ -6,6 +6,8 @@ import { Loader2, X } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
+import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,11 +25,16 @@ export default function Kanban() {
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confidencialTarget, setConfidencialTarget] = useState(null);
+  const [savingConf, setSavingConf] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => {
+      setPedidos(filtrarConfidenciales(d, user));
+      setLoading(false);
+    });
   }, []);
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
@@ -111,6 +118,28 @@ export default function Kanban() {
     setDeleting(false);
   };
 
+  const handleConfidencial = async (motivo) => {
+    if (!isAdmin || !confidencialTarget) return;
+    setSavingConf(true);
+    const marcar = confidencialTarget.marcar;
+    try {
+      await base44.entities.Pedido.update(confidencialTarget.id, {
+        confidencial: marcar,
+        ...(marcar ? {
+          marcado_confidencial_por: user?.full_name || user?.email,
+          fecha_marcado_confidencial: new Date().toISOString().split("T")[0],
+          motivo_confidencial: motivo || null,
+        } : { marcado_confidencial_por: null, fecha_marcado_confidencial: null, motivo_confidencial: null }),
+      });
+      setPedidos(prev => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
+      toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
+      setConfidencialTarget(null);
+    } catch {
+      toast.error("No se pudo actualizar el pedido.");
+    }
+    setSavingConf(false);
+  };
+
   const grouped = ESTADOS.reduce((acc, e) => {
     acc[e] = filtered.filter(p => p.estado === e);
     return acc;
@@ -174,7 +203,7 @@ export default function Kanban() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-6">
           {ESTADOS.map(estado => (
-            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} onArchive={isAdmin ? setArchiveTarget : null} />
+            <KanbanColumn key={estado} status={estado} pedidos={grouped[estado]} onDelete={isAdmin ? setDeleteTarget : null} onArchive={isAdmin ? setArchiveTarget : null} onConfidencial={isAdmin ? setConfidencialTarget : null} />
           ))}
         </div>
       </DragDropContext>
@@ -191,6 +220,14 @@ export default function Kanban() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         deleting={deleting}
+      />
+
+      <ConfirmConfidencialModal
+        open={!!confidencialTarget}
+        onClose={() => setConfidencialTarget(null)}
+        onConfirm={handleConfidencial}
+        marcar={confidencialTarget?.marcar}
+        saving={savingConf}
       />
 
       {/* Block reason modal */}

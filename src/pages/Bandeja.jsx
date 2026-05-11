@@ -7,10 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
+import ConfidencialBadge from "../components/ConfidencialBadge";
+import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 
 const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
@@ -31,12 +34,17 @@ export default function Bandeja() {
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confidencialTarget, setConfidencialTarget] = useState(null); // { id, marcar }
+  const [savingConf, setSavingConf] = useState(false);
   const urlParams = new URLSearchParams(window.location.search);
 
   useEffect(() => {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
-    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }, "-created_date").then(d => {
+      setPedidos(filtrarConfidenciales(d, user));
+      setLoading(false);
+    });
   }, []);
 
   const today = new Date().toISOString().split("T")[0];
@@ -93,6 +101,32 @@ export default function Bandeja() {
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
     }
     setDeleting(false);
+  };
+
+  const handleConfidencial = async (motivo) => {
+    if (!isAdmin || !confidencialTarget) return;
+    setSavingConf(true);
+    const marcar = confidencialTarget.marcar;
+    try {
+      await base44.entities.Pedido.update(confidencialTarget.id, {
+        confidencial: marcar,
+        ...(marcar ? {
+          marcado_confidencial_por: user?.full_name || user?.email,
+          fecha_marcado_confidencial: new Date().toISOString().split("T")[0],
+          motivo_confidencial: motivo || null,
+        } : {
+          marcado_confidencial_por: null,
+          fecha_marcado_confidencial: null,
+          motivo_confidencial: null,
+        }),
+      });
+      setPedidos(prev => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
+      toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
+      setConfidencialTarget(null);
+    } catch {
+      toast.error("No se pudo actualizar el pedido.");
+    }
+    setSavingConf(false);
   };
 
   if (loading) return (
@@ -175,9 +209,10 @@ export default function Bandeja() {
                   className={`border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 transition-colors ${isOverdue ? "bg-red-50/30" : ""}`}
                 >
                   <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />}
-                      <span className="font-medium text-slate-700 truncate max-w-[220px]">{p.titulo}</span>
+                      <span className="font-medium text-slate-700 truncate max-w-[200px]">{p.titulo}</span>
+                      {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{p.solicitante}</td>
@@ -189,6 +224,9 @@ export default function Bandeja() {
                   {isAdmin && (
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
+                        <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-slate-300 hover:text-violet-600 hover:bg-violet-50 transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
+                          {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                        </button>
                         <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Archivar">
                           <Archive className="h-3.5 w-3.5" />
                         </button>
@@ -220,6 +258,14 @@ export default function Bandeja() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         deleting={deleting}
+      />
+
+      <ConfirmConfidencialModal
+        open={!!confidencialTarget}
+        onClose={() => setConfidencialTarget(null)}
+        onConfirm={handleConfidencial}
+        marcar={confidencialTarget?.marcar}
+        saving={savingConf}
       />
 
       <PedidoForm

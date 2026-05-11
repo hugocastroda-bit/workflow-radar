@@ -9,6 +9,8 @@ import {
 } from "recharts";
 import { Loader2 } from "lucide-react";
 import _ from "lodash";
+import { useAuth } from "@/lib/AuthContext";
+import { filtrarConfidenciales } from "@/lib/confidencial";
 
 const DONUT_COLORS = {
   "Nuevo": "#93c5fd",
@@ -51,9 +53,13 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false }).then(d => { setPedidos(d); setLoading(false); });
+    base44.entities.Pedido.filter({ archivado: false }).then(d => {
+      setPedidos(filtrarConfidenciales(d, user));
+      setLoading(false);
+    });
   }, []);
 
   if (loading) return (
