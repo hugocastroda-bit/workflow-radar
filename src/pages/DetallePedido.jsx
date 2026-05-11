@@ -62,9 +62,14 @@ export default function DetallePedido() {
   const isAdmin = user?.role === "admin";
 
   const load = async () => {
-    const data = await base44.entities.Pedido.get(id);
-    setPedido(data);
-    setLoading(false);
+    try {
+      const data = await base44.entities.Pedido.get(id);
+      setPedido(data);
+    } catch {
+      toast.error("No se pudo cargar el pedido.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleConfidencial = async (motivo) => {
@@ -104,22 +109,22 @@ export default function DetallePedido() {
     if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
       data.fecha_cierre_real = new Date().toISOString().split("T")[0];
     }
-    // Capture what changed before saving
     const responsableCambio = data.responsable && data.responsable !== pedido.responsable;
     const estadoCambio = data.estado !== pedido.estado;
     const nuevoEstado = data.estado;
-
-    await base44.entities.Pedido.update(id, data);
-
-    // Trigger notifications in background (non-blocking)
-    if (responsableCambio) base44.functions.invoke("sendNotificacion", { tipo: "asignado", pedidoId: id }).catch(() => {});
-    if (estadoCambio && nuevoEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: id }).catch(() => {});
-    if (estadoCambio && nuevoEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: id }).catch(() => {});
-
-    await load();
-    setEditSection(null);
-    setDraft({});
-    setSaving(false);
+    try {
+      await base44.entities.Pedido.update(id, data);
+      if (responsableCambio) base44.functions.invoke("sendNotificacion", { tipo: "asignado", pedidoId: id }).catch(() => {});
+      if (estadoCambio && nuevoEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: id }).catch(() => {});
+      if (estadoCambio && nuevoEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: id }).catch(() => {});
+      await load();
+      setEditSection(null);
+      setDraft({});
+    } catch {
+      toast.error("No se pudo guardar los cambios. Inténtalo nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const set = (field, value) => setDraft(prev => ({ ...prev, [field]: value }));
