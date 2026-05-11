@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useEspacio, isAdminGlobal } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings } from "lucide-react";
+import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -23,27 +23,46 @@ export default function SeleccionEspacio() {
   const isAdminGeneral = isAdminGlobal(user);
   const [loading, setLoading] = useState(true);
   const [espacios, setEspacios] = useState([]);
+  const [diagnostico, setDiagnostico] = useState(null);
+  const [showDiag, setShowDiag] = useState(false);
   const [claveModal, setClaveModal] = useState(null);
   const [clave, setClave] = useState("");
   const [validando, setValidando] = useState(false);
   const [claveError, setClaveError] = useState("");
 
-  useEffect(() => {
+  const cargarEspacios = useCallback(async () => {
     if (!user?.email) return;
-    Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: user.email, estado: "Activo" }),
+    setLoading(true);
+    const emailNorm = user.email.toLowerCase().trim();
+
+    const [membresias, todosEspacios] = await Promise.all([
+      base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
       base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
-    ]).then(([membresias, todosEspacios]) => {
-      const result = membresias
-        .map(m => ({
-          membresia: m,
-          espacio: todosEspacios.find(e => e.id === m.espacioId),
-        }))
-        .filter(r => r.espacio);
-      setEspacios(result);
-      setLoading(false);
+    ]);
+
+    const activas = membresias.filter(m => m.estado === "Activo");
+    const result = activas
+      .map(m => ({ membresia: m, espacio: todosEspacios.find(e => e.id === m.espacioId) }))
+      .filter(r => r.espacio);
+
+    // Diagnóstico
+    setDiagnostico({
+      emailNorm,
+      totalMembresias: membresias.length,
+      activas: activas.length,
+      espaciosEncontrados: result.length,
+      detalles: membresias.map(m => ({
+        espacioId: m.espacioId,
+        espacio: todosEspacios.find(e => e.id === m.espacioId),
+        estado: m.estado,
+      })),
     });
+
+    setEspacios(result);
+    setLoading(false);
   }, [user?.email]);
+
+  useEffect(() => { cargarEspacios(); }, [cargarEspacios]);
 
   const handleEntrar = (espacio, membresia) => {
     if (espacio.requiereClave && !membresia.validadoConClave) {
@@ -97,28 +116,51 @@ export default function SeleccionEspacio() {
         </div>
 
         {/* Spaces */}
+        {/* Botón actualizar */}
+        <div className="flex justify-end">
+          <button
+            onClick={cargarEspacios}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Actualizar espacios
+          </button>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         ) : espacios.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl p-10 text-center space-y-3">
-            {isAdminGeneral ? (
-              <>
-                <p className="text-sm font-medium text-slate-600">No tienes espacios asignados todavía.</p>
-                <p className="text-xs text-slate-400">Como administrador puedes asignar espacios a responsables desde Configuración.</p>
-                <Button
-                  onClick={() => navigate("/configuracion")}
-                  className="mt-2 gap-2 bg-slate-900 hover:bg-slate-800 text-white"
-                >
-                  <Settings className="h-4 w-4" /> Ir a Configuración de responsables
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-slate-600">No tienes acceso a ningún espacio.</p>
-                <p className="text-xs text-slate-400">Contacta al administrador para que te asigne a un espacio de equipo.</p>
-              </>
+          <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3">
+            {(() => {
+              if (!diagnostico) return null;
+              const { totalMembresias, activas, detalles } = diagnostico;
+              const tieneInactivas = detalles.some(d => d.estado !== "Activo");
+              const tieneEspaciosInactivos = detalles.some(d => d.estado === "Activo" && !d.espacio);
+              if (totalMembresias === 0) return (
+                <>
+                  <p className="text-sm font-medium text-slate-600">No tienes espacios asignados.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador para que registre tu correo como responsable y te asigne a un espacio.</p>
+                </>
+              );
+              if (activas === 0 && tieneInactivas) return (
+                <>
+                  <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero actualmente están inactivos.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador para activar tu acceso.</p>
+                </>
+              );
+              return (
+                <>
+                  <p className="text-sm font-medium text-slate-600">Tu usuario está registrado, pero aún no tiene espacios activos asignados.</p>
+                  <p className="text-xs text-slate-400">Contacta al administrador.</p>
+                </>
+              );
+            })()}
+            {isAdminGeneral && (
+              <Button onClick={() => navigate("/configuracion")} className="mt-2 gap-2 bg-slate-900 hover:bg-slate-800 text-white">
+                <Settings className="h-4 w-4" /> Ir a Configuración de responsables
+              </Button>
             )}
           </div>
         ) : (
@@ -156,6 +198,37 @@ export default function SeleccionEspacio() {
             >
               <Settings className="h-3.5 w-3.5" /> Configuración de responsables
             </button>
+          </div>
+        )}
+
+        {/* Diagnóstico solo para admin */}
+        {isAdminGeneral && diagnostico && (
+          <div className="border border-amber-200 rounded-lg bg-amber-50 text-xs">
+            <button
+              onClick={() => setShowDiag(v => !v)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-amber-700 font-medium"
+            >
+              <span>🔍 Diagnóstico de acceso (solo visible para admin)</span>
+              {showDiag ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+            {showDiag && (
+              <div className="px-4 pb-3 space-y-1 text-amber-800">
+                <p><span className="font-medium">Correo autenticado:</span> {diagnostico.emailNorm}</p>
+                <p><span className="font-medium">Total accesos registrados:</span> {diagnostico.totalMembresias}</p>
+                <p><span className="font-medium">Accesos activos:</span> {diagnostico.activas}</p>
+                <p><span className="font-medium">Espacios mostrados:</span> {diagnostico.espaciosEncontrados}</p>
+                {diagnostico.detalles.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="font-medium">Detalle de accesos:</p>
+                    {diagnostico.detalles.map((d, i) => (
+                      <div key={i} className="pl-2 border-l-2 border-amber-300">
+                        <p>Espacio: {d.espacio?.nombreEspacio || d.espacioId} — Estado acceso: {d.estado} — Espacio activo: {d.espacio ? "Sí" : "No encontrado"}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

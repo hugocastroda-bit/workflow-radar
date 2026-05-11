@@ -24,10 +24,12 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
   const [crearForm, setCrearForm] = useState({ nombreEspacio: "", descripcion: "" });
   const [saving, setSaving] = useState(false);
 
+  const emailNorm = (responsable?.email || "").toLowerCase().trim();
+
   const load = async () => {
     setLoading(true);
     const [memb, espacios] = await Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: responsable.email }),
+      base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
       base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
     ]);
     setAccesos(memb.map(m => ({
@@ -55,7 +57,7 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
     } else {
       await base44.entities.MembresiaEspacio.create({
         espacioId: asignForm.espacioId,
-        correoUsuario: responsable.email,
+        correoUsuario: emailNorm,
         rolEnEspacio: asignForm.rol,
         estado: "Activo",
         fechaAlta: new Date().toISOString().split("T")[0],
