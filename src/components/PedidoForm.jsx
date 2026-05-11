@@ -223,7 +223,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;
 
   const solicitanteOpts = (catalogs.solicitantes || []).map(s => s.nombre);
-  const responsableOpts = (catalogs.responsables || []).map(r => r.display || `${r.full_name} — ${r.email}`);
+  const responsableOpts = (catalogs.responsables || []).map(r => r.nombre);
   const procesoOpts = (catalogs.procesos || []).map(p => p.nombre);
   const prioridadOpts = (catalogs.prioridades || []).map(p => p.nombre);
 
