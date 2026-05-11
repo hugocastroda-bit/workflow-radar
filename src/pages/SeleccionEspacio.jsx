@@ -4,17 +4,10 @@ import { useAuth } from "@/lib/AuthContext";
 import { useEspacio } from "@/lib/EspacioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Lock, ArrowRight, LogOut, LogIn, Settings, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Lock, ArrowRight, LogOut, Settings, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-
-const ROL_LABELS = {
-  "Owner Espacio": "Propietario",
-  "Admin Espacio": "Administrador",
-  "User Espacio": "Usuario",
-  "Solo lectura": "Solo lectura",
-};
 
 export default function SeleccionEspacio() {
   const { user } = useAuth();
@@ -23,87 +16,32 @@ export default function SeleccionEspacio() {
   const isAdminGeneral = user?.role === "admin";
   const [loading, setLoading] = useState(true);
   const [espacios, setEspacios] = useState([]);
-  const [diagnostico, setDiagnostico] = useState(null);
-  const [showDiag, setShowDiag] = useState(false);
   const [claveModal, setClaveModal] = useState(null);
   const [clave, setClave] = useState("");
   const [validando, setValidando] = useState(false);
   const [claveError, setClaveError] = useState("");
 
   const cargarEspacios = useCallback(async () => {
-    if (!user?.email) return;
     setLoading(true);
     try {
-      const emailAuth = user.email.toLowerCase().trim();
-      const emailExacto = user.email;
-
-      let todosResponsables = [];
-      try { todosResponsables = await base44.entities.Responsable.list(); } catch { todosResponsables = []; }
-      const responsable = todosResponsables.find(
-        r => (r.email || "").toLowerCase().trim() === emailAuth
-      );
-
       const todosEspacios = await base44.entities.EspacioEquipo.filter({ estado: "Activo" });
-
-      const correosABuscar = new Set([emailExacto, emailAuth]);
-      if (responsable?.email) {
-        correosABuscar.add(responsable.email);
-        correosABuscar.add((responsable.email || "").toLowerCase().trim());
-      }
-
-      let todasMembresias = [];
-      for (const correo of correosABuscar) {
-        try {
-          const memb = await base44.entities.MembresiaEspacio.filter({ correoUsuario: correo });
-          todasMembresias = [...todasMembresias, ...memb];
-        } catch { }
-      }
-      const seen = new Set();
-      const membresias = todasMembresias.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
-
-      const activas = membresias.filter(m => m.estado === "Activo");
-      const result = activas
-        .map(m => ({ membresia: m, espacio: todosEspacios.find(e => e.id === m.espacioId) }))
-        .filter(r => r.espacio && r.espacio.estado === "Activo");
-
-      setDiagnostico({
-        emailAuth,
-        responsableEncontrado: !!responsable,
-        responsableId: responsable?.id || null,
-        responsableNombre: responsable?.nombre || null,
-        responsableCorreo: responsable?.email || null,
-        responsableEstado: responsable?.activo === false ? "Inactivo" : (responsable ? "Activo" : null),
-        totalMembresias: membresias.length,
-        activas: activas.length,
-        espaciosEncontrados: result.length,
-        detalles: membresias.map(m => {
-          const esp = todosEspacios.find(e => e.id === m.espacioId);
-          return {
-            espacioId: m.espacioId,
-            nombreEspacio: esp?.nombreEspacio || "(no encontrado)",
-            estadoAcceso: m.estado,
-            estadoEspacio: esp?.estado || "(no encontrado)",
-            rolEnEspacio: m.rolEnEspacio,
-          };
-        }),
-      });
-      setEspacios(result);
+      setEspacios(todosEspacios);
     } catch (err) {
       toast.error("No se pudieron cargar los espacios. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
-  }, [user?.email]);
+  }, []);
 
   useEffect(() => { cargarEspacios(); }, [cargarEspacios]);
 
-  const handleEntrar = (espacio, membresia) => {
-    if (espacio.requiereClave && !membresia.validadoConClave) {
+  const handleEntrar = (espacio) => {
+    if (espacio.requiereClave) {
       setClave("");
       setClaveError("");
-      setClaveModal({ espacio, membresia });
+      setClaveModal({ espacio });
     } else {
-      entrarEspacio(espacio, membresia);
+      entrarEspacio(espacio);
     }
   };
 
@@ -117,13 +55,8 @@ export default function SeleccionEspacio() {
         clave: clave.trim(),
       });
       if (res.data?.valido) {
-        await base44.entities.MembresiaEspacio.update(claveModal.membresia.id, {
-          validadoConClave: true,
-          ultimaValidacionClave: new Date().toISOString(),
-        });
-        const membresiaActualizada = { ...claveModal.membresia, validadoConClave: true };
         setClaveModal(null);
-        entrarEspacio(claveModal.espacio, membresiaActualizada);
+        entrarEspacio(claveModal.espacio);
       } else {
         setClaveError(res.data?.message || "La clave del espacio no es correcta.");
       }
@@ -163,65 +96,25 @@ export default function SeleccionEspacio() {
           </div>
         ) : espacios.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3">
-            {(() => {
-              if (!diagnostico) return null;
-              const { responsableEncontrado, totalMembresias, activas, detalles } = diagnostico;
-              if (!responsableEncontrado) return (
-                <>
-                  <p className="text-sm font-medium text-slate-600">No existe un responsable registrado con tu correo.</p>
-                  <p className="text-xs text-slate-400">Pide al administrador que te registre como responsable con el correo: <span className="font-mono">{diagnostico.emailAuth}</span></p>
-                </>
-              );
-              if (totalMembresias === 0) return (
-                <>
-                  <p className="text-sm font-medium text-slate-600">Tu usuario está registrado, pero aún no tiene espacios asignados.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador para que asigne un espacio a tu usuario.</p>
-                </>
-              );
-              if (activas === 0 && detalles.some(d => d.estadoAcceso !== "Activo")) return (
-                <>
-                  <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero los accesos están inactivos.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador para activar tu acceso.</p>
-                </>
-              );
-              if (activas > 0 && detalles.some(d => d.estadoAcceso === "Activo" && d.estadoEspacio !== "Activo")) return (
-                <>
-                  <p className="text-sm font-medium text-slate-600">Tienes espacios asignados, pero actualmente están inactivos.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador para reactivar el espacio.</p>
-                </>
-              );
-              return (
-                <>
-                  <p className="text-sm font-medium text-slate-600">No se encontraron espacios disponibles.</p>
-                  <p className="text-xs text-slate-400">Contacta al administrador.</p>
-                </>
-              );
-            })()}
-            {isAdminGeneral && (
-              <Button onClick={() => navigate("/configuracion")} className="mt-2 gap-2 bg-slate-900 hover:bg-slate-800 text-white">
-                <Settings className="h-4 w-4" /> Ir a Configuración de responsables
-              </Button>
-            )}
+            <p className="text-sm font-medium text-slate-600">No se encontraron espacios disponibles.</p>
+            <p className="text-xs text-slate-400">Contacta al administrador.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {espacios.map(({ espacio, membresia }) => (
+            {espacios.map((espacio) => (
               <div key={espacio.id} className="bg-white border border-slate-200 rounded-xl px-5 py-4 flex items-center justify-between gap-4 hover:border-slate-300 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-slate-800 truncate">{espacio.nombreEspacio}</p>
-                    {espacio.requiereClave && !membresia.validadoConClave && (
+                    {espacio.requiereClave && (
                       <Lock className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
                     )}
                   </div>
                   {espacio.descripcion && (
                     <p className="text-xs text-slate-400 mt-0.5 truncate">{espacio.descripcion}</p>
                   )}
-                  <span className="inline-block mt-1.5 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                    {ROL_LABELS[membresia.rolEnEspacio] || membresia.rolEnEspacio}
-                  </span>
                 </div>
-                <Button size="sm" onClick={() => handleEntrar(espacio, membresia)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white flex-shrink-0">
+                <Button size="sm" onClick={() => handleEntrar(espacio)} className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white flex-shrink-0">
                   Entrar <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -229,59 +122,14 @@ export default function SeleccionEspacio() {
           </div>
         )}
 
-        {isAdminGeneral && espacios.length > 0 && (
-          <div className="flex justify-center">
+        {isAdminGeneral && (
+          <div className="flex justify-center pt-2">
             <button
-              onClick={() => navigate("/configuracion")}
+              onClick={() => navigate("/gestion-espacios")}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <Settings className="h-3.5 w-3.5" /> Configuración de responsables
+              <Settings className="h-3.5 w-3.5" /> Administración
             </button>
-          </div>
-        )}
-
-        {isAdminGeneral && diagnostico && (
-          <div className="border border-amber-200 rounded-lg bg-amber-50 text-xs">
-            <button
-              onClick={() => setShowDiag(v => !v)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-amber-700 font-medium"
-            >
-              <span>Diagnostico de acceso (solo visible para admin)</span>
-              {showDiag ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            </button>
-            {showDiag && (
-              <div className="px-4 pb-3 space-y-2 text-amber-800">
-                <div className="space-y-1">
-                  <p><span className="font-medium">Correo autenticado:</span> <span className="font-mono">{diagnostico.emailAuth}</span></p>
-                  <p><span className="font-medium">Responsable encontrado:</span> {diagnostico.responsableEncontrado ? "Si" : "No"}</p>
-                  {diagnostico.responsableEncontrado && (
-                    <>
-                      <p><span className="font-medium">Nombre responsable:</span> {diagnostico.responsableNombre}</p>
-                      <p><span className="font-medium">Correo en Responsable:</span> <span className="font-mono">{diagnostico.responsableCorreo}</span></p>
-                      <p><span className="font-medium">responsableId:</span> <span className="font-mono text-xs">{diagnostico.responsableId}</span></p>
-                      <p><span className="font-medium">Estado responsable:</span> {diagnostico.responsableEstado}</p>
-                    </>
-                  )}
-                  <p><span className="font-medium">Accesos encontrados:</span> {diagnostico.totalMembresias}</p>
-                  <p><span className="font-medium">Accesos activos:</span> {diagnostico.activas}</p>
-                  <p><span className="font-medium">Espacios visibles:</span> {diagnostico.espaciosEncontrados}</p>
-                </div>
-                {diagnostico.detalles.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    <p className="font-medium">Detalle de accesos:</p>
-                    {diagnostico.detalles.map((d, i) => (
-                      <div key={i} className="pl-2 border-l-2 border-amber-300 space-y-0.5 py-1">
-                        <p><span className="font-medium">Espacio:</span> {d.nombreEspacio}</p>
-                        <p><span className="font-medium">espacioId:</span> <span className="font-mono">{d.espacioId}</span></p>
-                        <p><span className="font-medium">Estado acceso:</span> {d.estadoAcceso === "Activo" ? "OK" : "ERROR"} {d.estadoAcceso}</p>
-                        <p><span className="font-medium">Estado espacio:</span> {d.estadoEspacio === "Activo" ? "OK" : "ERROR"} {d.estadoEspacio}</p>
-                        <p><span className="font-medium">Rol:</span> {d.rolEnEspacio}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -290,7 +138,7 @@ export default function SeleccionEspacio() {
             onClick={() => base44.auth.logout()}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <LogOut className="h-3.5 w-3.5" /> Cerrar sesion
+            <LogOut className="h-3.5 w-3.5" /> Cerrar sesión
           </button>
         </div>
       </div>
@@ -304,7 +152,7 @@ export default function SeleccionEspacio() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-xs text-slate-500">
-            El espacio <span className="font-medium text-slate-700">"{claveModal?.espacio?.nombreEspacio}"</span> requiere una clave de acceso.
+            El espacio <span className="font-medium text-slate-700">"{claveModal?.espacio?.nombreEspacio}"</span> requiere una clave.
           </p>
           <Input
             type="password"
@@ -323,8 +171,7 @@ export default function SeleccionEspacio() {
               Cancelar
             </Button>
             <Button size="sm" onClick={handleValidarClave} disabled={validando || !clave.trim()} className="bg-slate-900 hover:bg-slate-800 text-white gap-1.5">
-              {validando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
-              {validando ? "Verificando…" : "Ingresar"}
+              {validando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Ingresar"}
             </Button>
           </div>
         </DialogContent>

@@ -11,7 +11,6 @@ export function useEspacio() {
 
 export default function EspacioProvider() {
   const [espacioActivo, setEspacioActivo] = useState(null);
-  const [membresiaActiva, setMembresiaActiva] = useState(null);
   const [loadingEspacio, setLoadingEspacio] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,25 +27,7 @@ export default function EspacioProvider() {
             const espacios = await base44.entities.EspacioEquipo.filter({ estado: "Activo" });
             const stillActive = espacios.find(e => e.id === parsed.espacio.id);
             if (stillActive) {
-              // Also verify membership is still active
-              try {
-                const membs = await base44.entities.MembresiaEspacio.filter({ espacioId: parsed.espacio.id });
-                const emailStored = (parsed.membresia.correoUsuario || "").toLowerCase().trim();
-                const activeMem = membs.find(m =>
-                  (m.correoUsuario || "").toLowerCase().trim() === emailStored &&
-                  m.estado === "Activo"
-                );
-                if (activeMem) {
-                  setEspacioActivo(stillActive);
-                  setMembresiaActiva(activeMem);
-                } else {
-                  localStorage.removeItem("radarct_espacio");
-                }
-              } catch {
-                // If membership check fails, still restore (safe fallback)
-                setEspacioActivo(stillActive);
-                setMembresiaActiva(parsed.membresia);
-              }
+              setEspacioActivo(stillActive);
             } else {
               // Space was deactivated or deleted — clear stored session
               localStorage.removeItem("radarct_espacio");
@@ -72,22 +53,20 @@ export default function EspacioProvider() {
     navigate("/espacios", { replace: true });
   }, [loadingEspacio, isLoadingAuth, espacioActivo, location.pathname]);
 
-  const entrarEspacio = (espacio, membresia) => {
+  const entrarEspacio = (espacio) => {
     setEspacioActivo(espacio);
-    setMembresiaActiva(membresia);
-    localStorage.setItem("radarct_espacio", JSON.stringify({ espacio, membresia }));
+    localStorage.setItem("radarct_espacio", JSON.stringify({ espacio }));
     navigate("/", { replace: true });
   };
 
   const salirDeEspacio = () => {
     setEspacioActivo(null);
-    setMembresiaActiva(null);
     localStorage.removeItem("radarct_espacio");
     navigate("/espacios", { replace: true });
   };
 
   return (
-    <EspacioContext.Provider value={{ espacioActivo, membresiaActiva, entrarEspacio, salirDeEspacio, loadingEspacio }}>
+    <EspacioContext.Provider value={{ espacioActivo, entrarEspacio, salirDeEspacio, loadingEspacio }}>
       <Outlet />
     </EspacioContext.Provider>
   );
