@@ -3,7 +3,7 @@ import ResponsableEditModal from "@/components/ResponsableEditModal";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Building2, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
@@ -147,6 +147,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [blockModal, setBlockModal] = useState(null);
   const fileRef = useRef(null);
+  const useRef = useRef;
   const [bulkRows, setBulkRows] = useState([]);
   const [bulkResult, setBulkResult] = useState(null);
   const [bulkImporting, setBulkImporting] = useState(false);
@@ -784,7 +785,6 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
 
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
-  const [gestionarModal, setGestionarModal] = useState(null);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const tab = TABS.find(t => t.key === activeTab);

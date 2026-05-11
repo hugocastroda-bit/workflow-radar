@@ -114,11 +114,7 @@ export default function DetallePedido() {
     const nuevoEstado = data.estado;
     try {
       await base44.entities.Pedido.update(id, data);
-      if (responsableCambio) base44.functions.invoke("sendNotificacion", { tipo: "asignado", pedidoId: id }).catch(() => {});
-      if (estadoCambio && nuevoEstado === "Bloqueado") base44.functions.invoke("sendNotificacion", { tipo: "bloqueado", pedidoId: id }).catch(() => {});
-      if (estadoCambio && nuevoEstado === "Cerrado") base44.functions.invoke("sendNotificacion", { tipo: "cerrado", pedidoId: id }).catch(() => {});
       await load();
-      setEditSection(null);
       setDraft({});
     } catch {
       toast.error("No se pudo guardar los cambios. Inténtalo nuevamente.");

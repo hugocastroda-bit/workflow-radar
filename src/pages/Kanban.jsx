@@ -71,7 +71,6 @@ export default function Kanban() {
     if (!pedido || pedido.estado === newEstado) return;
 
     const prevEstado = pedido.estado;
-    // Optimistic update
     setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: newEstado } : p));
 
     if (newEstado === "Bloqueado") {
@@ -85,13 +84,9 @@ export default function Kanban() {
 
     try {
       await base44.entities.Pedido.update(draggableId, updateData);
-      // Trigger notifications in background (non-blocking)
-      base44.functions.invoke("sendNotificacion", { tipo: newEstado === "Bloqueado" ? "bloqueado" : newEstado === "Cerrado" ? "cerrado" : null, pedidoId: draggableId }).catch(() => {});
     } catch (err) {
       console.error("[Kanban] Error moviendo pedido:", err);
-      // Rollback optimistic update on failure
       setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: prevEstado } : p));
-      // Also clear block modal if it was opened optimistically
       if (newEstado === "Bloqueado") setBlockModal(null);
       toast.error("No se pudo mover el pedido. Inténtalo nuevamente.");
     }
