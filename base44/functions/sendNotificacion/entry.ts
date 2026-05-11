@@ -73,13 +73,25 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // Get catalog emails
-    const [responsables, solicitantes] = await Promise.all([
-      base44.asServiceRole.entities.Responsable.filter({ nombre: pedido.responsable }),
-      base44.asServiceRole.entities.Solicitante.filter({ nombre: pedido.solicitante }),
-    ]);
-    const responsableEmail = responsables[0]?.email || null;
-    const solicitanteEmail = solicitantes[0]?.email || null;
+    // Get catalog emails by nombre (primary lookup)
+    let responsableEmail = null;
+    let solicitanteEmail = null;
+    
+    try {
+      const responsables = await base44.asServiceRole.entities.Responsable.list();
+      const resp = responsables.find(r => (r.nombre || "").trim() === (pedido.responsable || "").trim());
+      responsableEmail = resp?.email || null;
+    } catch (e) {
+      console.warn(`[sendNotificacion] Error buscando responsable: ${e.message}`);
+    }
+    
+    try {
+      const solicitantes = await base44.asServiceRole.entities.Solicitante.list();
+      const sol = solicitantes.find(s => (s.nombre || "").trim() === (pedido.solicitante || "").trim());
+      solicitanteEmail = sol?.email || null;
+    } catch (e) {
+      console.warn(`[sendNotificacion] Error buscando solicitante: ${e.message}`);
+    }
 
     const emailsToSend = buildEmail(tipo, pedido, responsableEmail, solicitanteEmail);
 

@@ -159,56 +159,12 @@
     "prioridad"
   ],
   "rls": {
-    "create": {
-      "data.espacioId": "{{user.active_space_id}}"
-    },
-    "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "data.solicitante": "{{user.full_name}}"
-        },
-        {
-          "data.responsable": "{{user.full_name}}"
-        },
-        {
-          "$and": [
-            {
-              "data.confidencial": false
-            },
-            {
-              "data.espacioId": "{{user.active_space_id}}"
-            }
-          ]
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "data.responsable": "{{user.full_name}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
     "delete": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "user_condition": {
+            "role": "admin"
+          }
         },
         {
           "user_condition": {

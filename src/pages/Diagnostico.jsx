@@ -35,7 +35,7 @@ export default function Diagnostico() {
     setLoading(true);
     const emailAuth = (user?.email || "").toLowerCase().trim();
     const now = new Date().toISOString();
-    const result = { timestamp: now, emailAuth, errores: [] };
+    const result = { timestamp: now, emailAuth, errores: [], warnings: [] };
 
     try {
       // Usuario
@@ -56,14 +56,29 @@ export default function Diagnostico() {
         // Check duplicates
         const dups = responsables.filter(r => (r.email || "").toLowerCase().trim() === emailAuth);
         result.responsablesDuplicados = dups.length > 1 ? dups.map(r => r.id) : [];
+        // Check for orphaned responsables
+        const sinEmail = responsables.filter(r => !r.email || !r.email.trim());
+        if (sinEmail.length > 0) {
+          result.warnings.push(`${sinEmail.length} responsables sin correo registrado. Estos no pueden recibir notificaciones.`);
+        }
       } catch (e) {
         result.errores.push("Responsable: " + e.message);
         result.responsableEncontrado = false;
       }
 
-      // Membresías
+      // Membresías (try multiple email formats)
       try {
-        const membs = await base44.entities.MembresiaEspacio.filter({ correoUsuario: emailAuth });
+        let membs = [];
+        for (const correo of [emailAuth, user?.email]) {
+          if (!correo) continue;
+          try {
+            const found = await base44.entities.MembresiaEspacio.filter({ correoUsuario: correo });
+            membs = [...membs, ...found];
+          } catch {}
+        }
+        // Dedup
+        const seen = new Set();
+        membs = membs.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
         result.totalMembresias = membs.length;
         result.membresiaActivas = membs.filter(m => m.estado === "Activo").length;
         result.membresiaInactivas = membs.filter(m => m.estado !== "Activo").length;
@@ -72,6 +87,7 @@ export default function Diagnostico() {
           rol: m.rolEnEspacio,
           estado: m.estado,
           validadoConClave: m.validadoConClave,
+          correoGuardado: m.correoUsuario,
         }));
       } catch (e) {
         result.errores.push("Membresías: " + e.message);
@@ -90,6 +106,17 @@ export default function Diagnostico() {
           const pedidos = await base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id });
           result.pedidosCargados = pedidos.length;
           result.pedidosSinEspacioId = pedidos.filter(p => !p.espacioId).length;
+          
+          // Check for integrity issues
+          const sinResponsable = pedidos.filter(p => !p.responsable || !p.responsable.trim()).length;
+          const sinSolicitante = pedidos.filter(p => !p.solicitante || !p.solicitante.trim()).length;
+          const sinProceso = pedidos.filter(p => !p.proceso || !p.proceso.trim()).length;
+          const sinPrioridad = pedidos.filter(p => !p.prioridad || !p.prioridad.trim()).length;
+          
+          if (sinResponsable > 0) result.warnings.push(`${sinResponsable} pedidos sin responsable asignado.`);
+          if (sinSolicitante > 0) result.warnings.push(`${sinSolicitante} pedidos sin solicitante.`);
+          if (sinProceso > 0) result.warnings.push(`${sinProceso} pedidos sin proceso.`);
+          if (sinPrioridad > 0) result.warnings.push(`${sinPrioridad} pedidos sin prioridad.`);
         } catch (e) {
           result.errores.push("Pedidos: " + e.message);
           result.pedidosCargados = 0;
@@ -152,8 +179,15 @@ export default function Diagnostico() {
         <div className="space-y-4">
           {data.errores?.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-red-700">Errores detectados</p>
+              <p className="text-xs font-semibold text-red-700">🚨 Errores detectados</p>
               {data.errores.map((e, i) => <p key={i} className="text-xs text-red-600">{e}</p>)}
+            </div>
+          )}
+
+          {data.warnings?.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-1">
+              <p className="text-xs font-semibold text-amber-700">⚠️ Advertencias</p>
+              {data.warnings.map((w, i) => <p key={i} className="text-xs text-amber-700">{w}</p>)}
             </div>
           )}
 

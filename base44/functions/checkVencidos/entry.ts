@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 
     for (const pedido of vencidos) {
       if (!pedido.responsable) continue;
-      const responsableEmail = respEmailMap[pedido.responsable];
+      const responsableEmail = respEmailMap[(pedido.responsable || "").trim()];
       if (!responsableEmail) continue;
 
       // ─── 7. Dedup: one notification per pedido per day per recipient ────────

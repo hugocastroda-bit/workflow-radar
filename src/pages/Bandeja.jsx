@@ -43,11 +43,20 @@ export default function Bandeja() {
     if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
     if (!espacioActivo?.id) { setLoading(false); return; }
-    base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date")
-      .then(d => setPedidos(filtrarConfidenciales(d, user)))
-      .catch(() => toast.error("No se pudieron cargar los pedidos."))
-      .finally(() => setLoading(false));
-  }, [espacioActivo?.id]);
+    
+    const cargarPedidos = async () => {
+      try {
+        const d = await base44.entities.Pedido.filter({ archivado: false, espacioId: espacioActivo.id }, "-created_date");
+        setPedidos(filtrarConfidenciales(d, user));
+      } catch (err) {
+        console.error("[Bandeja] Error cargando pedidos:", err);
+        toast.error("No se pudieron cargar los pedidos. Inténtalo nuevamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarPedidos();
+  }, [espacioActivo?.id, user]);
 
   const today = new Date().toISOString().split("T")[0];
   const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";
@@ -85,7 +94,8 @@ export default function Bandeja() {
       setPedidos(prev => prev.filter(p => p.id !== archiveTarget));
       setArchiveTarget(null);
       toast.success("Pedido archivado correctamente");
-    } catch {
+    } catch (err) {
+      console.error("[Bandeja] Error archivando pedido:", err);
       toast.error("No se pudo archivar el pedido. Inténtalo nuevamente.");
     }
     setArchiving(false);
@@ -99,7 +109,8 @@ export default function Bandeja() {
       setPedidos(prev => prev.filter(p => p.id !== deleteTarget));
       setDeleteTarget(null);
       toast.success("Pedido borrado correctamente");
-    } catch {
+    } catch (err) {
+      console.error("[Bandeja] Error borrando pedido:", err);
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
     }
     setDeleting(false);
@@ -125,7 +136,8 @@ export default function Bandeja() {
       setPedidos(prev => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
       toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
       setConfidencialTarget(null);
-    } catch {
+    } catch (err) {
+      console.error("[Bandeja] Error actualizando confidencialidad:", err);
       toast.error("No se pudo actualizar el pedido.");
     }
     setSavingConf(false);

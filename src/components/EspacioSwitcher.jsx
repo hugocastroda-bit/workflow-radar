@@ -13,8 +13,9 @@ export default function EspacioSwitcher() {
 
   useEffect(() => {
     if (!user?.email) return;
+    const emailNormalized = user.email.toLowerCase().trim();
     Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: user.email, estado: "Activo" }),
+      base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNormalized, estado: "Activo" }),
       base44.entities.EspacioEquipo.list()
     ]).then(([membs, esps]) => {
       const items = membs

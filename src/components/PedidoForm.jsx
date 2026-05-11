@@ -22,20 +22,23 @@ async function loadCatalogs(espacioId) {
   if (!catalogCacheBySpace[espacioId]) catalogCacheBySpace[espacioId] = {};
   const cache = catalogCacheBySpace[espacioId];
   const f = espacioId ? { activo: true, espacioId } : { activo: true };
-  const promises = [];
-  if (!cache.solicitantes) promises.push(
-    base44.entities.Solicitante.filter(f, "nombre").then(d => { cache.solicitantes = d; })
-  );
-  if (!cache.responsables) promises.push(
-    base44.entities.Responsable.filter(f, "nombre").then(d => { cache.responsables = d; })
-  );
-  if (!cache.procesos) promises.push(
-    base44.entities.Proceso.filter(f, "nombre").then(d => { cache.procesos = d; })
-  );
-  if (!cache.prioridades) promises.push(
-    base44.entities.Prioridad.filter(f, "nombre").then(d => { cache.prioridades = d; })
-  );
-  await Promise.all(promises);
+  
+  if (!cache.solicitantes) {
+    cache.solicitantes = await base44.entities.Solicitante.filter(f, "nombre")
+      .catch(e => { console.warn("[PedidoForm] Error loading Solicitantes:", e); return []; });
+  }
+  if (!cache.responsables) {
+    cache.responsables = await base44.entities.Responsable.filter(f, "nombre")
+      .catch(e => { console.warn("[PedidoForm] Error loading Responsables:", e); return []; });
+  }
+  if (!cache.procesos) {
+    cache.procesos = await base44.entities.Proceso.filter(f, "nombre")
+      .catch(e => { console.warn("[PedidoForm] Error loading Procesos:", e); return []; });
+  }
+  if (!cache.prioridades) {
+    cache.prioridades = await base44.entities.Prioridad.filter(f, "nombre")
+      .catch(e => { console.warn("[PedidoForm] Error loading Prioridades:", e); return []; });
+  }
   return cache;
 }
 
@@ -131,7 +134,9 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   useEffect(() => {
     if (!open) return;
     const espacioId = espacioActivo?.id;
-    loadCatalogs(espacioId).then(cache => setCatalogs({ ...cache }));
+    loadCatalogs(espacioId)
+      .then(cache => setCatalogs({ ...cache }))
+      .catch(e => { console.error("[PedidoForm] Failed to load catalogs:", e); setCatalogs({}); });
   }, [open, espacioActivo?.id]);
 
   useEffect(() => {
@@ -159,6 +164,10 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   };
 
   const handleSave = async () => {
+    if (!espacioActivo?.id) {
+      toast.error("No hay un espacio activo seleccionado.");
+      return;
+    }
     setSaving(true);
     const data = { ...form };
 
@@ -170,7 +179,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     const timeout = setTimeout(() => {
       setSaving(false);
       toast.error("El guardado está tomando más tiempo de lo esperado. Revisa la conexión o intenta nuevamente.");
-
     }, 8000);
 
     try {
@@ -179,7 +187,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         saved = await base44.entities.Pedido.update(pedido.id, data);
       } else {
         data.estado = "Nuevo";
-        if (espacioActivo?.id) data.espacioId = espacioActivo.id;
+        data.espacioId = espacioActivo.id;
         saved = await base44.entities.Pedido.create(data);
       }
       clearTimeout(timeout);
@@ -187,9 +195,10 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
       if (!pedido) toast.success("Pedido creado correctamente");
       onSaved?.(saved);
       onClose();
-    } catch {
+    } catch (err) {
       clearTimeout(timeout);
       setSaving(false);
+      console.error("[PedidoForm] Error saving:", err);
       toast.error("No se pudo guardar el pedido. Inténtalo nuevamente.");
     }
   };

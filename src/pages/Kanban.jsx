@@ -80,7 +80,8 @@ export default function Kanban() {
       await base44.entities.Pedido.update(draggableId, updateData);
       // Trigger notifications in background (non-blocking)
       base44.functions.invoke("sendNotificacion", { tipo: newEstado === "Bloqueado" ? "bloqueado" : newEstado === "Cerrado" ? "cerrado" : null, pedidoId: draggableId }).catch(() => {});
-    } catch {
+    } catch (err) {
+      console.error("[Kanban] Error moviendo pedido:", err);
       // Rollback optimistic update on failure
       setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: prevEstado } : p));
       // Also clear block modal if it was opened optimistically
@@ -95,7 +96,9 @@ export default function Kanban() {
       await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
       setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
       setBlockModal(null);
-    } catch {
+      toast.success("Motivo de bloqueo guardado");
+    } catch (err) {
+      console.error("[Kanban] Error guardando motivo:", err);
       toast.error("No se pudo guardar el motivo de bloqueo.");
     }
   };
@@ -113,7 +116,8 @@ export default function Kanban() {
       setPedidos(prev => prev.filter(p => p.id !== archiveTarget.id));
       setArchiveTarget(null);
       toast.success("Pedido archivado correctamente");
-    } catch {
+    } catch (err) {
+      console.error("[Kanban] Error archivando:", err);
       toast.error("No se pudo archivar el pedido.");
     }
     setArchiving(false);
@@ -127,7 +131,8 @@ export default function Kanban() {
       setPedidos(prev => prev.filter(p => p.id !== deleteTarget.id));
       setDeleteTarget(null);
       toast.success("Pedido borrado correctamente");
-    } catch {
+    } catch (err) {
+      console.error("[Kanban] Error borrando:", err);
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
     }
     setDeleting(false);
@@ -149,7 +154,8 @@ export default function Kanban() {
       setPedidos(prev => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
       toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
       setConfidencialTarget(null);
-    } catch {
+    } catch (err) {
+      console.error("[Kanban] Error actualizando confidencialidad:", err);
       toast.error("No se pudo actualizar el pedido.");
     }
     setSavingConf(false);
