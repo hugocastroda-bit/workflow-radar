@@ -33,33 +33,33 @@ export default function SeleccionEspacio() {
   const cargarEspacios = useCallback(async () => {
     if (!user?.email) return;
     setLoading(true);
-    const emailNorm = user.email.toLowerCase().trim();
-
-    const [membresias, todosEspacios] = await Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
-      base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
-    ]);
-
-    const activas = membresias.filter(m => m.estado === "Activo");
-    const result = activas
-      .map(m => ({ membresia: m, espacio: todosEspacios.find(e => e.id === m.espacioId) }))
-      .filter(r => r.espacio);
-
-    // Diagnóstico
-    setDiagnostico({
-      emailNorm,
-      totalMembresias: membresias.length,
-      activas: activas.length,
-      espaciosEncontrados: result.length,
-      detalles: membresias.map(m => ({
-        espacioId: m.espacioId,
-        espacio: todosEspacios.find(e => e.id === m.espacioId),
-        estado: m.estado,
-      })),
-    });
-
-    setEspacios(result);
-    setLoading(false);
+    try {
+      const emailNorm = user.email.toLowerCase().trim();
+      const [membresias, todosEspacios] = await Promise.all([
+        base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
+        base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
+      ]);
+      const activas = membresias.filter(m => m.estado === "Activo");
+      const result = activas
+        .map(m => ({ membresia: m, espacio: todosEspacios.find(e => e.id === m.espacioId) }))
+        .filter(r => r.espacio);
+      setDiagnostico({
+        emailNorm,
+        totalMembresias: membresias.length,
+        activas: activas.length,
+        espaciosEncontrados: result.length,
+        detalles: membresias.map(m => ({
+          espacioId: m.espacioId,
+          espacio: todosEspacios.find(e => e.id === m.espacioId),
+          estado: m.estado,
+        })),
+      });
+      setEspacios(result);
+    } catch {
+      toast.error("No se pudieron cargar los espacios. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
+    }
   }, [user?.email]);
 
   useEffect(() => { cargarEspacios(); }, [cargarEspacios]);

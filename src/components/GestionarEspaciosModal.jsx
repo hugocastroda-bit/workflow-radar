@@ -28,16 +28,18 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
 
   const load = async () => {
     setLoading(true);
-    const [memb, espacios] = await Promise.all([
-      base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
-      base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
-    ]);
-    setAccesos(memb.map(m => ({
-      ...m,
-      espacio: espacios.find(e => e.id === m.espacioId),
-    })).filter(m => m.espacio));
-    setEspaciosDisp(espacios);
-    setLoading(false);
+    try {
+      const [memb, espacios] = await Promise.all([
+        base44.entities.MembresiaEspacio.filter({ correoUsuario: emailNorm }),
+        base44.entities.EspacioEquipo.filter({ estado: "Activo" }),
+      ]);
+      setAccesos(memb.map(m => ({ ...m, espacio: espacios.find(e => e.id === m.espacioId) })).filter(m => m.espacio));
+      setEspaciosDisp(espacios);
+    } catch {
+      toast.error("No se pudieron cargar los accesos.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -47,67 +49,78 @@ export default function GestionarEspaciosModal({ responsable, open, onClose }) {
   const handleAsignar = async () => {
     if (!asignForm.espacioId) return;
     setSaving(true);
-    const yaExiste = accesos.find(a => a.espacioId === asignForm.espacioId);
-    if (yaExiste) {
-      await base44.entities.MembresiaEspacio.update(yaExiste.id, {
-        rolEnEspacio: asignForm.rol,
-        estado: "Activo",
-      });
-      toast.success("Acceso actualizado");
-    } else {
-      await base44.entities.MembresiaEspacio.create({
-        espacioId: asignForm.espacioId,
-        correoUsuario: emailNorm,
-        rolEnEspacio: asignForm.rol,
-        estado: "Activo",
-        fechaAlta: new Date().toISOString().split("T")[0],
-        validadoConClave: false,
-      });
-      toast.success("Espacio asignado");
+    try {
+      const yaExiste = accesos.find(a => a.espacioId === asignForm.espacioId);
+      if (yaExiste) {
+        await base44.entities.MembresiaEspacio.update(yaExiste.id, { rolEnEspacio: asignForm.rol, estado: "Activo" });
+        toast.success("Acceso actualizado");
+      } else {
+        await base44.entities.MembresiaEspacio.create({
+          espacioId: asignForm.espacioId,
+          correoUsuario: emailNorm,
+          rolEnEspacio: asignForm.rol,
+          estado: "Activo",
+          fechaAlta: new Date().toISOString().split("T")[0],
+          validadoConClave: false,
+        });
+        toast.success("Espacio asignado");
+      }
+      setAsignForm({ espacioId: "", rol: "User Espacio" });
+      setShowAsignar(false);
+      load();
+    } catch {
+      toast.error("No se pudo guardar el acceso. Intenta nuevamente.");
+    } finally {
+      setSaving(false);
     }
-    setAsignForm({ espacioId: "", rol: "User Espacio" });
-    setShowAsignar(false);
-    setSaving(false);
-    load();
   };
 
   const handleCrearEspacio = async () => {
     if (!crearForm.nombreEspacio.trim()) return;
     setSaving(true);
-    const nuevo = await base44.entities.EspacioEquipo.create({
-      nombreEspacio: crearForm.nombreEspacio.trim(),
-      descripcion: crearForm.descripcion.trim(),
-      estado: "Activo",
-      creadoPor: responsable.email,
-      requiereClave: false,
-    });
-    toast.success("Espacio creado");
-    setCrearForm({ nombreEspacio: "", descripcion: "" });
-    setShowCrear(false);
-    // auto-select for assignment
-    const nuevosEspacios = [...espaciosDisp, nuevo];
-    setEspaciosDisp(nuevosEspacios);
-    setAsignForm(f => ({ ...f, espacioId: nuevo.id }));
-    setShowAsignar(true);
-    setSaving(false);
+    try {
+      const nuevo = await base44.entities.EspacioEquipo.create({
+        nombreEspacio: crearForm.nombreEspacio.trim(),
+        descripcion: crearForm.descripcion.trim(),
+        estado: "Activo",
+        creadoPor: responsable.email,
+        requiereClave: false,
+      });
+      toast.success("Espacio creado");
+      setCrearForm({ nombreEspacio: "", descripcion: "" });
+      setShowCrear(false);
+      setEspaciosDisp(prev => [...prev, nuevo]);
+      setAsignForm(f => ({ ...f, espacioId: nuevo.id }));
+      setShowAsignar(true);
+    } catch {
+      toast.error("No se pudo crear el espacio. Intenta nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleAcceso = async (acceso) => {
-    await base44.entities.MembresiaEspacio.update(acceso.id, {
-      estado: acceso.estado === "Activo" ? "Inactivo" : "Activo",
-    });
-    load();
+    try {
+      await base44.entities.MembresiaEspacio.update(acceso.id, {
+        estado: acceso.estado === "Activo" ? "Inactivo" : "Activo",
+      });
+      load();
+    } catch { toast.error("No se pudo actualizar el acceso."); }
   };
 
   const quitarAcceso = async (acceso) => {
-    await base44.entities.MembresiaEspacio.delete(acceso.id);
-    toast.success("Acceso eliminado");
-    load();
+    try {
+      await base44.entities.MembresiaEspacio.delete(acceso.id);
+      toast.success("Acceso eliminado");
+      load();
+    } catch { toast.error("No se pudo eliminar el acceso."); }
   };
 
   const cambiarRol = async (acceso, nuevoRol) => {
-    await base44.entities.MembresiaEspacio.update(acceso.id, { rolEnEspacio: nuevoRol });
-    load();
+    try {
+      await base44.entities.MembresiaEspacio.update(acceso.id, { rolEnEspacio: nuevoRol });
+      load();
+    } catch { toast.error("No se pudo cambiar el rol."); }
   };
 
   if (!responsable) return null;

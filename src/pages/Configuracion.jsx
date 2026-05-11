@@ -120,22 +120,26 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   };
 
   const toggleActivo = async (item) => {
-    await base44.entities[entityKey].update(item.id, { activo: !item.activo });
-    load();
+    try {
+      await base44.entities[entityKey].update(item.id, { activo: !item.activo });
+      load();
+    } catch { toast.error("No se pudo actualizar."); }
   };
 
   const handleAdd = async () => {
     if (!newForm.nombre.trim()) return;
     setSaving(true);
-    const data = { nombre: newForm.nombre.trim(), activo: true };
-    if (espacioId) data.espacioId = espacioId;
-    if (extraField) data[extraField] = newForm[extraField] || "";
-    if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
-    await base44.entities[entityKey].create(data);
-    setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
-    setAdding(false);
+    try {
+      const data = { nombre: newForm.nombre.trim(), activo: true };
+      if (espacioId) data.espacioId = espacioId;
+      if (extraField) data[extraField] = newForm[extraField] || "";
+      if (extraField2) data[extraField2] = (newForm[extraField2] || "").toLowerCase().trim();
+      await base44.entities[entityKey].create(data);
+      setNewForm({ nombre: "", ...(extraField ? { [extraField]: "" } : {}), ...(extraField2 ? { [extraField2]: "" } : {}) });
+      setAdding(false);
+      load();
+    } catch { toast.error("No se pudo agregar. Intenta nuevamente."); }
     setSaving(false);
-    load();
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-slate-400" /></div>;
