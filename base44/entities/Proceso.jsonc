@@ -29,7 +29,8 @@
           }
         },
         {
-          "data.espacioId": "{{user.active_space_id}}"
+          "data.espacioId": "{{user.active_space_id}}",
+          "data.activo": true
         }
       ]
     },
