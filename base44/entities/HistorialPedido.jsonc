@@ -1,0 +1,78 @@
+{
+  "name": "HistorialPedido",
+  "type": "object",
+  "properties": {
+    "pedido_id": {
+      "type": "string",
+      "title": "ID del pedido"
+    },
+    "campo": {
+      "type": "string",
+      "title": "Campo modificado"
+    },
+    "valor_anterior": {
+      "type": "string",
+      "title": "Valor anterior"
+    },
+    "valor_nuevo": {
+      "type": "string",
+      "title": "Valor nuevo"
+    },
+    "usuario": {
+      "type": "string",
+      "title": "Usuario que hizo el cambio"
+    },
+    "rol_usuario": {
+      "type": "string",
+      "title": "Rol del usuario"
+    },
+    "fecha_cambio": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Fecha y hora del cambio"
+    },
+    "tipo_cambio": {
+      "type": "string",
+      "title": "Tipo de cambio",
+      "enum": [
+        "seguimiento",
+        "informacion_general",
+        "evidencias",
+        "cierre",
+        "archivo",
+        "confidencial",
+        "eliminacion"
+      ]
+    }
+  },
+  "required": [
+    "pedido_id",
+    "campo",
+    "valor_nuevo",
+    "usuario",
+    "fecha_cambio",
+    "tipo_cambio"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
