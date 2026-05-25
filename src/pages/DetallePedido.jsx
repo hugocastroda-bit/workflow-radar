@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen, History, User } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -63,6 +63,8 @@ export default function DetallePedido() {
   const isAdmin = user?.role === "admin";
   const [catalogs, setCatalogs] = useState({});
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
+  const [historial, setHistorial] = useState([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
 
   const loadCatalogs = async () => {
     setLoadingCatalogs(true);
@@ -83,6 +85,18 @@ export default function DetallePedido() {
       console.error('[DetallePedido] Error loading catalogs:', err);
     } finally {
       setLoadingCatalogs(false);
+    }
+  };
+
+  const loadHistorial = async () => {
+    setLoadingHistorial(true);
+    try {
+      const items = await base44.entities.HistorialPedido.filter({ pedido_id: id }, "-fecha_cambio");
+      setHistorial(items);
+    } catch {
+      // historial no disponible para este usuario
+    } finally {
+      setLoadingHistorial(false);
     }
   };
 
@@ -122,6 +136,7 @@ export default function DetallePedido() {
   useEffect(() => {
     load();
     loadCatalogs();
+    loadHistorial();
   }, [id]);
 
   const startEdit = (section) => {
@@ -504,6 +519,52 @@ export default function DetallePedido() {
           </div>
         )}
       </Section>
+
+      {/* Historial de cambios */}
+      {(historial.length > 0 || loadingHistorial) && (
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <History className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Historial de cambios</p>
+          </div>
+          {loadingHistorial ? (
+            <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="space-y-0">
+              {historial.map((item, i) => {
+                const fecha = item.fecha_cambio
+                  ? new Date(item.fecha_cambio).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—';
+                return (
+                  <div key={item.id} className={`flex gap-3 py-3 ${i < historial.length - 1 ? 'border-b border-border' : ''}`}>
+                    <div className="mt-0.5 h-6 w-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                      <User className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="text-xs font-medium text-foreground truncate">{item.usuario}</p>
+                        <p className="text-xs text-muted-foreground shrink-0">{fecha}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        <span className="font-medium text-foreground/80">{item.campo}</span>
+                        {item.valor_anterior && item.valor_anterior !== item.valor_nuevo && (
+                          <> · <span className="line-through opacity-50">{item.valor_anterior}</span> → </>
+                        )}
+                        {item.valor_anterior && item.valor_anterior !== item.valor_nuevo && (
+                          <span>{item.valor_nuevo}</span>
+                        )}
+                        {(!item.valor_anterior || item.valor_anterior === item.valor_nuevo) && (
+                          <> → {item.valor_nuevo}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 3. Evidencias */}
       <Section title="Evidencias">
