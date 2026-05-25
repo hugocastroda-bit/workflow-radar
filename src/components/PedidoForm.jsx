@@ -52,6 +52,7 @@ const emptyForm = {
   prioridad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
   proxima_accion: "", motivo_bloqueo: "", comentarios_avance: "",
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
+  confidencial: false,
 };
 
 
@@ -212,7 +213,22 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 </div>
               )}
             </div>
-            {isAdmin && (
+            {!pedido && (
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                id="confidencial"
+                checked={!!form.confidencial}
+                onChange={e => handleChange("confidencial", e.target.checked)}
+                className="h-4 w-4 rounded border-border text-primary"
+              />
+              <label htmlFor="confidencial" className="text-xs text-muted-foreground cursor-pointer select-none">
+                Marcar como confidencial (solo visible para quien crea, responsable y admins)
+              </label>
+            </div>
+          )}
+
+          {isAdmin && (
               <SearchableSelect
                 label="Responsable"
                 value={form.responsable} onChange={v => handleChange("responsable", v)}
