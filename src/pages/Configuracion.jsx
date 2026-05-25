@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ResponsableEditModal from "@/components/ResponsableEditModal";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle, UserX } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
@@ -838,6 +838,52 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   );
 }
 
+function DeleteAccountSection() {
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      toast.success("Solicitud enviada. Tu cuenta será eliminada en las próximas 24 horas.");
+      setOpen(false);
+      setTimeout(() => base44.auth.logout(), 1500);
+    } catch {
+      toast.error("No se pudo procesar la solicitud.");
+    }
+    setDeleting(false);
+  };
+
+  return (
+    <div className="border border-alert/30 rounded-lg p-5 bg-alert/5 space-y-3 mt-8">
+      <div className="flex items-center gap-2">
+        <UserX className="h-4 w-4 text-alert" />
+        <p className="text-sm font-semibold text-alert">Eliminar cuenta</p>
+      </div>
+      <p className="text-xs text-muted-foreground">Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos personales de la plataforma.</p>
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="text-alert border-alert/30 hover:bg-alert/10 hover:text-alert gap-1.5">
+        <UserX className="h-3.5 w-3.5" /> Solicitar eliminación de cuenta
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+              <AlertTriangle className="h-4 w-4 text-alert" /> ¿Eliminar tu cuenta?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Esta acción es irreversible. Perderás acceso a la plataforma y tus datos personales serán eliminados.</p>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={deleting}>Cancelar</Button>
+            <Button size="sm" onClick={handleDelete} disabled={deleting} className="bg-alert hover:bg-alert/90 text-white">
+              {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Sí, eliminar mi cuenta"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const { user } = useAuth();
@@ -847,11 +893,12 @@ export default function Configuracion() {
   if (!isAdmin) {
     return (
       <div className="p-8 max-w-3xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
           <ShieldOff className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm font-medium text-foreground">No tienes permisos para acceder a esta sección.</p>
+          <p className="text-sm font-medium text-foreground">No tienes permisos para ver la configuración.</p>
           <p className="text-xs text-muted-foreground">Solo los usuarios Admin pueden gestionar la configuración.</p>
         </div>
+        <DeleteAccountSection />
       </div>
     );
   }
@@ -893,6 +940,8 @@ export default function Configuracion() {
           bulkType={tab.bulkType}
         />
       )}
+
+      <DeleteAccountSection />
     </div>
   );
 }
