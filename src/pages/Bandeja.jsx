@@ -17,6 +17,7 @@ import ConfidencialBadge from "../components/ConfidencialBadge";
 import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -226,7 +227,13 @@ export default function Bandeja() {
     </div>
   );
 
+  const handleRefresh = async () => {
+    const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
+    setPedidos(filtrarConfidenciales(d, user));
+  };
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -379,5 +386,6 @@ export default function Bandeja() {
         }}
       />
     </div>
+    </PullToRefresh>
   );
 }
