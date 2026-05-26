@@ -110,9 +110,22 @@ export default function Dashboard() {
   const avgClose = calcAvgClose(cerrados);
 
   // Charts data
-  const byResponsable = Object.entries(_.countBy(abiertos.filter(p => p.responsable), "responsable"))
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count).slice(0, 10);
+  // Extrae nombre limpio descartando el sufijo " — email" que agrega el formulario
+  const extractNombre = (str) => str?.split(" — ")[0]?.trim() || str || "";
+
+  // Deduplica por nombre base antes de renderizar (consolida micro-variaciones del mismo responsable)
+  const responsableCountMap = {};
+  abiertos.filter(p => p.responsable).forEach(p => {
+    const fullLabel = p.responsable;
+    const displayName = extractNombre(fullLabel);
+    if (!responsableCountMap[displayName]) {
+      responsableCountMap[displayName] = { displayName, fullLabel, count: 0 };
+    }
+    responsableCountMap[displayName].count++;
+  });
+  const byResponsable = Object.values(responsableCountMap)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 
   const sinAsignar = abiertos.filter(p => !p.responsable).length;
 
@@ -200,17 +213,54 @@ export default function Dashboard() {
         <Section title="Carga activa por responsable">
           {byResponsable.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={barH(byResponsable.length)}>
-                <BarChart data={byResponsable} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+              <ResponsiveContainer width="100%" height={byResponsable.length * 42 + 16}>
+                <BarChart
+                  data={byResponsable}
+                  layout="vertical"
+                  margin={{ left: 4, right: 24, top: 4, bottom: 4 }}
+                  barCategoryGap="35%"
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12, fill: "#475569" }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} />
-                  <Bar dataKey="count" name="Pedidos" fill="hsl(212 52% 28%)" radius={[0, 3, 3, 0]} barSize={18} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    dataKey="displayName"
+                    type="category"
+                    width={148}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={(props) => {
+                      const { x, y, payload } = props;
+                      const raw = payload.value || "";
+                      const label = raw.length > 22 ? raw.slice(0, 20) + "…" : raw;
+                      return (
+                        <text x={x} y={y} dy={4} textAnchor="end" fill="#475569" fontSize={12} fontFamily="var(--font-inter)">
+                          {label}
+                        </text>
+                      );
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={TT}
+                    cursor={{ fill: "#f8fafc" }}
+                    formatter={(value, _name, props) => [value, "Pedidos activos"]}
+                    labelFormatter={(label, payload) => {
+                      const item = payload?.[0]?.payload;
+                      return item?.fullLabel || item?.displayName || label;
+                    }}
+                  />
+                  <Bar dataKey="count" name="Pedidos" fill="hsl(217 91% 40%)" radius={[0, 4, 4, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
               {sinAsignar > 0 && (
-                <p className="text-xs text-muted-foreground mt-2">{sinAsignar} pedido{sinAsignar > 1 ? "s" : ""} sin asignar</p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  {sinAsignar} pedido{sinAsignar > 1 ? "s" : ""} sin asignar
+                </p>
               )}
             </>
           ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
