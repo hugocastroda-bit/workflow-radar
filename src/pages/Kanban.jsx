@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { eventBus } from "@/lib/eventBus";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -209,7 +210,13 @@ export default function Kanban() {
     </div>
   );
 
+  const handleRefresh = async () => {
+    const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
+    setPedidos(filtrarConfidenciales(d, user));
+  };
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="p-6 md:p-8 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -319,5 +326,6 @@ export default function Kanban() {
         </DialogContent>
       </Dialog>
     </div>
+    </PullToRefresh>
   );
 }

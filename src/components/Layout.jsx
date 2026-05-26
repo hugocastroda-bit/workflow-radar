@@ -4,6 +4,7 @@ import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bu
 import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
+import { useEffect, useRef } from "react";
 
 const NAV_ITEMS = [
   { path: "/",              label: "Bandeja",       icon: Inbox },
@@ -28,15 +29,30 @@ export default function Layout() {
   const isAdmin  = user?.role === "admin";
   const visible  = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
+  // Per-tab navigation memory: remember last visited path per tab section
+  const tabMemory = useRef({ bandeja: "/", kanban: "/kanban", dashboard: "/dashboard" });
+  const currentTab =
+    location.pathname.startsWith("/kanban") ? "kanban"
+    : location.pathname.startsWith("/dashboard") ? "dashboard"
+    : "bandeja";
+
+  useEffect(() => {
+    tabMemory.current[currentTab] = location.pathname;
+  }, [location.pathname, currentTab]);
+
   const isActive = (path) =>
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
 
   const go = (path) => {
+    const tab =
+      path.startsWith("/kanban") ? "kanban"
+      : path.startsWith("/dashboard") ? "dashboard"
+      : "bandeja";
     if (isActive(path)) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       navigate(path, { replace: true });
     } else {
-      navigate(path);
+      navigate(tabMemory.current[tab] || path);
     }
   };
 
@@ -94,11 +110,9 @@ export default function Layout() {
         }}
       >
         <div className="flex items-center justify-between px-4 pb-2">
-          <div className="flex items-center gap-2">
-            <div>
-              <p className="text-xs text-muted-foreground leading-none">Radar</p>
-              <p className="text-sm font-semibold text-foreground leading-tight">Gestión Humana</p>
-            </div>
+          <div>
+            <p className="text-xs text-muted-foreground leading-none">Radar</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">Gestión Humana</p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -140,7 +154,7 @@ export default function Layout() {
             <button
               key={item.path}
               onClick={() => go(item.path)}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1 gap-0.5 transition-colors active:scale-95 ${
+              className={`flex-1 flex flex-col items-center justify-center min-h-[44px] gap-0.5 transition-colors active:scale-95 ${
                 active ? "text-primary" : "text-muted-foreground"
               }`}
             >

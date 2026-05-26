@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import _ from "lodash";
 import { useAuth } from "@/lib/AuthContext";
 import { filtrarConfidenciales } from "@/lib/confidencial";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const DONUT_COLORS = {
   "Nuevo": "#93c5fd",
@@ -89,6 +90,17 @@ export default function Dashboard() {
       setResponsablesMap(map);
     }).finally(() => setLoading(false));
   }, [user]);
+
+  const handleRefresh = async () => {
+    const [pedidosData, responsablesData] = await Promise.all([
+      base44.entities.Pedido.filter({ archivado: false }).catch(() => []),
+      base44.entities.Responsable.list().catch(() => []),
+    ]);
+    setPedidos(filtrarConfidenciales(pedidosData, user));
+    const map = {};
+    responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo }; });
+    setResponsablesMap(map);
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -220,6 +232,7 @@ export default function Dashboard() {
   const cargaData = Object.values(cargaPorResponsable).sort((a, b) => (b.abiertos + b.cerradosHoy) - (a.abiertos + b.cerradosHoy));
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
@@ -476,5 +489,6 @@ export default function Dashboard() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }
