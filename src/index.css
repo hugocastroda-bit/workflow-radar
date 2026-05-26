@@ -45,6 +45,23 @@
   body {
     @apply bg-background text-foreground font-inter;
     background-attachment: fixed;
+    overscroll-behavior: none;        /* disable rubber-band / pull-to-refresh */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent accidental text selection on interactive nav/button elements */
+  button, a, nav {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Minimum readable font size on mobile for tables and form inputs */
+  @media (max-width: 767px) {
+    table, th, td,
+    input, select, textarea,
+    label, .text-xs {
+      font-size: max(14px, 0.875rem) !important;
+    }
   }
   :root {
     --safe-top:    env(safe-area-inset-top,    0px);
