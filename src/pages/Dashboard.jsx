@@ -24,6 +24,28 @@ const DONUT_COLORS = {
 
 const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShadow: "none" };
 
+const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
+
+// Normaliza tipos numéricos del payload analítico (los conteos pueden venir como string)
+function normalizarRanking(rankingData) {
+  return (rankingData || []).map(r => ({
+    ...r,
+    activos:    parseInt(r.activos, 10)    || 0,
+    cerrados:   parseInt(r.cerrados, 10)   || 0,
+    vencidos:   parseInt(r.vencidos, 10)   || 0,
+    bloqueados: parseInt(r.bloqueados, 10) || 0,
+  }));
+}
+
+function calcAvgClose(cerrados) {
+  const times = cerrados
+    .filter(p => p.fecha_cierre_real && p.created_date)
+    .map(p => (new Date(p.fecha_cierre_real) - new Date(p.created_date.split("T")[0])) / 86400000)
+    .filter(d => d >= 0);
+  if (!times.length) return null;
+  return parseFloat((times.reduce((a, b) => a + b, 0) / times.length).toFixed(1));
+}
+
 function StatCard({ label, value, color }) {
   return (
     <div className={`bg-card border rounded-lg px-5 py-4 ${color || "border-border"}`}>
@@ -52,14 +74,20 @@ function Section({ title, children }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [pedidos, setPedidos] = useState([]);
+  const [responsablesMap, setResponsablesMap] = useState({});
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false })
-      .then(d => setPedidos(filtrarConfidenciales(d, user)))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      base44.entities.Pedido.filter({ archivado: false }).catch(() => []),
+      base44.entities.Responsable.list().catch(() => []),
+    ]).then(([pedidosData, responsablesData]) => {
+      setPedidos(filtrarConfidenciales(pedidosData, user));
+      const map = {};
+      responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo }; });
+      setResponsablesMap(map);
+    }).finally(() => setLoading(false));
   }, [user]);
 
   if (loading) return (
@@ -78,14 +106,8 @@ export default function Dashboard() {
   const bloqueados = pedidos.filter(p => p.estado === "Bloqueado");
   const cerradosSemana = cerrados.filter(p => p.fecha_cierre_real >= weekStr);
 
-  // MÉTRICA 1: Tiempo promedio de cierre — solo cerrados con fecha_cierre_real definida
-  const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
-  const closeTimes = cerrados
-    .filter(p => p.fecha_cierre_real && p.created_date)
-    .map(p => Math.max(0, (new Date(p.fecha_cierre_real) - new Date(p.created_date.split("T")[0])) / 86400000));
-  const avgClose = closeTimes.length > 0
-    ? parseFloat((closeTimes.reduce((a, b) => a + b, 0) / closeTimes.length).toFixed(1))
-    : null;
+  // MÉTRICA 1: Tiempo promedio de cierre (safety: days >= 0, 1 decimal, fallback null)
+  const avgClose = calcAvgClose(cerrados);
 
   // Charts data
   const byResponsable = Object.entries(_.countBy(abiertos.filter(p => p.responsable), "responsable"))
@@ -98,8 +120,6 @@ export default function Dashboard() {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count).slice(0, 10);
 
-
-
   const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
   const byEstado = ESTADOS.map(name => ({
     name, value: pedidos.filter(p => p.estado === name).length, color: DONUT_COLORS[name]
@@ -111,20 +131,31 @@ export default function Dashboard() {
   }));
   const maxPr = Math.max(...byPrioridad.map(p => p.count), 1);
 
-  // MÉTRICA 2: Ranking de carga y composición por responsable (incluye "Sin Asignar")
-  const rankingMap = {};
+  // MÉTRICA 2: Ranking — "⚠️ Sin Asignar" + inactivos etiquetados + ORDER BY activos DESC, cerrados DESC
+  const rankingRawMap = {};
   pedidos.forEach(p => {
-    const key = p.responsable?.trim() || "Sin Asignar";
-    if (!rankingMap[key]) rankingMap[key] = { name: key, activos: 0, cerrados: 0, vencidos: 0, bloqueados: 0 };
+    const nombreBase = p.responsable?.trim() || null;
+    let key;
+    if (!nombreBase) {
+      key = "⚠️ Sin Asignar";
+    } else {
+      const esInactivo = responsablesMap[nombreBase]?.activo === false;
+      key = esInactivo ? `${nombreBase} (Inactivo)` : nombreBase;
+    }
+    if (!rankingRawMap[key]) {
+      rankingRawMap[key] = { name: key, activos: 0, cerrados: 0, vencidos: 0, bloqueados: 0, sinAsignar: !nombreBase };
+    }
     if (ESTADOS_ACTIVOS.includes(p.estado)) {
-      rankingMap[key].activos++;
-      if (p.fecha_requerida && p.fecha_requerida < today) rankingMap[key].vencidos++;
-      if (p.estado === "Bloqueado") rankingMap[key].bloqueados++;
+      rankingRawMap[key].activos++;
+      if (p.fecha_requerida && p.fecha_requerida < today) rankingRawMap[key].vencidos++;
+      if (p.estado === "Bloqueado") rankingRawMap[key].bloqueados++;
     } else if (p.estado === "Cerrado") {
-      rankingMap[key].cerrados++;
+      rankingRawMap[key].cerrados++;
     }
   });
-  const ranking = Object.values(rankingMap).sort((a, b) => b.activos - a.activos);
+  const ranking = normalizarRanking(
+    Object.values(rankingRawMap).sort((a, b) => b.activos - a.activos || b.cerrados - a.cerrados)
+  );
 
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
@@ -197,14 +228,14 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-1.5 flex-1">
-                 {byEstado.map((e, i) => (
-                   <div key={i} className="flex items-center gap-2 text-xs text-foreground">
-                     <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: e.color }} />
-                     <span className="flex-1 truncate">{e.name}</span>
-                     <span className="font-medium tabular-nums">{e.value}</span>
-                   </div>
-                 ))}
-               </div>
+                {byEstado.map((e, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-foreground">
+                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: e.color }} />
+                    <span className="flex-1 truncate">{e.name}</span>
+                    <span className="font-medium tabular-nums">{e.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
         </Section>
@@ -258,12 +289,14 @@ export default function Dashboard() {
               <tbody>
                 {ranking.map(r => (
                   <tr key={r.name} className={`border-b border-border last:border-0 ${
-                    r.name === "Sin Asignar" ? "bg-warning/5" : ""
+                    r.sinAsignar ? "bg-warning/5" : r.name.includes("(Inactivo)") ? "bg-muted/40" : ""
                   }`}>
                     <td className="py-2 text-foreground truncate max-w-[120px]">
-                      {r.name === "Sin Asignar"
-                        ? <span className="text-warning font-medium italic">{r.name}</span>
-                        : r.name
+                      {r.sinAsignar
+                        ? <span className="text-warning font-medium">{r.name}</span>
+                        : r.name.includes("(Inactivo)")
+                          ? <span className="text-muted-foreground">{r.name}</span>
+                          : r.name
                       }
                     </td>
                     <td className="py-2 text-right font-semibold tabular-nums">{r.activos}</td>
