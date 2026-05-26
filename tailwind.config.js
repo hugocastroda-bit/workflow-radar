@@ -95,6 +95,12 @@ module.exports = {
   				closed: '#34C759',
   				ovdue: '#FF3B30',
   				blocked: '#FF9500'
+  			},
+  			/* Fondos funcionales modo oscuro */
+  			dark: {
+  				'blocked-bg':  '#2C1E0F',
+  				'closed-bg':   '#0F2C1B',
+  				'new-bg':      '#0F2038',
   			}
   		},
   		keyframes: {

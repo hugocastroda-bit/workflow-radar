@@ -44,15 +44,59 @@
   }
   body {
     @apply bg-background text-foreground font-inter;
-    /* El fondo se extiende detrás de las safe areas del dispositivo */
     background-attachment: fixed;
   }
-  /* Safe area: variables disponibles como utilidades en el layout */
   :root {
     --safe-top:    env(safe-area-inset-top,    0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left:   env(safe-area-inset-left,   0px);
     --safe-right:  env(safe-area-inset-right,  0px);
+  }
+
+  /* ── Dark Mode ─────────────────────────────────────────── */
+  .dark {
+    /* Fondos */
+    --background:         0 0% 11%;          /* #1C1C1E */
+    --foreground:         0 0% 100%;         /* #FFFFFF */
+
+    /* Cards, modales, tablas */
+    --card:               0 0% 17.3%;        /* #2C2C2E */
+    --card-foreground:    0 0% 100%;
+    --popover:            0 0% 17.3%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Primario (azul iOS — sin cambios) */
+    --primary:            217 100% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secundario / muted */
+    --secondary:          0 0% 20%;          /* #333335 */
+    --secondary-foreground: 0 0% 55.7%;     /* #8E8E93 */
+    --muted:              0 0% 20%;
+    --muted-foreground:   0 0% 55.7%;        /* #8E8E93 */
+
+    /* Accent (tono azul oscuro) */
+    --accent:             217 60% 12%;       /* #0F2038 */
+    --accent-foreground:  217 100% 40%;
+
+    /* Destructivo */
+    --destructive:        0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Bordes e inputs */
+    --border:             0 0% 22%;          /* #38383A */
+    --input:              0 0% 22%;
+    --ring:               217 100% 40%;
+
+    /* Sidebar */
+    --sidebar-background:         0 0% 17.3%;
+    --sidebar-foreground:         0 0% 100%;
+    --sidebar-primary:            217 100% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:             217 60% 12%;
+    --sidebar-accent-foreground:  217 100% 40%;
+    --sidebar-border:             0 0% 22%;
+    --sidebar-ring:               217 100% 40%;
   }
 }
 
