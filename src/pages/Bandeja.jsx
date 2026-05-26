@@ -18,16 +18,23 @@ import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
 
-const ESTADOS    = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
-// PROCESOS derivados dinámicamente de los pedidos cargados (no lista estática)
+const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+
+// Estado persistido a nivel de módulo: sobrevive desmontaje al cambiar de pestaña.
+// Al regresar a Bandeja, los filtros y búsqueda se rehidratan sin parpadeos.
+const _persisted = {
+  search: "",
+  filters: { estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" },
+};
 
 export default function Bandeja() {
   const navigate = useNavigate();
   const [pedidos, setPedidos]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [search, setSearch]     = useState("");
-  const [filters, setFilters]   = useState({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
+  // Inicializar desde el estado persistido del módulo (sobrevive cambio de ruta)
+  const [search, setSearch]     = useState(_persisted.search);
+  const [filters, setFilters]   = useState(_persisted.filters);
 
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -108,9 +115,22 @@ export default function Bandeja() {
     return true;
   });
 
+  // Sincronizar cambios de filtros/búsqueda al estado persistido del módulo
+  const handleSetSearch = (val) => { _persisted.search = val; setSearch(val); };
+  const handleSetFilters = (updater) => {
+    setFilters(prev => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      _persisted.filters = next;
+      return next;
+    });
+  };
+
   const hasFilters = Object.values(filters).some(Boolean) || search || isVencidoFilter;
   const clearFilters = () => {
-    setFilters({ estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" });
+    const empty = { estado: "", prioridad: "", proceso: "", responsable: "", solicitante: "" };
+    _persisted.filters = empty;
+    _persisted.search = "";
+    setFilters(empty);
     setSearch("");
     window.history.replaceState({}, "", "/bandeja");
   };
@@ -227,31 +247,31 @@ export default function Bandeja() {
       <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar título..." className="pl-8 h-8 text-xs w-44" />
+          <Input value={search} onChange={e => handleSetSearch(e.target.value)} placeholder="Buscar título..." className="pl-8 h-8 text-xs w-44" />
         </div>
         <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
-        <Select value={filters.responsable} onValueChange={v => setFilters(f => ({ ...f, responsable: v }))}>
+        <Select value={filters.responsable} onValueChange={v => handleSetFilters(f => ({ ...f, responsable: v }))}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
             {[...new Set(pedidos.map(p => p.responsable).filter(Boolean))].sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.solicitante} onValueChange={v => setFilters(f => ({ ...f, solicitante: v }))}>
+        <Select value={filters.solicitante} onValueChange={v => handleSetFilters(f => ({ ...f, solicitante: v }))}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
             {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.proceso} onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
+        <Select value={filters.proceso} onValueChange={v => handleSetFilters(f => ({ ...f, proceso: v }))}>
           <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>{[...new Set(pedidos.map(p => p.proceso).filter(Boolean))].sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
-        <Select value={filters.estado} onValueChange={v => setFilters(f => ({ ...f, estado: v }))}>
+        <Select value={filters.estado} onValueChange={v => handleSetFilters(f => ({ ...f, estado: v }))}>
           <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
         </Select>
-        <Select value={filters.prioridad} onValueChange={v => setFilters(f => ({ ...f, prioridad: v }))}>
+        <Select value={filters.prioridad} onValueChange={v => handleSetFilters(f => ({ ...f, prioridad: v }))}>
           <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>{[...new Set(pedidos.map(p => p.prioridad).filter(Boolean))].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>

@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, LayoutGrid, Bug } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -15,6 +15,7 @@ const navItems = [
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const visibleNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
@@ -28,18 +29,27 @@ export default function Layout() {
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           {visibleNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path ||
+              (item.path === "/" && location.pathname === "/bandeja");
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                onClick={() => {
+                  if (isActive) {
+                    // Pop to top: vuelve al inicio del stack de esta pestaña
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    navigate(item.path, { replace: true });
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -77,17 +87,25 @@ export default function Layout() {
         </div>
         <nav className="flex px-3 pb-2 gap-1 overflow-x-auto">
           {visibleNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path ||
+              (item.path === "/" && location.pathname === "/bandeja");
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                onClick={() => {
+                  if (isActive) {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    navigate(item.path, { replace: true });
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>
