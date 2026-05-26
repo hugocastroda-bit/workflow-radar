@@ -145,9 +145,12 @@ export default function Dashboard() {
   const maxPr = Math.max(...byPrioridad.map(p => p.count), 1);
 
   // MÉTRICA 2: Ranking — "⚠️ Sin Asignar" + inactivos etiquetados + ORDER BY activos DESC, cerrados DESC
+  // CLAVE: usamos extractNombre para normalizar "Nombre — email" → "Nombre" antes de agrupar,
+  // evitando duplicados por variaciones del campo responsable.
   const rankingRawMap = {};
   pedidos.forEach(p => {
-    const nombreBase = p.responsable?.trim() || null;
+    const rawResponsable = p.responsable?.trim() || null;
+    const nombreBase = rawResponsable ? extractNombre(rawResponsable) : null;
     let key;
     if (!nombreBase) {
       key = "⚠️ Sin Asignar";
@@ -166,9 +169,23 @@ export default function Dashboard() {
       rankingRawMap[key].cerrados++;
     }
   });
-  const ranking = normalizarRanking(
-    Object.values(rankingRawMap).sort((a, b) => b.activos - a.activos || b.cerrados - a.cerrados)
-  );
+
+  // Reduce defensivo: consolida cualquier entrada con nombre duplicado antes de renderizar
+  const rankingConsolidado = Object.values(
+    normalizarRanking(Object.values(rankingRawMap)).reduce((acc, r) => {
+      if (acc[r.name]) {
+        acc[r.name].activos    += r.activos;
+        acc[r.name].cerrados   += r.cerrados;
+        acc[r.name].vencidos   += r.vencidos;
+        acc[r.name].bloqueados += r.bloqueados;
+      } else {
+        acc[r.name] = { ...r };
+      }
+      return acc;
+    }, {})
+  ).sort((a, b) => b.activos - a.activos || b.cerrados - a.cerrados);
+
+  const ranking = rankingConsolidado;
 
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
@@ -329,7 +346,7 @@ export default function Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-1.5 text-xs font-medium text-muted-foreground">Responsable</th>
+                  <th className="text-left py-1.5 text-xs font-medium text-muted-foreground" style={{ minWidth: 180 }}>Responsable</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Activos</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Cerrados</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Vencidos</th>
@@ -341,7 +358,7 @@ export default function Dashboard() {
                   <tr key={r.name} className={`border-b border-border last:border-0 ${
                     r.sinAsignar ? "bg-warning/5" : r.name.includes("(Inactivo)") ? "bg-muted/40" : ""
                   }`}>
-                    <td className="py-2 text-foreground truncate max-w-[120px]">
+                    <td className="py-2 text-foreground" style={{ minWidth: 180, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.sinAsignar
                         ? <span className="text-warning font-medium">{r.name}</span>
                         : r.name.includes("(Inactivo)")
