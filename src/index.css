@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
 @layer base {
   :root {
     --font-inter: 'Inter', sans-serif;
@@ -45,17 +50,10 @@
   body {
     @apply bg-background text-foreground font-inter;
     background-attachment: fixed;
-    overscroll-behavior: none;        /* disable rubber-band / pull-to-refresh */
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Prevent accidental text selection on interactive nav/button elements */
-  button, a, nav {
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  /* Minimum readable font size on mobile for tables and form inputs */
+  /* Minimum readable font size on mobile — prevents iOS auto-zoom on focus */
   @media (max-width: 767px) {
     table, th, td,
     input, select, textarea,
@@ -114,6 +112,15 @@
     --sidebar-accent-foreground:  217 100% 40%;
     --sidebar-border:             0 0% 22%;
     --sidebar-ring:               217 100% 40%;
+  }
+}
+
+@layer utilities {
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 }
 
