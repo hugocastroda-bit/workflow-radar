@@ -78,10 +78,14 @@ export default function Dashboard() {
   const bloqueados = pedidos.filter(p => p.estado === "Bloqueado");
   const cerradosSemana = cerrados.filter(p => p.fecha_cierre_real >= weekStr);
 
+  // MÉTRICA 1: Tiempo promedio de cierre — solo cerrados con fecha_cierre_real definida
+  const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
   const closeTimes = cerrados
     .filter(p => p.fecha_cierre_real && p.created_date)
-    .map(p => Math.max(0, Math.ceil((new Date(p.fecha_cierre_real) - new Date(p.created_date)) / 86400000)));
-  const avgClose = closeTimes.length ? Math.round(_.mean(closeTimes)) : null;
+    .map(p => Math.max(0, (new Date(p.fecha_cierre_real) - new Date(p.created_date.split("T")[0])) / 86400000));
+  const avgClose = closeTimes.length > 0
+    ? parseFloat((closeTimes.reduce((a, b) => a + b, 0) / closeTimes.length).toFixed(1))
+    : null;
 
   // Charts data
   const byResponsable = Object.entries(_.countBy(abiertos.filter(p => p.responsable), "responsable"))
@@ -107,17 +111,20 @@ export default function Dashboard() {
   }));
   const maxPr = Math.max(...byPrioridad.map(p => p.count), 1);
 
-  // Ranking responsable
-  const ranking = Object.entries(_.groupBy(pedidos, "responsable"))
-    .filter(([k]) => k && k !== "undefined")
-    .map(([name, items]) => ({
-      name,
-      total: items.length,
-      activos: items.filter(p => p.estado !== "Cerrado").length,
-      vencidos: items.filter(p => p.fecha_requerida < today && p.estado !== "Cerrado").length,
-      bloqueados: items.filter(p => p.estado === "Bloqueado").length,
-    }))
-    .sort((a, b) => b.activos - a.activos);
+  // MÉTRICA 2: Ranking de carga y composición por responsable (incluye "Sin Asignar")
+  const rankingMap = {};
+  pedidos.forEach(p => {
+    const key = p.responsable?.trim() || "Sin Asignar";
+    if (!rankingMap[key]) rankingMap[key] = { name: key, activos: 0, cerrados: 0, vencidos: 0, bloqueados: 0 };
+    if (ESTADOS_ACTIVOS.includes(p.estado)) {
+      rankingMap[key].activos++;
+      if (p.fecha_requerida && p.fecha_requerida < today) rankingMap[key].vencidos++;
+      if (p.estado === "Bloqueado") rankingMap[key].bloqueados++;
+    } else if (p.estado === "Cerrado") {
+      rankingMap[key].cerrados++;
+    }
+  });
+  const ranking = Object.values(rankingMap).sort((a, b) => b.activos - a.activos);
 
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
@@ -154,7 +161,7 @@ export default function Dashboard() {
         <StatCard label="Bloqueados" value={bloqueados.length} color="border-warning/30" />
         <StatCard label="Cerrados" value={cerrados.length} color="border-success/30" />
         <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-success/30" />
-        <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} />
+        <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} color="border-primary/20" />
       </div>
 
       {/* Charts row 1 */}
@@ -243,18 +250,27 @@ export default function Dashboard() {
                 <tr className="border-b border-border">
                   <th className="text-left py-1.5 text-xs font-medium text-muted-foreground">Responsable</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Activos</th>
+                  <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Cerrados</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Vencidos</th>
                   <th className="text-right py-1.5 text-xs font-medium text-muted-foreground">Bloqueados</th>
                 </tr>
               </thead>
               <tbody>
                 {ranking.map(r => (
-                  <tr key={r.name} className="border-b border-border last:border-0">
-                      <td className="py-2 text-foreground truncate max-w-[140px]">{r.name}</td>
-                      <td className="py-2 text-right font-medium tabular-nums">{r.activos}</td>
-                      <td className={`py-2 text-right tabular-nums ${r.vencidos > 0 ? "text-alert font-medium" : "text-muted-foreground"}`}>{r.vencidos}</td>
-                      <td className={`py-2 text-right tabular-nums ${r.bloqueados > 0 ? "text-warning font-medium" : "text-muted-foreground"}`}>{r.bloqueados}</td>
-                    </tr>
+                  <tr key={r.name} className={`border-b border-border last:border-0 ${
+                    r.name === "Sin Asignar" ? "bg-warning/5" : ""
+                  }`}>
+                    <td className="py-2 text-foreground truncate max-w-[120px]">
+                      {r.name === "Sin Asignar"
+                        ? <span className="text-warning font-medium italic">{r.name}</span>
+                        : r.name
+                      }
+                    </td>
+                    <td className="py-2 text-right font-semibold tabular-nums">{r.activos}</td>
+                    <td className="py-2 text-right tabular-nums text-success font-medium">{r.cerrados}</td>
+                    <td className={`py-2 text-right tabular-nums ${r.vencidos > 0 ? "text-alert font-medium" : "text-muted-foreground"}`}>{r.vencidos}</td>
+                    <td className={`py-2 text-right tabular-nums ${r.bloqueados > 0 ? "text-warning font-medium" : "text-muted-foreground"}`}>{r.bloqueados}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
