@@ -72,7 +72,9 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-card border-b border-border">
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-card border-b border-border"
+        style={{ paddingTop: "max(0px, env(safe-area-inset-top))", paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}
+      >
         <div className="flex items-center justify-between px-4 h-12">
           <div>
             <p className="text-xs text-muted-foreground">Radar</p>
@@ -85,7 +87,9 @@ export default function Layout() {
             <Plus className="h-3 w-3" /> Nuevo
           </Link>
         </div>
-        <nav className="flex px-3 pb-2 gap-1 overflow-x-auto">
+        <nav className="flex px-3 gap-1 overflow-x-auto"
+          style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))", paddingLeft: "max(12px, env(safe-area-inset-left))", paddingRight: "max(12px, env(safe-area-inset-right))" }}
+        >
           {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path ||
               (item.path === "/" && location.pathname === "/bandeja");
@@ -111,7 +115,12 @@ export default function Layout() {
         </nav>
       </div>
 
-      <main className="flex-1 md:ml-52 mt-24 md:mt-0 min-h-screen">
+      <main className="flex-1 md:ml-52 md:mt-0 min-h-screen"
+        style={{
+          marginTop: "calc(96px + max(0px, env(safe-area-inset-top)))",
+          paddingBottom: "max(0px, env(safe-area-inset-bottom))",
+        }}
+      >
         <Outlet />
       </main>
     </div>
