@@ -110,8 +110,17 @@ export default function Dashboard() {
   const avgClose = calcAvgClose(cerrados);
 
   // Charts data
-  // Extrae nombre limpio descartando el sufijo " — email" que agrega el formulario
-  const extractNombre = (str) => str?.split(" — ")[0]?.trim() || str || "";
+  // Normaliza el nombre del responsable: extrae solo el nombre base descartando
+  // cualquier sufijo " — email", "@dominio" o variaciones con espacios inconsistentes.
+  // Esto es equivalente al TRIM(UPPER(SPLIT_PART(..., '—', 1))) de PostgreSQL.
+  const extractNombre = (str) => {
+    if (!str) return "";
+    // Cortar en " — " o en " - " seguido de @ (email inline) o simplemente en "@"
+    let clean = str.split(/\s*—\s*/)[0]  // quita "Nombre — email"
+                   .split(/@/)[0]             // quita si hubiera "nombre@dominio"
+                   .trim();
+    return clean;
+  };
 
   // Deduplica por nombre base antes de renderizar (consolida micro-variaciones del mismo responsable)
   const responsableCountMap = {};
@@ -190,13 +199,15 @@ export default function Dashboard() {
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
   // Carga de trabajo: cerrados esta semana vs abiertos por responsable
+  // NORMALIZACIÓN: usamos extractNombre para que "Nombre — email" y "Nombre" se consoliden
+  // en la misma fila, igual que en el ranking y el gráfico de barras.
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekStartStr = weekStart.toISOString().split("T")[0];
 
   const cargaPorResponsable = {};
   pedidos.forEach(p => {
-    const resp = p.responsable || "Sin asignar";
+    const resp = p.responsable ? extractNombre(p.responsable) : "⚠️ Sin asignar";
     if (!cargaPorResponsable[resp]) {
       cargaPorResponsable[resp] = { responsable: resp, cerradosHoy: 0, abiertos: 0 };
     }
