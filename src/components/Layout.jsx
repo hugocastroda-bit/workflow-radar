@@ -36,10 +36,12 @@ export default function Layout() {
     : location.pathname.startsWith("/dashboard") ? "dashboard"
     : "bandeja";
 
-  const MAIN_TAB_PATHS = ["/", "/bandeja", "/kanban", "/dashboard"];
-  const isMainTabPath = MAIN_TAB_PATHS.some(p =>
-    location.pathname === p || location.pathname.startsWith("/kanban") || location.pathname.startsWith("/dashboard")
-  );
+  const isMainTabPath =
+    location.pathname === "/" ||
+    location.pathname === "/bandeja" ||
+    location.pathname.startsWith("/kanban") ||
+    location.pathname.startsWith("/dashboard");
+
   useEffect(() => {
     if (isMainTabPath) {
       tabMemory.current[currentTab] = location.pathname;
@@ -50,7 +52,11 @@ export default function Layout() {
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
 
   const go = (path) => {
-    const isMainTab = path === "/" || path === "/bandeja" || path.startsWith("/kanban") || path.startsWith("/dashboard");
+    const isMainTab =
+      path === "/" ||
+      path === "/bandeja" ||
+      path.startsWith("/kanban") ||
+      path.startsWith("/dashboard");
     if (!isMainTab) {
       navigate(path);
       return;
