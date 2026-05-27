@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, Search, ChevronUp } from "lucide-react";
-import SearchableSelect from "@/components/SearchableSelect";
+import MobileSelect from "@/components/MobileSelect";
 import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
 import { eventBus } from "@/lib/eventBus";
@@ -151,7 +151,11 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const canSave = form.titulo && form.solicitante && form.proceso && form.prioridad;
 
   const solicitanteOpts = (catalogs.solicitantes || []).map(s => s.nombre);
-  const responsableOpts = (catalogs.responsables || []).map(r => r.nombre);
+  const responsableOpts = (catalogs.responsables || []).map(r => ({
+    value: r.nombre,
+    label: r.nombre,
+    sublabel: r.email || "",
+  }));
   const procesoOpts = (catalogs.procesos || []).map(p => p.nombre);
   const prioridadOpts = (catalogs.prioridades || []).map(p => p.nombre);
 
@@ -177,12 +181,12 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               />
             </div>
             <div className="grid gap-3 grid-cols-2">
-              <SearchableSelect
+              <MobileSelect
                 label="Solicitante" required
                 value={form.solicitante} onChange={v => handleChange("solicitante", v)}
                 options={solicitanteOpts} placeholder="Seleccionar"
               />
-              <SearchableSelect
+              <MobileSelect
                 label="Proceso" required
                 value={form.proceso} onChange={v => handleChange("proceso", v)}
                 options={procesoOpts} placeholder="Seleccionar"
@@ -198,7 +202,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               />
             </div>
             <div className="grid gap-3 grid-cols-2">
-              <SearchableSelect
+              <MobileSelect
                 label="Prioridad" required
                 value={form.prioridad} onChange={v => handleChange("prioridad", v)}
                 options={prioridadOpts} placeholder="Seleccionar"
@@ -206,7 +210,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               {pedido && (
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
-                  <SearchableSelect
+                  <MobileSelect
                     label="" value={form.estado} onChange={v => handleChange("estado", v)}
                     options={ESTADOS} placeholder="Estado"
                   />
@@ -229,7 +233,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
           )}
 
           {isAdmin && (
-              <SearchableSelect
+              <MobileSelect
                 label="Responsable"
                 value={form.responsable} onChange={v => handleChange("responsable", v)}
                 options={responsableOpts} placeholder="Sin asignar"
