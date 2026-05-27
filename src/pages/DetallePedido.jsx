@@ -112,6 +112,26 @@ export default function DetallePedido() {
     }
   };
 
+  // Registra un cambio puntual en el historial de auditoría
+  const logCambio = async (campo, valorAnterior, valorNuevo, tipoCambio) => {
+    if (String(valorAnterior ?? "") === String(valorNuevo ?? "")) return;
+    await base44.entities.HistorialPedido.create({
+      pedido_id: id,
+      campo,
+      valor_anterior: String(valorAnterior ?? ""),
+      valor_nuevo: String(valorNuevo ?? ""),
+      usuario: user?.full_name || user?.email || "Usuario",
+      rol_usuario: user?.role || "user",
+      fecha_cambio: new Date().toISOString(),
+      tipo_cambio: tipoCambio,
+    }).catch(() => {}); // No bloquear la UI si falla el log
+  };
+
+  const logCambiosSeccion = async (campos, tipoCambio, prevData) => {
+    const base = prevData || pedido;
+    await Promise.all(campos.map(campo => logCambio(campo, base[campo], draft[campo], tipoCambio)));
+  };
+
   const handleConfidencial = async (motivo) => {
     if (!isAdmin) return;
     setSavingConf(true);
@@ -125,6 +145,8 @@ export default function DetallePedido() {
           motivo_confidencial: motivo || null,
         } : { marcado_confidencial_por: null, fecha_marcado_confidencial: null, motivo_confidencial: null }),
       });
+      await logCambio("confidencial", String(!marcar), String(marcar), "confidencial");
+      await loadHistorial();
       toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
       await load();
       setShowConfidencial(false);
@@ -154,24 +176,23 @@ export default function DetallePedido() {
     setSaving(true);
     console.log("[saveEdit] Sección:", editSection, "| Rol:", user?.role, "| ID:", id);
 
+    // Capturar estado actual antes de guardar para comparar
+    const prevPedido = { ...pedido };
+
     try {
       let data;
 
       if (editSection === "seguimiento") {
-        // Update parcial: solo campos de seguimiento
         data = {
           comentarios_avance: draft.comentarios_avance ?? "",
           proxima_accion: draft.proxima_accion ?? "",
         };
-        // Admin también puede editar motivo de bloqueo
         if (isAdmin) {
           data.motivo_bloqueo = draft.motivo_bloqueo ?? "";
         }
         console.log("[saveEdit] Payload seguimiento:", JSON.stringify(data));
       } else {
-        // Admin: update completo
         if (!isAdmin) { toast.error("No tienes permisos para editar esta sección."); setSaving(false); return; }
-        // Validar campos obligatorios
         if (!draft.titulo?.trim()) { toast.error("El título es obligatorio."); setSaving(false); return; }
         if (!draft.solicitante?.trim()) { toast.error("El solicitante es obligatorio."); setSaving(false); return; }
         if (!draft.proceso?.trim()) { toast.error("El proceso es obligatorio."); setSaving(false); return; }
@@ -186,11 +207,23 @@ export default function DetallePedido() {
 
       await base44.entities.Pedido.update(id, data);
       console.log("[saveEdit] Update exitoso");
+
+      // Registrar auditoría por sección
+      if (editSection === "seguimiento") {
+        await logCambiosSeccion(["comentarios_avance", "proxima_accion", "motivo_bloqueo"], "seguimiento", prevPedido);
+      } else if (editSection === "general") {
+        await logCambiosSeccion(["titulo", "descripcion", "solicitante", "responsable", "proceso", "prioridad", "fecha_requerida", "estado"], "informacion_general", prevPedido);
+      } else if (editSection === "evidencias") {
+        await logCambiosSeccion(["link_evidencia"], "evidencias", prevPedido);
+      } else if (editSection === "cierre") {
+        await logCambiosSeccion(["resultado_final", "comentario_cierre", "fecha_cierre_real"], "cierre", prevPedido);
+      }
+      await loadHistorial();
+
       toast.success("Cambios guardados correctamente.");
       await load();
       setEditSection(null);
       setDraft({});
-      // Emitir evento para que otras vistas se actualicen
       eventBus.emit('pedidoActualizado', pedido);
     } catch (err) {
       console.error("[saveEdit] Error:", err.message, err.response?.data);
@@ -216,6 +249,9 @@ export default function DetallePedido() {
         archivado_por: user?.full_name || user?.email || "Admin",
         ...(motivo ? { motivo_archivo: motivo } : {}),
       });
+      await logCambio("archivado", "false", "true", "archivo");
+      await logCambio("archivado_por", "", user?.full_name || user?.email || "Admin", "archivo");
+      await loadHistorial();
       toast.success("Pedido archivado");
       eventBus.emit('pedidoArchivado', id);
       navigate("/archivados");
@@ -232,6 +268,8 @@ export default function DetallePedido() {
     try {
       const pedidoData = await base44.entities.Pedido.get(id);
       await base44.entities.Pedido.update(id, { archivado: false, fecha_archivado: null, archivado_por: null });
+      await logCambio("archivado", "true", "false", "archivo");
+      await loadHistorial();
       toast.success("Pedido restaurado correctamente");
       await load();
       setShowRestore(false);
@@ -259,7 +297,6 @@ export default function DetallePedido() {
   if (loading) return <div className="flex items-center justify-center h-96"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!pedido) return <div className="p-8 text-sm text-muted-foreground">Pedido no encontrado</div>;
 
-  // Access control for confidential pedidos
   if (!canVerConfidencial(pedido, user)) {
     return (
       <div className="p-8 max-w-xl mx-auto flex flex-col items-center justify-center h-64 gap-3 text-center">
@@ -277,7 +314,6 @@ export default function DetallePedido() {
   const isBlocked = pedido.estado === "Bloqueado";
   const isClosed = pedido.estado === "Cerrado";
 
-  // EditBar para Admin (todas las secciones)
   const EditBar = ({ section }) => {
     if (!isAdmin) return null;
     if (editSection === section) return (
@@ -297,7 +333,6 @@ export default function DetallePedido() {
     );
   };
 
-  // EditBar para sección Seguimiento (Admin + User)
   const EditBarSeguimiento = () => {
     if (editSection === "seguimiento") return (
       <div className="flex gap-2">
@@ -527,53 +562,49 @@ export default function DetallePedido() {
         </div>
       </Section>
 
-      {/* Historial de cambios */}
-      {(historial.length > 0 || loadingHistorial) && (
-        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <History className="h-3.5 w-3.5 text-muted-foreground" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Historial de cambios</p>
-          </div>
-          {loadingHistorial ? (
-            <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
-          ) : (
-            <div className="space-y-0">
-              {historial.map((item, i) => {
-                const fecha = item.fecha_cambio
-                  ? new Date(item.fecha_cambio).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                  : '—';
-                return (
-                  <div key={item.id} className={`flex gap-3 py-3 ${i < historial.length - 1 ? 'border-b border-border' : ''}`}>
-                    <div className="mt-0.5 h-6 w-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                      <User className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-xs font-medium text-foreground truncate">{item.usuario}</p>
-                        <p className="text-xs text-muted-foreground shrink-0">{fecha}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        <span className="font-medium text-foreground/80">{item.campo}</span>
-                        {item.valor_anterior && item.valor_anterior !== item.valor_nuevo && (
-                          <> · <span className="line-through opacity-50">{item.valor_anterior}</span> → </>
-                        )}
-                        {item.valor_anterior && item.valor_anterior !== item.valor_nuevo && (
-                          <span>{item.valor_nuevo}</span>
-                        )}
-                        {(!item.valor_anterior || item.valor_anterior === item.valor_nuevo) && (
-                          <> → {item.valor_nuevo}</>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      {/* 3. Auditoría de cambios — siempre visible */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4 dark:bg-[#121420] dark:border-[#22263F]">
+        <div className="flex items-center gap-2">
+          <History className="h-3.5 w-3.5 text-muted-foreground" />
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Auditoría de cambios</p>
         </div>
-      )}
+        {loadingHistorial ? (
+          <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : historial.length === 0 ? (
+          <p className="text-xs text-muted-foreground/60 py-2">Sin cambios registrados aún.</p>
+        ) : (
+          <div className="space-y-0">
+            {historial.map((item, i) => {
+              const fecha = item.fecha_cambio
+                ? new Date(item.fecha_cambio).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '—';
+              return (
+                <div key={item.id} className={`flex gap-3 py-3 ${i < historial.length - 1 ? 'border-b border-border' : ''}`}>
+                  <div className="mt-0.5 h-6 w-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-xs font-medium text-foreground truncate">{item.usuario}</p>
+                      <p className="text-xs text-muted-foreground shrink-0">{fecha}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      <span className="font-medium text-foreground/80">{item.campo}</span>
+                      {item.valor_anterior && item.valor_anterior !== item.valor_nuevo ? (
+                        <> · <span className="line-through opacity-50">{item.valor_anterior}</span> → <span>{item.valor_nuevo}</span></>
+                      ) : (
+                        <> → {item.valor_nuevo}</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-      {/* 3. Evidencias */}
+      {/* 4. Evidencias */}
       <Section title="Evidencias">
         <div className="flex items-center justify-between">
           <div /> <EditBar section="evidencias" />
@@ -604,7 +635,7 @@ export default function DetallePedido() {
         )}
       </Section>
 
-      {/* 4. Cierre (solo si aplica) */}
+      {/* 5. Cierre (solo si aplica) */}
       {(isClosed || editSection === "cierre") && (
         <Section title="Cierre" accent="border-emerald-200">
           <div className="flex items-center justify-between">
@@ -636,7 +667,7 @@ export default function DetallePedido() {
         </Section>
       )}
 
-      {/* Editar cierre si no está cerrado */}
+      {/* Registrar cierre manualmente si no está cerrado */}
       {!isClosed && editSection !== "cierre" && (
         <div className="text-center pt-1">
           <button onClick={() => startEdit("cierre")} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
@@ -652,7 +683,6 @@ export default function DetallePedido() {
         archiving={archiving}
       />
 
-      {/* Restore confirmation */}
       <Dialog open={showRestore} onOpenChange={setShowRestore}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
