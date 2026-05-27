@@ -36,9 +36,15 @@ export default function Layout() {
     : location.pathname.startsWith("/dashboard") ? "dashboard"
     : "bandeja";
 
+  const MAIN_TAB_PATHS = ["/", "/bandeja", "/kanban", "/dashboard"];
+  const isMainTabPath = MAIN_TAB_PATHS.some(p =>
+    location.pathname === p || location.pathname.startsWith("/kanban") || location.pathname.startsWith("/dashboard")
+  );
   useEffect(() => {
-    tabMemory.current[currentTab] = location.pathname;
-  }, [location.pathname, currentTab]);
+    if (isMainTabPath) {
+      tabMemory.current[currentTab] = location.pathname;
+    }
+  }, [location.pathname, currentTab, isMainTabPath]);
 
   const isActive = (path) =>
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
