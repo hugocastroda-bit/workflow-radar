@@ -192,7 +192,7 @@ export default function DetallePedido() {
         }
         console.log("[saveEdit] Payload seguimiento:", JSON.stringify(data));
       } else {
-        if (!isAdmin) { toast.error("No tienes permisos para editar esta sección."); setSaving(false); return; }
+        // Validar campos obligatorios
         if (!draft.titulo?.trim()) { toast.error("El título es obligatorio."); setSaving(false); return; }
         if (!draft.solicitante?.trim()) { toast.error("El solicitante es obligatorio."); setSaving(false); return; }
         if (!draft.proceso?.trim()) { toast.error("El proceso es obligatorio."); setSaving(false); return; }
@@ -315,7 +315,6 @@ export default function DetallePedido() {
   const isClosed = pedido.estado === "Cerrado";
 
   const EditBar = ({ section }) => {
-    if (!isAdmin) return null;
     if (editSection === section) return (
       <div className="flex gap-2">
         <Button size="sm" onClick={saveEdit} disabled={saving} className="gap-1.5 h-7 text-xs">
@@ -325,6 +324,11 @@ export default function DetallePedido() {
           <X className="h-3 w-3" /> Cancelar
         </Button>
       </div>
+    );
+    return (
+      <Button size="sm" variant="ghost" onClick={() => startEdit(section)} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
+        <Pencil className="h-3 w-3" /> Editar
+      </Button>
     );
     return (
       <Button size="sm" variant="ghost" onClick={() => startEdit(section)} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
