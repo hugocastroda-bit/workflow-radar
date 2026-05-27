@@ -12,6 +12,12 @@ export default function KanbanCard({ pedido, provided, onDelete, onArchive, onCo
   const isOverdue = pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
   const isBlocked = pedido.estado === "Bloqueado";
 
+  const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
+  const diasEstancado = Math.floor(
+    (Date.now() - new Date(pedido.updated_date || pedido.created_date)) / 86400000
+  );
+  const isAging = ESTADOS_CONGELADOS.includes(pedido.estado) && diasEstancado >= 7;
+
   return (
     <div
       ref={provided.innerRef}
@@ -36,6 +42,13 @@ export default function KanbanCard({ pedido, provided, onDelete, onArchive, onCo
       </div>
       {pedido.responsable && (
         <p className="text-xs text-muted-foreground mt-1.5 truncate">{pedido.responsable}</p>
+      )}
+      {isAging && (
+        <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
+          bg-warning/10 text-warning border-warning/30
+          dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200] animate-pulse">
+          ⚠️ Hace {diasEstancado} días sin gestión
+        </span>
       )}
       {isAdmin && (onDelete || onArchive || onConfidencial) && (
         <div className="flex justify-end mt-1.5 gap-1">

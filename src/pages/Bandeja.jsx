@@ -103,6 +103,9 @@ export default function Bandeja() {
   }, [user]);
 
   const today = new Date().toISOString().split("T")[0];
+  const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
+  const calcDiasEstancado = (p) =>
+    Math.floor((Date.now() - new Date(p.updated_date || p.created_date)) / 86400000);
   const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
@@ -333,6 +336,16 @@ export default function Bandeja() {
                       <span className="font-medium text-foreground truncate max-w-[200px]">{p.titulo}</span>
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
+                    {(() => {
+                      const dias = calcDiasEstancado(p);
+                      return ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 ? (
+                        <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
+                          bg-warning/10 text-warning border-warning/30
+                          dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200] animate-pulse">
+                          ⚠️ Hace {dias} días sin gestión
+                        </span>
+                      ) : null;
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
                   <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
