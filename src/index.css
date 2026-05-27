@@ -68,54 +68,63 @@ html, body {
     --safe-right:  env(safe-area-inset-right,  0px);
   }
 
-  /* ── Dark Mode ─────────────────────────────────────────── */
+  /* ── Dark Mode ─── Cyber-Premium / Deep Dark Neon ────────── */
   .dark {
-    /* Fondos */
-    --background:         0 0% 11%;          /* #1C1C1E */
+    /* Fondo abisal azul-negro */
+    --background:         230 25% 5%;        /* #090A0F */
     --foreground:         0 0% 100%;         /* #FFFFFF */
 
-    /* Cards, modales, tablas */
-    --card:               0 0% 17.3%;        /* #2C2C2E */
+    /* Cards, modales, tablas — carbón con tinte azul */
+    --card:               233 26% 9%;        /* #121420 */
     --card-foreground:    0 0% 100%;
-    --popover:            0 0% 17.3%;
+    --popover:            233 26% 9%;
     --popover-foreground: 0 0% 100%;
 
-    /* Primario (azul iOS — sin cambios) */
-    --primary:            217 100% 40%;
+    /* Primario — azul eléctrico intenso */
+    --primary:            221 96% 57%;       /* #4364F7 */
     --primary-foreground: 0 0% 100%;
 
     /* Secundario / muted */
-    --secondary:          0 0% 20%;          /* #333335 */
-    --secondary-foreground: 0 0% 55.7%;     /* #8E8E93 */
-    --muted:              0 0% 20%;
-    --muted-foreground:   0 0% 55.7%;        /* #8E8E93 */
+    --secondary:          230 22% 13%;       /* #1A1D2A */
+    --secondary-foreground: 228 17% 57%;    /* #7E84A3 */
+    --muted:              230 22% 13%;
+    --muted-foreground:   228 17% 57%;       /* #7E84A3 */
 
-    /* Accent (tono azul oscuro) */
-    --accent:             217 60% 12%;       /* #0F2038 */
-    --accent-foreground:  217 100% 40%;
+    /* Accent */
+    --accent:             221 70% 15%;       /* #0C1640 */
+    --accent-foreground:  221 96% 57%;
 
     /* Destructivo */
     --destructive:        0 100% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Bordes e inputs */
-    --border:             0 0% 22%;          /* #38383A */
-    --input:              0 0% 22%;
-    --ring:               217 100% 40%;
+    /* Bordes e inputs — azul carbón brillante */
+    --border:             230 30% 19%;       /* #22263F */
+    --input:              230 30% 19%;
+    --ring:               221 96% 57%;
 
     /* Sidebar */
-    --sidebar-background:         0 0% 17.3%;
+    --sidebar-background:         233 26% 9%;
     --sidebar-foreground:         0 0% 100%;
-    --sidebar-primary:            217 100% 40%;
+    --sidebar-primary:            221 96% 57%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent:             217 60% 12%;
-    --sidebar-accent-foreground:  217 100% 40%;
-    --sidebar-border:             0 0% 22%;
-    --sidebar-ring:               217 100% 40%;
+    --sidebar-accent:             221 70% 15%;
+    --sidebar-accent-foreground:  221 96% 57%;
+    --sidebar-border:             230 30% 19%;
+    --sidebar-ring:               221 96% 57%;
   }
 }
 
 @layer utilities {
+  /* ── Cyber Neon Glow effects ─────────────────────────────── */
+  .glow-blue   { box-shadow: 0 0 12px rgba(0, 163, 255, 0.45); }
+  .glow-cyan   { box-shadow: 0 0 12px rgba(0, 229, 255, 0.45); }
+  .glow-green  { box-shadow: 0 0 12px rgba(57, 255, 20,  0.40); }
+  .glow-orange { box-shadow: 0 0 12px rgba(255, 159, 0, 0.40); }
+  .glow-purple { box-shadow: 0 0 12px rgba(209, 71, 255, 0.40); }
+  .glow-emerald{ box-shadow: 0 0 12px rgba(0, 255, 135, 0.40); }
+  .glow-primary{ box-shadow: 0 0 18px rgba(67, 100, 247, 0.50); }
+
   /* ── 1. Bloqueo de selección de texto accidental ──────────────────
      Evita que el usuario active la lupa de texto o el menú "Copiar"
      al pulsar/arrastrar sobre elementos interactivos.
@@ -159,7 +168,15 @@ html, body {
   .card-minimal {
     @apply bg-card border border-border rounded-lg shadow-sm;
   }
-  
+
+  /* Dark mode: botón principal con degradado eléctrico + glow */
+  .dark .btn-primary-apple,
+  .dark .btn-primary-apple:is(button, a) {
+    background: linear-gradient(to right, #0052D4, #4364F7);
+    box-shadow: 0 0 15px rgba(67, 100, 247, 0.5);
+    @apply text-white;
+  }
+
   .btn-primary-apple {
     @apply bg-primary text-primary-foreground font-medium rounded-lg px-4 py-2 hover:bg-primary/90 transition-colors;
   }
