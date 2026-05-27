@@ -4,7 +4,7 @@ import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bu
 import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
-import { useEffect, useRef } from "react";
+
 
 const NAV_ITEMS = [
   { path: "/",              label: "Bandeja",       icon: Inbox },
@@ -29,47 +29,14 @@ export default function Layout() {
   const isAdmin  = user?.role === "admin";
   const visible  = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
-  // Per-tab navigation memory: remember last visited path per tab section
-  const tabMemory = useRef({ bandeja: "/", kanban: "/kanban", dashboard: "/dashboard" });
-  const currentTab =
-    location.pathname.startsWith("/kanban") ? "kanban"
-    : location.pathname.startsWith("/dashboard") ? "dashboard"
-    : "bandeja";
-
-  const isMainTabPath =
-    location.pathname === "/" ||
-    location.pathname === "/bandeja" ||
-    location.pathname.startsWith("/kanban") ||
-    location.pathname.startsWith("/dashboard");
-
-  useEffect(() => {
-    if (isMainTabPath) {
-      tabMemory.current[currentTab] = location.pathname;
-    }
-  }, [location.pathname, currentTab, isMainTabPath]);
-
   const isActive = (path) =>
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
 
   const go = (path) => {
-    const isMainTab =
-      path === "/" ||
-      path === "/bandeja" ||
-      path.startsWith("/kanban") ||
-      path.startsWith("/dashboard");
-    if (!isMainTab) {
-      navigate(path);
-      return;
-    }
-    const tab =
-      path.startsWith("/kanban") ? "kanban"
-      : path.startsWith("/dashboard") ? "dashboard"
-      : "bandeja";
     if (isActive(path)) {
       window.scrollTo({ top: 0, behavior: "smooth" });
-      navigate(path, { replace: true });
     } else {
-      navigate(tabMemory.current[tab] || path);
+      navigate(path);
     }
   };
 
