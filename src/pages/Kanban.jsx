@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
 import KanbanColumn from "../components/KanbanColumn";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -36,6 +37,7 @@ const QUERY_KEY = ['pedidos-kanban'];
 export default function Kanban() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("todos");
+  const [search, setSearch] = useState("");
   const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
   const [blockModal, setBlockModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -111,8 +113,8 @@ export default function Kanban() {
   });
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
-  const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
-  const hasFilters = Object.values(filters).some(Boolean);
+  const clearFilters = () => { setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" }); setSearch(""); };
+  const hasFilters = Object.values(filters).some(Boolean) || !!search;
 
   const responsables = [...new Set(pedidos.map(p => p.responsable).filter(Boolean))];
   const procesos     = [...new Set(pedidos.map(p => p.proceso).filter(Boolean))];
@@ -130,6 +132,9 @@ export default function Kanban() {
   };
 
   const filtered = tabFiltered.filter(p => {
+    if (search && !p.titulo?.toLowerCase().includes(search.toLowerCase()) &&
+        !p.solicitante?.toLowerCase().includes(search.toLowerCase()) &&
+        !p.responsable?.toLowerCase().includes(search.toLowerCase())) return false;
     if (filters.responsable && (filters.responsable === "__sin__" ? !!p.responsable : p.responsable !== filters.responsable)) return false;
     if (filters.prioridad   && p.prioridad   !== filters.prioridad)   return false;
     if (filters.proceso     && p.proceso     !== filters.proceso)     return false;
@@ -260,6 +265,11 @@ export default function Kanban() {
 
       {/* Filters */}
       <div className="bg-card border border-border rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="pl-8 h-8 text-xs w-44" />
+        </div>
+        <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
         <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>

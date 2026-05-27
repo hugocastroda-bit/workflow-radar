@@ -273,7 +273,7 @@ export default function Bandeja() {
       <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input value={search} onChange={e => handleSetSearch(e.target.value)} placeholder="Buscar título..." className="pl-8 h-8 text-xs w-44" />
+          <Input value={search} onChange={e => handleSetSearch(e.target.value)} placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-56" />
         </div>
         <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
         <Select value={filters.responsable} onValueChange={v => handleSetFilters(f => ({ ...f, responsable: v }))}>
