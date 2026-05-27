@@ -44,6 +44,11 @@ export default function Layout() {
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
 
   const go = (path) => {
+    const isMainTab = path === "/" || path === "/bandeja" || path.startsWith("/kanban") || path.startsWith("/dashboard");
+    if (!isMainTab) {
+      navigate(path);
+      return;
+    }
     const tab =
       path.startsWith("/kanban") ? "kanban"
       : path.startsWith("/dashboard") ? "dashboard"
