@@ -116,11 +116,42 @@ html, body {
 }
 
 @layer utilities {
+  /* ── 1. Bloqueo de selección de texto accidental ──────────────────
+     Evita que el usuario active la lupa de texto o el menú "Copiar"
+     al pulsar/arrastrar sobre elementos interactivos.
+     Aplicar en: nav labels, botones, headers de columnas Kanban,
+     tarjetas Kanban, elementos del Dashboard. */
   .no-select {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    -webkit-user-select: none; /* Safari / iOS / Chrome (WebKit) */
+    -moz-user-select:    none; /* Firefox */
+    -ms-user-select:     none; /* IE / Edge Legacy */
+    user-select:         none; /* Estándar W3C */
+
+    /* ── 2. Long-press guard (iOS Safari) ─────────────────────────
+       Impide que mantener pulsado un elemento dispare el menú nativo
+       de iOS ("Guardar imagen / Copiar texto / Compartir").
+       Solo funciona en WebKit; en Android Chrome se controla con JS. */
+    -webkit-touch-callout: none;
+
+    /* ── 4a. Sin destello gris al tocar (iOS / Android Chrome) ────
+       Elimina el overlay translúcido gris/azul que iOS y Android
+       dibujan sobre el elemento al hacer tap. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── 3. Touch-action para zonas de arrastre Kanban ───────────────
+     Le dice al navegador que la app gestiona los gestos horizontales
+     y de libre arrastre, eliminando la latencia de 300 ms y evitando
+     que el scroll nativo interfiera con el DnD.
+     Aplicar en: columnas Kanban, tarjetas draggables, listas. */
+  .drag-zone {
+    touch-action: none; /* App controla todos los gestos táctiles */
+  }
+
+  /* Variante cuando solo se quiere scroll vertical libre (listas largas
+     donde el DnD es solo horizontal entre columnas). */
+  .drag-zone-scroll-y {
+    touch-action: pan-y; /* Scroll vertical libre; horizontal → app */
   }
 }
 

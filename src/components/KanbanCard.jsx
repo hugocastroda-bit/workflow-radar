@@ -18,7 +18,7 @@ export default function KanbanCard({ pedido, provided, onDelete, onArchive, onCo
       {...provided.draggableProps}
       {...provided.dragHandleProps}
       onClick={() => navigate(`/pedido/${pedido.id}`)}
-      className={`bg-card rounded-lg border cursor-pointer hover:shadow-sm transition-shadow mb-2 px-3 py-2.5 ${
+      className={`bg-card rounded-lg border cursor-pointer hover:shadow-sm transition-shadow mb-2 px-3 py-2.5 no-select drag-zone ${
         isOverdue ? "border-l-4 border-l-alert border-t-border border-r-border border-b-border" :
         isBlocked ? "border-l-4 border-l-warning border-t-border border-r-border border-b-border" :
         "border-border"
