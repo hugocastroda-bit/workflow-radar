@@ -13,7 +13,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="min-h-[120px] flex-1 overflow-y-auto rounded-lg p-1.5 transition-colors drag-zone"
+            className="min-h-[120px] flex-1 overflow-y-auto rounded-lg p-1.5 transition-colors drag-zone dark:!bg-[#0D0F1A]"
             style={{
               backgroundColor: snapshot.isDraggingOver ? accentColor + "08" : backgroundColor
             }}
