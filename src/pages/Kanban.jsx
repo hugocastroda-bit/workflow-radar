@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { eventBus } from "@/lib/eventBus";
 import PullToRefresh from "@/components/PullToRefresh";
+import SmartTabs from "@/components/SmartTabs";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -34,6 +35,7 @@ const QUERY_KEY = ['pedidos-kanban'];
 
 export default function Kanban() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("todos");
   const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
   const [blockModal, setBlockModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -115,7 +117,19 @@ export default function Kanban() {
   const responsables = [...new Set(pedidos.map(p => p.responsable).filter(Boolean))];
   const procesos     = [...new Set(pedidos.map(p => p.proceso).filter(Boolean))];
 
-  const filtered = pedidos.filter(p => {
+  const tabFiltered = pedidos.filter(p => {
+    if (activeTab === "mis")     return p.responsable === user?.full_name;
+    if (activeTab === "asignar") return !p.responsable;
+    return true;
+  });
+
+  const tabCounts = {
+    todos:   pedidos.length,
+    mis:     pedidos.filter(p => p.responsable === user?.full_name).length,
+    asignar: pedidos.filter(p => !p.responsable).length,
+  };
+
+  const filtered = tabFiltered.filter(p => {
     if (filters.responsable && (filters.responsable === "__sin__" ? !!p.responsable : p.responsable !== filters.responsable)) return false;
     if (filters.prioridad   && p.prioridad   !== filters.prioridad)   return false;
     if (filters.proceso     && p.proceso     !== filters.proceso)     return false;
@@ -241,6 +255,8 @@ export default function Kanban() {
           <p className="text-xs text-muted-foreground mt-1">{activeCount} pedidos activos · {pedidos.filter(p => p.estado === "Cerrado").length} cerrados</p>
         </div>
       </div>
+
+      <SmartTabs activeTab={activeTab} onTabChange={setActiveTab} counts={tabCounts} />
 
       {/* Filters */}
       <div className="bg-card border border-border rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">

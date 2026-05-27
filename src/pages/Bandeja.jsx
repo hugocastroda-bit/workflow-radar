@@ -18,6 +18,7 @@ import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
 import PullToRefresh from "@/components/PullToRefresh";
+import SmartTabs from "@/components/SmartTabs";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -39,6 +40,7 @@ export default function Bandeja() {
 
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [activeTab, setActiveTab] = useState("todos");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [archiving, setArchiving] = useState(false);
@@ -103,7 +105,19 @@ export default function Bandeja() {
   const today = new Date().toISOString().split("T")[0];
   const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";
 
-  const filtered = pedidos.filter(p => {
+  const tabFiltered = pedidos.filter(p => {
+    if (activeTab === "mis")     return p.responsable === user?.full_name;
+    if (activeTab === "asignar") return !p.responsable;
+    return true;
+  });
+
+  const tabCounts = {
+    todos:   pedidos.length,
+    mis:     pedidos.filter(p => p.responsable === user?.full_name).length,
+    asignar: pedidos.filter(p => !p.responsable).length,
+  };
+
+  const filtered = tabFiltered.filter(p => {
     if (search && !p.titulo?.toLowerCase().includes(search.toLowerCase()) &&
         !p.solicitante?.toLowerCase().includes(search.toLowerCase()) &&
         !p.responsable?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -249,6 +263,8 @@ export default function Bandeja() {
           </Button>
         </div>
       </div>
+
+      <SmartTabs activeTab={activeTab} onTabChange={setActiveTab} counts={tabCounts} />
 
       {/* Filters */}
       <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
