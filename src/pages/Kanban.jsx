@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
@@ -20,13 +21,13 @@ import PullToRefresh from "@/components/PullToRefresh";
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
 const STAGE_COLORS = {
-  "Nuevo": { accent: "#0066CC", background: "#EAF3FF" },
-  "Por priorizar": { accent: "#8E8E93", background: "#F0F0F5" },
-  "Asignado": { accent: "#00A3E0", background: "#E6F7FF" },
-  "En curso": { accent: "#34C759", background: "#E9F8EF" },
-  "Bloqueado": { accent: "#FF9500", background: "#FFF4E5" },
-  "En revisión": { accent: "#AF52DE", background: "#F3ECFF" },
-  "Cerrado": { accent: "#30A46C", background: "#E6F4EA" }
+  "Nuevo":        { accent: "#0066CC",  background: "#EAF3FF", dark: "#002244" },
+  "Por priorizar":{ accent: "#8E8E93",  background: "#F0F0F5", dark: "#1A1C23" },
+  "Asignado":     { accent: "#00A3E0",  background: "#E6F7FF", dark: "#002B3D" },
+  "En curso":     { accent: "#34C759",  background: "#E9F8EF", dark: "#092D1A" },
+  "Bloqueado":    { accent: "#FF9500",  background: "#FFF4E5", dark: "#331B00" },
+  "En revisión":  { accent: "#AF52DE",  background: "#F3ECFF", dark: "#20003B" },
+  "Cerrado":      { accent: "#30A46C",  background: "#E6F4EA", dark: "#052E16" },
 };
 
 const QUERY_KEY = ['pedidos-kanban'];
@@ -43,6 +44,8 @@ export default function Kanban() {
   const [savingConf, setSavingConf] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   // ── React Query: carga de pedidos ───────────────────────────────
   const { data: pedidosRaw = [], isLoading: loading } = useQuery({
@@ -289,7 +292,7 @@ export default function Kanban() {
                onArchive={isAdmin ? setArchiveTarget : null}
                onConfidencial={isAdmin ? setConfidencialTarget : null}
                accentColor={colors.accent}
-               backgroundColor={colors.background}
+               backgroundColor={isDark ? colors.dark : colors.background}
              />
            );
           })}

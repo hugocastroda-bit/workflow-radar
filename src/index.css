@@ -61,6 +61,30 @@ html, body {
       font-size: max(14px, 0.875rem) !important;
     }
   }
+  /* ── Dark mode: forzar fondo oscuro en inputs / autofill ─────── */
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .dark textarea {
+    background-color: #16192B;
+    border-color: #2C3154;
+    color: #fff;
+    color-scheme: dark;
+  }
+  /* Elimina el destello blanco del autofill en WebKit */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #16192B inset !important;
+    -webkit-text-fill-color: #fff !important;
+    border-color: #2C3154 !important;
+    caret-color: #fff;
+  }
+  /* Radix Select trigger y content en dark */
+  .dark [data-radix-popper-content-wrapper] [role="listbox"],
+  .dark [cmdk-list] {
+    background-color: #121420;
+    border-color: #22263F;
+  }
+
   :root {
     --safe-top:    env(safe-area-inset-top,    0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
