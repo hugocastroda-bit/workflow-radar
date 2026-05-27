@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import SearchableSelect from "@/components/SearchableSelect";
 import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 import { eventBus } from "@/lib/eventBus";
+import ComentariosHilo from "@/components/ComentariosHilo";
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -36,7 +37,7 @@ function Field({ label, value, highlight, mono }) {
 
 function Section({ title, children, accent }) {
   return (
-    <div className={`bg-white border rounded-lg p-6 space-y-5 ${accent || "border-border"}`}>
+    <div className={`bg-card border rounded-lg p-6 space-y-5 dark:bg-[#121420] dark:border-[#22263F] ${accent || "border-border"}`}>
       <p className={`text-xs font-semibold uppercase tracking-widest ${accent ? "text-emerald-600" : "text-muted-foreground"}`}>{title}</p>
       {children}
     </div>
@@ -518,6 +519,12 @@ export default function DetallePedido() {
             </p>
           </div>
         )}
+
+        {/* Hilo de comentarios */}
+        <div className="pt-2 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Comentarios en hilo</p>
+          <ComentariosHilo pedidoId={id} />
+        </div>
       </Section>
 
       {/* Historial de cambios */}

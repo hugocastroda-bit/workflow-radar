@@ -1,0 +1,46 @@
+{
+  "name": "ComentarioPedido",
+  "type": "object",
+  "properties": {
+    "pedido_id": {
+      "type": "string",
+      "title": "ID del pedido"
+    },
+    "contenido": {
+      "type": "string",
+      "title": "Contenido del comentario"
+    },
+    "nombre_usuario": {
+      "type": "string",
+      "title": "Nombre del usuario"
+    },
+    "rol_usuario": {
+      "type": "string",
+      "title": "Rol del usuario",
+      "enum": [
+        "admin",
+        "user"
+      ]
+    }
+  },
+  "required": [
+    "pedido_id",
+    "contenido",
+    "nombre_usuario",
+    "rol_usuario"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
