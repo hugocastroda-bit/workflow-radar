@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
 import KanbanColumn from "../components/KanbanColumn";
@@ -28,9 +29,10 @@ const STAGE_COLORS = {
   "Cerrado": { accent: "#30A46C", background: "#E6F4EA" }
 };
 
+const QUERY_KEY = ['pedidos-kanban'];
+
 export default function Kanban() {
-  const [pedidos, setPedidos]         = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const queryClient = useQueryClient();
   const [filters, setFilters]         = useState({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
   const [blockModal, setBlockModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -42,41 +44,66 @@ export default function Kanban() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
+  // ── React Query: carga de pedidos ───────────────────────────────
+  const { data: pedidosRaw = [], isLoading: loading } = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: () => base44.entities.Pedido.filter({ archivado: false }, "-created_date"),
+  });
+
+  const pedidos = filtrarConfidenciales(pedidosRaw, user);
+
+  // ── Sincronizar eventBus → caché React Query ─────────────────────
   useEffect(() => {
-    base44.entities.Pedido.filter({ archivado: false }, "-created_date")
-      .then(d => setPedidos(filtrarConfidenciales(d, user)))
-      .catch(() => toast.error("No se pudieron cargar los pedidos."))
-      .finally(() => setLoading(false));
+    const setPedidoEnCache = (pedido) =>
+      queryClient.setQueryData(QUERY_KEY, (prev = []) =>
+        prev.some(p => p.id === pedido.id)
+          ? prev.map(p => p.id === pedido.id ? pedido : p)
+          : [pedido, ...prev]
+      );
+    const removePedidoDeCache = (id) =>
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => prev.filter(p => p.id !== id));
 
-    // Escuchar eventos de cambios en pedidos
-    const unsubscribePedidoCreado = eventBus.on('pedidoCreado', (pedido) => {
-      setPedidos(prev => [pedido, ...prev]);
-    });
+    const u1 = eventBus.on('pedidoCreado',      (p) => setPedidoEnCache(p));
+    const u2 = eventBus.on('pedidoActualizado', (p) => setPedidoEnCache(p));
+    const u3 = eventBus.on('pedidoArchivado',   (id) => removePedidoDeCache(id));
+    const u4 = eventBus.on('pedidoRestaurado',  (p) => setPedidoEnCache(p));
+    const u5 = eventBus.on('pedidoEliminado',   (id) => removePedidoDeCache(id));
+    return () => { u1(); u2(); u3(); u4(); u5(); };
+  }, [queryClient]);
 
-    const unsubscribePedidoActualizado = eventBus.on('pedidoActualizado', (pedido) => {
-      setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p));
-    });
-
-    const unsubscribePedidoArchivado = eventBus.on('pedidoArchivado', (pedidoId) => {
-      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-    });
-
-    const unsubscribePedidoRestaurado = eventBus.on('pedidoRestaurado', (pedido) => {
-      setPedidos(prev => [pedido, ...prev]);
-    });
-
-    const unsubscribePedidoEliminado = eventBus.on('pedidoEliminado', (pedidoId) => {
-      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-    });
-
-    return () => {
-      unsubscribePedidoCreado();
-      unsubscribePedidoActualizado();
-      unsubscribePedidoArchivado();
-      unsubscribePedidoRestaurado();
-      unsubscribePedidoEliminado();
-    };
-  }, [user]);
+  // ── Mutación optimista: mover tarjeta ───────────────────────────
+  const moverTarjeta = useMutation({
+    mutationFn: ({ id, estado, fechaCierre }) => {
+      const data = { estado };
+      if (fechaCierre) data.fecha_cierre_real = fechaCierre;
+      return base44.entities.Pedido.update(id, data);
+    },
+    onMutate: async ({ id, estado }) => {
+      // 1. Cancelar queries en segundo plano para evitar sobreescrituras
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+      // 2. Guardar snapshot
+      const snapshot = queryClient.getQueryData(QUERY_KEY);
+      // 3. Actualizar caché optimistamente
+      queryClient.setQueryData(QUERY_KEY, (prev = []) =>
+        prev.map(p => p.id === id ? { ...p, estado } : p)
+      );
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback al snapshot
+      if (context?.snapshot) {
+        queryClient.setQueryData(QUERY_KEY, context.snapshot);
+      }
+      toast.error("No se pudo actualizar el estado del pedido. Inténtalo de nuevo.");
+    },
+    onSuccess: (updatedPedido) => {
+      eventBus.emit('pedidoActualizado', updatedPedido);
+    },
+    onSettled: () => {
+      // Resync final con la BD
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    },
+  });
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
   const clearFilters = () => setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" });
@@ -94,41 +121,29 @@ export default function Kanban() {
     return true;
   });
 
-  const handleDragEnd = async (result) => {
+  const handleDragEnd = (result) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
     const newEstado = destination.droppableId;
     const pedido = pedidos.find(p => p.id === draggableId);
     if (!pedido || pedido.estado === newEstado) return;
 
-    const prevEstado = pedido.estado;
-    setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: newEstado } : p));
-
     if (newEstado === "Bloqueado") {
       setBlockModal({ id: draggableId, motivo: pedido.motivo_bloqueo || "" });
     }
 
-    const updateData = { estado: newEstado };
-    if (newEstado === "Cerrado") {
-      updateData.fecha_cierre_real = new Date().toISOString().split("T")[0];
-    }
-
-    try {
-      const updatedPedido = await base44.entities.Pedido.update(draggableId, updateData);
-      eventBus.emit('pedidoActualizado', updatedPedido);
-    } catch (err) {
-      console.error("[Kanban] Error moviendo pedido:", err);
-      setPedidos(prev => prev.map(p => p.id === draggableId ? { ...p, estado: prevEstado } : p));
-      if (newEstado === "Bloqueado") setBlockModal(null);
-      toast.error("No se pudo mover el pedido. Inténtalo nuevamente.");
-    }
+    moverTarjeta.mutate({
+      id: draggableId,
+      estado: newEstado,
+      fechaCierre: newEstado === "Cerrado" ? new Date().toISOString().split("T")[0] : null,
+    });
   };
 
   const saveBlockMotivo = async () => {
     if (!blockModal) return;
     try {
       await base44.entities.Pedido.update(blockModal.id, { motivo_bloqueo: blockModal.motivo });
-      setPedidos(prev => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => prev.map(p => p.id === blockModal.id ? { ...p, motivo_bloqueo: blockModal.motivo } : p));
       setBlockModal(null);
       toast.success("Motivo de bloqueo guardado");
     } catch (err) {
@@ -138,7 +153,7 @@ export default function Kanban() {
   };
 
   const handleArchive = async (motivo) => {
-    if (!isAdmin || !archiveTarget) return;
+    if (!archiveTarget) return;
     setArchiving(true);
     try {
       await base44.entities.Pedido.update(archiveTarget.id, {
@@ -147,7 +162,7 @@ export default function Kanban() {
         archivado_por: user?.full_name || user?.email || "Admin",
         ...(motivo ? { motivo_archivo: motivo } : {}),
       });
-      setPedidos(prev => prev.filter(p => p.id !== archiveTarget.id));
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => prev.filter(p => p.id !== archiveTarget.id));
       setArchiveTarget(null);
       toast.success("Pedido archivado correctamente");
       eventBus.emit('pedidoArchivado', archiveTarget.id);
@@ -159,11 +174,10 @@ export default function Kanban() {
   };
 
   const handleDelete = async () => {
-    if (!isAdmin) return;
     setDeleting(true);
     try {
       await base44.entities.Pedido.delete(deleteTarget.id);
-      setPedidos(prev => prev.filter(p => p.id !== deleteTarget.id));
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => prev.filter(p => p.id !== deleteTarget.id));
       setDeleteTarget(null);
       toast.success("Pedido borrado correctamente");
       eventBus.emit('pedidoEliminado', deleteTarget.id);
@@ -187,7 +201,7 @@ export default function Kanban() {
           motivo_confidencial: motivo || null,
         } : { marcado_confidencial_por: null, fecha_marcado_confidencial: null, motivo_confidencial: null }),
       });
-      setPedidos(prev => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => prev.map(p => p.id === confidencialTarget.id ? { ...p, confidencial: marcar } : p));
       toast.success(marcar ? "Pedido marcado como confidencial" : "Confidencialidad eliminada");
       setConfidencialTarget(null);
     } catch (err) {
@@ -211,8 +225,7 @@ export default function Kanban() {
   );
 
   const handleRefresh = async () => {
-    const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
-    setPedidos(filtrarConfidenciales(d, user));
+    await queryClient.invalidateQueries({ queryKey: QUERY_KEY });
   };
 
   return (
