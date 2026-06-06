@@ -116,15 +116,17 @@ export default function Kanban() {
   const clearFilters = () => { setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" }); setSearch(""); };
   const hasFilters = Object.values(filters).some(Boolean) || !!search;
 
+  const normalizeKey = (v) =>
+    v.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
   const uniq = (arr) => {
     const seen = new Set();
     const result = [];
     for (const v of arr) {
       if (!v || typeof v !== "string") continue;
-      const key = v.trim().toLowerCase();
+      const key = normalizeKey(v);
       if (!seen.has(key)) { seen.add(key); result.push(v.trim()); }
     }
-    return result.sort((a, b) => a.localeCompare(b, "es"));
+    return result.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
   };
   const responsables = uniq(pedidos.map(p => p.responsable));
   const solicitantes = uniq(pedidos.map(p => p.solicitante));
