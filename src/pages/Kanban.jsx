@@ -116,7 +116,16 @@ export default function Kanban() {
   const clearFilters = () => { setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" }); setSearch(""); };
   const hasFilters = Object.values(filters).some(Boolean) || !!search;
 
-  const uniq = (arr) => [...new Map(arr.filter(Boolean).map(v => [v.trim().toLowerCase(), v.trim()])).values()].sort();
+  const uniq = (arr) => {
+    const seen = new Set();
+    const result = [];
+    for (const v of arr) {
+      if (!v || typeof v !== "string") continue;
+      const key = v.trim().toLowerCase();
+      if (!seen.has(key)) { seen.add(key); result.push(v.trim()); }
+    }
+    return result.sort((a, b) => a.localeCompare(b, "es"));
+  };
   const responsables = uniq(pedidos.map(p => p.responsable));
   const solicitantes = uniq(pedidos.map(p => p.solicitante));
   const procesos     = uniq(pedidos.map(p => p.proceso));
@@ -272,30 +281,39 @@ export default function Kanban() {
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="pl-8 h-8 text-xs w-44" />
         </div>
         <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
-        <Select value={filters.responsable} onValueChange={v => setFilter("responsable", v)}>
+        <Select value={filters.responsable || "__placeholder__"} onValueChange={v => setFilter("responsable", v === "__placeholder__" ? "" : v)}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
-            {responsables.sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+            {responsables.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.solicitante} onValueChange={v => setFilter("solicitante", v)}>
+        <Select value={filters.solicitante || "__placeholder__"} onValueChange={v => setFilter("solicitante", v === "__placeholder__" ? "" : v)}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
             {solicitantes.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
+        <Select value={filters.proceso || "__placeholder__"} onValueChange={v => setFilter("proceso", v === "__placeholder__" ? "" : v)}>
          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{procesos.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {procesos.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select value={filters.estado} onValueChange={v => setFilter("estado", v)}>
+        <Select value={filters.estado || "__placeholder__"} onValueChange={v => setFilter("estado", v === "__placeholder__" ? "" : v)}>
          <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
-          <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select value={filters.prioridad} onValueChange={v => setFilter("prioridad", v)}>
+        <Select value={filters.prioridad || "__placeholder__"} onValueChange={v => setFilter("prioridad", v === "__placeholder__" ? "" : v)}>
          <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todas</SelectItem>
             {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
