@@ -116,8 +116,10 @@ export default function Kanban() {
   const clearFilters = () => { setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" }); setSearch(""); };
   const hasFilters = Object.values(filters).some(Boolean) || !!search;
 
-  const responsables = [...new Set(pedidos.map(p => p.responsable).filter(Boolean))];
-  const procesos     = [...new Set(pedidos.map(p => p.proceso).filter(Boolean))];
+  const uniq = (arr) => [...new Map(arr.filter(Boolean).map(v => [v.trim().toLowerCase(), v.trim()])).values()].sort();
+  const responsables = uniq(pedidos.map(p => p.responsable));
+  const solicitantes = uniq(pedidos.map(p => p.solicitante));
+  const procesos     = uniq(pedidos.map(p => p.proceso));
 
   const tabFiltered = pedidos.filter(p => {
     if (activeTab === "mis")     return p.responsable === user?.full_name;
@@ -280,12 +282,12 @@ export default function Kanban() {
         <Select value={filters.solicitante} onValueChange={v => setFilter("solicitante", v)}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
-            {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+            {solicitantes.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.proceso} onValueChange={v => setFilter("proceso", v)}>
          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{procesos.sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>{procesos.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={filters.estado} onValueChange={v => setFilter("estado", v)}>
          <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
