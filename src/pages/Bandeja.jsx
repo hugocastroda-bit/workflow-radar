@@ -238,6 +238,19 @@ export default function Bandeja() {
     toast.success(`Exportados ${data.length} pedidos`);
   };
 
+  // Deduplica insensible a mayúsculas, acentos y espacios extra
+  const uniqNorm = (arr) => {
+    const seen = new Set();
+    const result = [];
+    for (const v of arr) {
+      if (!v || typeof v !== "string") continue;
+      const clean = v.trim().split(" — ")[0].trim(); // quitar "— email" si existe
+      const key = clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
+      if (!seen.has(key)) { seen.add(key); result.push(clean); }
+    }
+    return result.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-96">
       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -276,30 +289,41 @@ export default function Bandeja() {
           <Input value={search} onChange={e => handleSetSearch(e.target.value)} placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-56" />
         </div>
         <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
-        <Select value={filters.responsable} onValueChange={v => handleSetFilters(f => ({ ...f, responsable: v }))}>
+        <Select value={filters.responsable || "__placeholder__"} onValueChange={v => handleSetFilters(f => ({ ...f, responsable: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
             <SelectItem value="__sin__" className="text-xs">Sin responsable</SelectItem>
-            {[...new Set(pedidos.map(p => p.responsable).filter(Boolean))].sort().map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+            {uniqNorm(pedidos.map(p => p.responsable)).map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.solicitante} onValueChange={v => handleSetFilters(f => ({ ...f, solicitante: v }))}>
+        <Select value={filters.solicitante || "__placeholder__"} onValueChange={v => handleSetFilters(f => ({ ...f, solicitante: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Solicitante" /></SelectTrigger>
           <SelectContent>
-            {[...new Set(pedidos.map(p => p.solicitante).filter(Boolean))].sort().map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {uniqNorm(pedidos.map(p => p.solicitante)).map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.proceso} onValueChange={v => handleSetFilters(f => ({ ...f, proceso: v }))}>
+        <Select value={filters.proceso || "__placeholder__"} onValueChange={v => handleSetFilters(f => ({ ...f, proceso: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{[...new Set(pedidos.map(p => p.proceso).filter(Boolean))].sort().map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {uniqNorm(pedidos.map(p => p.proceso)).map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select value={filters.estado} onValueChange={v => handleSetFilters(f => ({ ...f, estado: v }))}>
+        <Select value={filters.estado || "__placeholder__"} onValueChange={v => handleSetFilters(f => ({ ...f, estado: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
-          <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}</SelectContent>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select value={filters.prioridad} onValueChange={v => handleSetFilters(f => ({ ...f, prioridad: v }))}>
+        <Select value={filters.prioridad || "__placeholder__"} onValueChange={v => handleSetFilters(f => ({ ...f, prioridad: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
-          <SelectContent>{[...new Set(pedidos.map(p => p.prioridad).filter(Boolean))].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todas</SelectItem>
+            {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
         </Select>
         {hasFilters && (
           <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-secondary transition-colors whitespace-nowrap">
