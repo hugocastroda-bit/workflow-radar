@@ -5,6 +5,17 @@ import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
 
+const PAGE_TITLES = {
+  "/":             "Bandeja",
+  "/bandeja":      "Bandeja",
+  "/kanban":       "Kanban",
+  "/dashboard":    "Dashboard",
+  "/configuracion":"Configuración",
+  "/carga-masiva": "Carga masiva",
+  "/archivados":   "Archivados",
+  "/diagnostico":  "Diagnóstico",
+};
+
 
 const NAV_ITEMS = [
   { path: "/",              label: "Bandeja",       icon: Inbox },
@@ -31,6 +42,9 @@ export default function Layout() {
 
   const isActive = (path) =>
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
+
+  const currentPageTitle = PAGE_TITLES[location.pathname] ||
+    (location.pathname.startsWith("/pedido/") ? "Detalle de pedido" : "Radar");
 
   const go = (path) => {
     if (isActive(path)) {
@@ -95,8 +109,8 @@ export default function Layout() {
       >
         <div className="flex items-center justify-between px-4 pb-2">
           <div>
-            <p className="text-xs text-muted-foreground leading-none">Radar</p>
-            <p className="text-sm font-semibold text-foreground leading-tight">Gestión Humana</p>
+            <p className="text-xs text-muted-foreground leading-none">Radar CT</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">{currentPageTitle}</p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -215,7 +215,10 @@ export default function Bandeja() {
     setSavingConf(false);
   };
 
-  const exportToExcel = () => {
+  const [exporting, setExporting] = useState(false);
+
+  const exportToExcel = async () => {
+    setExporting(true);
     const data = filtered.map(p => ({
       "Título": p.titulo,
       "Solicitante": p.solicitante,
@@ -236,6 +239,7 @@ export default function Bandeja() {
     XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
     XLSX.writeFile(wb, `pedidos_${new Date().toISOString().split("T")[0]}.xlsx`);
     toast.success(`Exportados ${data.length} pedidos`);
+    setExporting(false);
   };
 
   // Deduplica insensible a mayúsculas, acentos y espacios extra
@@ -271,8 +275,9 @@ export default function Bandeja() {
           <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={exportToExcel} disabled={filtered.length === 0} className="gap-1.5">
-            📊 Exportar a Excel
+          <Button size="sm" variant="outline" onClick={exportToExcel} disabled={filtered.length === 0 || exporting} className="gap-1.5">
+            {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{exporting ? "Exportando…" : "Exportar a Excel"}</span>
           </Button>
           <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
@@ -332,75 +337,153 @@ export default function Bandeja() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-border bg-secondary">
-              <th className="text-left px-5 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Título</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Solicitante</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Responsable</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prioridad</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Proceso</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Fecha req.</th>
-              {isAdmin && <th className="px-4 py-3" />}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(p => {
-              const isOverdue = p.fecha_requerida < today && p.estado !== "Cerrado";
-              return (
-                <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
-                  className={`border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/40 transition-colors ${isOverdue ? "bg-alert/5" : ""}`}
-                >
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
-                      <span className="font-medium text-foreground truncate max-w-[200px]">{p.titulo}</span>
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div className="bg-card border border-border rounded-lg px-6 py-14 flex flex-col items-center text-center gap-3">
+          <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+            <Inbox className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">No se encontraron pedidos</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {hasFilters ? "Prueba ajustando o limpiando los filtros activos." : "Crea el primer pedido para comenzar."}
+            </p>
+          </div>
+          {hasFilters ? (
+            <button onClick={clearFilters} className="text-xs text-primary hover:underline font-medium">
+              Limpiar filtros
+            </button>
+          ) : (
+            <button onClick={() => setFormOpen(true)} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+              <Plus className="h-3.5 w-3.5" /> Nuevo pedido
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Mobile card list */}
+      {filtered.length > 0 && (
+        <div className="md:hidden space-y-2">
+          {filtered.map(p => {
+            const isOverdue = p.fecha_requerida < today && p.estado !== "Cerrado";
+            const dias = calcDiasEstancado(p);
+            return (
+              <div key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
+                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-4 border-l-alert border-t-border border-r-border border-b-border" : "border-border"}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
+                      <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
-                    {(() => {
-                      const dias = calcDiasEstancado(p);
-                      return ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 ? (
-                        <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
-                          bg-warning/10 text-warning border-warning/30
-                          dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200] animate-pulse">
-                          ⚠️ Hace {dias} días sin gestión
-                        </span>
-                      ) : null;
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
-                  <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
-                  <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
-                  <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
-                  {isAdmin && (
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
-                          {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                    {ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-warning/10 text-warning border-warning/30 animate-pulse">
+                        ⚠️ Hace {dias} días sin gestión
+                      </span>
+                    )}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <StatusBadge status={p.estado} />
+                      <PriorityBadge priority={p.prioridad} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
+                      {p.solicitante && <span>{p.solicitante}</span>}
+                      {p.responsable && <span>→ {p.responsable}</span>}
+                      {p.fecha_requerida && <span className={isOverdue ? "text-alert font-medium" : ""}>{p.fecha_requerida}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    {isAdmin && (
+                      <>
+                        <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label={p.confidencial ? "Quitar confidencialidad" : "Marcar como confidencial"}>
+                          {p.confidencial ? <LockOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                         </button>
-                        <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Archivar">
-                          <Archive className="h-3.5 w-3.5" />
+                        <button onClick={() => setArchiveTarget(p.id)} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label="Archivar pedido">
+                          <Archive className="h-4 w-4" />
                         </button>
-                        <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" title="Borrar">
-                          <Trash2 className="h-3.5 w-3.5" />
+                        <button onClick={() => setDeleteTarget(p.id)} className="p-1.5 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" aria-label="Borrar pedido">
+                          <Trash2 className="h-4 w-4" />
                         </button>
+                      </>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop table */}
+      {filtered.length > 0 && (
+        <div className="hidden md:block bg-card border border-border rounded-lg overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-border bg-secondary">
+                <th className="text-left px-5 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Título</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Solicitante</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Responsable</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Estado</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prioridad</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Proceso</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Fecha req.</th>
+                {isAdmin && <th className="px-4 py-3" />}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p => {
+                const isOverdue = p.fecha_requerida < today && p.estado !== "Cerrado";
+                return (
+                  <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
+                    className={`border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/40 transition-colors ${isOverdue ? "bg-alert/5" : ""}`}
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
+                        <span className="font-medium text-foreground truncate max-w-[200px]">{p.titulo}</span>
+                        {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
+                      {(() => {
+                        const dias = calcDiasEstancado(p);
+                        return ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 ? (
+                          <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
+                            bg-warning/10 text-warning border-warning/30
+                            dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200] animate-pulse">
+                            ⚠️ Hace {dias} días sin gestión
+                          </span>
+                        ) : null;
+                      })()}
                     </td>
-                  )}
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">No se encontraron pedidos</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                    <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
+                    <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
+                    <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
+                    <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
+                    <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
+                    {isAdmin && (
+                      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label={p.confidencial ? "Quitar confidencialidad" : "Marcar como confidencial"}>
+                            {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                          </button>
+                          <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label="Archivar pedido">
+                            <Archive className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" aria-label="Borrar pedido">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <ConfirmArchivarModal
         open={!!archiveTarget}
