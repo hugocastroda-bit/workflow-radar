@@ -19,8 +19,11 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Notificación de asignación desactivada' });
     }
 
+    // Normalizar nombre: quitar " — email" si viene en formato compuesto
+    const nombreResponsable = pedido.responsable?.split(' — ')[0]?.trim();
+
     // Buscar el email del responsable
-    const responsables = await base44.asServiceRole.entities.Responsable.filter({ nombre: pedido.responsable });
+    const responsables = await base44.asServiceRole.entities.Responsable.filter({ nombre: nombreResponsable });
     const responsable = responsables[0];
 
     if (!responsable?.email) {
