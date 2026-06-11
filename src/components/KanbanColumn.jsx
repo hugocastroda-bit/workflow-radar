@@ -1,7 +1,7 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import KanbanCard from "./KanbanCard";
 
-export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onConfidencial, onCopy, accentColor, backgroundColor }) {
+export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onConfidencial, onDuplicate, accentColor, backgroundColor }) {
   return (
     <div className="flex-shrink-0 w-[240px] flex flex-col" style={{ maxHeight: "calc(100dvh - 160px)" }}>
       {/* Column header */}
@@ -57,7 +57,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
                     onDelete={onDelete}
                     onArchive={onArchive}
                     onConfidencial={onConfidencial}
-                    onCopy={true}
+                    onDuplicate={onDuplicate}
                   />
                 )}
               </Draggable>

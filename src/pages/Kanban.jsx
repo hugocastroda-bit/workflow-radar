@@ -238,6 +238,15 @@ export default function Kanban() {
     setDeleting(false);
   };
 
+  const handleDuplicate = async (pedido) => {
+    const { id, created_date, updated_date, archivado, fecha_archivado, archivado_por, motivo_archivo, ...datos } = pedido;
+    const nuevo = { ...datos, titulo: `${pedido.titulo} (copia)`, archivado: false };
+    const creado = await base44.entities.Pedido.create(nuevo);
+    queryClient.setQueryData(QUERY_KEY, (prev = []) => [creado, ...prev]);
+    eventBus.emit('pedidoCreado', creado);
+    toast.success("Tarjeta duplicada correctamente");
+  };
+
   const handleConfidencial = async (motivo) => {
     if (!isAdmin || !confidencialTarget) return;
     setSavingConf(true);
@@ -373,8 +382,9 @@ export default function Kanban() {
                  status={estado}
                  pedidos={grouped[estado]}
                  onDelete={isAdmin ? setDeleteTarget : null}
-                 onArchive={isAdmin ? setArchiveTarget : null}
-                 onConfidencial={isAdmin ? setConfidencialTarget : null}
+                  onArchive={isAdmin ? setArchiveTarget : null}
+                  onConfidencial={isAdmin ? setConfidencialTarget : null}
+                  onDuplicate={handleDuplicate}
                  accentColor={colors.accent}
                  backgroundColor={isDark ? colors.dark : colors.background}
                />
