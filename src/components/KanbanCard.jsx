@@ -86,15 +86,15 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
       <div
         {...provided.dragHandleProps}
         onClick={e => e.stopPropagation()}
-        className="flex items-center justify-center w-full py-1 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-center w-full py-0.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors cursor-grab active:cursor-grabbing"
         aria-label="Arrastrar tarjeta"
       >
         <GripVertical className="h-3 w-3" />
       </div>
 
-      <div className="px-3 pb-3">
+      <div className="px-2.5 pb-2">
         {/* Title row */}
-        <div className="flex items-start gap-1.5 mb-2">
+        <div className="flex items-start gap-1.5 mb-1.5">
           <p className="text-[13px] font-medium text-foreground leading-snug line-clamp-2 flex-1">
             {pedido.titulo}
           </p>
@@ -103,7 +103,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Proceso chip */}
         {pedido.proceso && (
-          <span className="inline-block text-[10px] text-muted-foreground bg-secondary/80 dark:bg-muted/40 px-1.5 py-0.5 rounded mb-2 truncate max-w-full">
+          <span className="inline-block text-[10px] text-muted-foreground bg-secondary/80 dark:bg-muted/40 px-1.5 py-0.5 rounded mb-1.5 truncate max-w-full">
             {pedido.proceso}
           </span>
         )}
@@ -122,7 +122,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         </div>
 
         {/* Responsable + solicitante */}
-        <div className="flex items-center justify-between mt-2.5 gap-1">
+        <div className="flex items-center justify-between mt-2 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">
             {pedido.responsable ? (
               <>
