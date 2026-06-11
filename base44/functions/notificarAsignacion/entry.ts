@@ -30,6 +30,10 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Responsable sin email registrado' });
     }
 
+    if (responsable.recibe_notificaciones === false) {
+      return Response.json({ skipped: true, reason: 'Responsable ha desactivado las notificaciones' });
+    }
+
     // Construir el correo
     const fechaRequerida = pedido.fecha_requerida
       ? new Date(pedido.fecha_requerida + 'T12:00:00').toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })

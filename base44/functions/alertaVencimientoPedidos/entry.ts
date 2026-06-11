@@ -61,7 +61,12 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const email = emailMap[pedido.responsable?.trim()];
+      const responsableObj = responsables.find(r => r.nombre?.trim() === pedido.responsable?.split(' — ')[0]?.trim());
+      if (responsableObj?.recibe_notificaciones === false) {
+        omitidos++;
+        continue;
+      }
+      const email = emailMap[pedido.responsable?.split(' — ')[0]?.trim()];
       if (!email) {
         await base44.asServiceRole.entities.NotificacionLog.create({
           pedido_id: pedido.id,

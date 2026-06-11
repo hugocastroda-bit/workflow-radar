@@ -14,6 +14,7 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
     rol_funcion: "",
     email: "",
     activo: true,
+    recibe_notificaciones: true,
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -26,6 +27,7 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
         rol_funcion: responsable.rol_funcion || "",
         email: responsable.email || "",
         activo: responsable.activo !== false,
+        recibe_notificaciones: responsable.recibe_notificaciones !== false,
       });
       setErrors({});
     }
@@ -75,6 +77,7 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
         rol_funcion: form.rol_funcion || "",
         email: form.email.toLowerCase().trim(),
         activo: form.activo,
+        recibe_notificaciones: form.recibe_notificaciones,
       };
 
       console.log("[ResponsableEditModal] Updating responsable:", {
@@ -109,6 +112,7 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
       rol_funcion: "",
       email: "",
       activo: true,
+      recibe_notificaciones: true,
     });
     setErrors({});
     onClose();
@@ -217,6 +221,30 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
                 />
                 <span className="text-xs text-foreground">Inactivo</span>
               </label>
+            </div>
+          </div>
+
+          {/* Notificaciones */}
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground">
+              Notificaciones por correo
+            </Label>
+            <div className="flex items-center justify-between mt-2 px-3 py-2.5 rounded-lg border border-border bg-secondary/40">
+              <span className="text-xs text-foreground">
+                {form.recibe_notificaciones ? "Activas — recibirá alertas de pedidos" : "Desactivadas — no recibirá correos"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, recibe_notificaciones: !f.recibe_notificaciones }))}
+                disabled={saving}
+                className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                  form.recibe_notificaciones ? "bg-primary" : "bg-slate-300 dark:bg-slate-600"
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
+                  form.recibe_notificaciones ? "translate-x-4" : "translate-x-0"
+                }`} />
+              </button>
             </div>
           </div>
 

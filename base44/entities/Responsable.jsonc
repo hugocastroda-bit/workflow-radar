@@ -18,6 +18,11 @@
       "type": "boolean",
       "title": "Activo",
       "default": true
+    },
+    "recibe_notificaciones": {
+      "type": "boolean",
+      "title": "Recibe notificaciones por correo",
+      "default": true
     }
   },
   "required": [
