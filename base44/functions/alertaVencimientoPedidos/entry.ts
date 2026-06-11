@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     const responsables = await base44.asServiceRole.entities.Responsable.list();
     const emailMap = {};
     for (const r of responsables) {
-      if (r.nombre && r.email) emailMap[r.nombre.trim()] = r.email;
+      if (r.nombre && r.email) emailMap[r.nombre.trim().toUpperCase()] = r.email;
     }
 
     // Cargar logs de hoy para evitar duplicar notificaciones ya enviadas hoy
@@ -61,12 +61,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const responsableObj = responsables.find(r => r.nombre?.trim() === pedido.responsable?.split(' — ')[0]?.trim());
+      const nombreNorm = pedido.responsable?.split(' — ')[0]?.trim()?.toUpperCase();
+      const responsableObj = responsables.find(r => r.nombre?.trim()?.toUpperCase() === nombreNorm);
       if (responsableObj?.recibe_notificaciones === false) {
         omitidos++;
         continue;
       }
-      const email = emailMap[pedido.responsable?.split(' — ')[0]?.trim()];
+      const email = emailMap[nombreNorm];
       if (!email) {
         await base44.asServiceRole.entities.NotificacionLog.create({
           pedido_id: pedido.id,

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -20,11 +20,13 @@ Deno.serve(async (req) => {
     }
 
     // Normalizar nombre: quitar " — email" si viene en formato compuesto
-    const nombreResponsable = pedido.responsable?.split(' — ')[0]?.trim();
+    const nombreResponsable = pedido.responsable?.split(' — ')[0]?.trim()?.toUpperCase();
 
-    // Buscar el email del responsable
-    const responsables = await base44.asServiceRole.entities.Responsable.filter({ nombre: nombreResponsable });
-    const responsable = responsables[0];
+    // Buscar el responsable con comparación insensible a mayúsculas
+    const todosResponsables = await base44.asServiceRole.entities.Responsable.list();
+    const responsable = todosResponsables.find(r =>
+      r.nombre?.trim()?.toUpperCase() === nombreResponsable
+    );
 
     if (!responsable?.email) {
       return Response.json({ skipped: true, reason: 'Responsable sin email registrado' });
