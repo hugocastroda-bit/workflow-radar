@@ -215,6 +215,24 @@ export default function Bandeja() {
     setSavingConf(false);
   };
 
+  const [updatingEstado, setUpdatingEstado] = useState(null); // pedido id en proceso
+
+  const handleChangeEstado = async (pedidoId, nuevoEstado) => {
+    setUpdatingEstado(pedidoId);
+    try {
+      const datos = { estado: nuevoEstado };
+      if (nuevoEstado === "Cerrado") datos.fecha_cierre_real = new Date().toISOString().split("T")[0];
+      const updated = await base44.entities.Pedido.update(pedidoId, datos);
+      setPedidos(prev => prev.map(p => p.id === pedidoId ? { ...p, ...datos } : p));
+      eventBus.emit('pedidoActualizado', updated);
+      toast.success(`Estado actualizado a "${nuevoEstado}"`);
+    } catch (err) {
+      console.error("[Bandeja] Error cambiando estado:", err);
+      toast.error("No se pudo actualizar el estado.");
+    }
+    setUpdatingEstado(null);
+  };
+
   const [exporting, setExporting] = useState(false);
 
   const exportToExcel = async () => {
@@ -458,7 +476,26 @@ export default function Bandeja() {
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
                     <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
-                    <td className="px-4 py-3"><StatusBadge status={p.estado} /></td>
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <Select
+                        value={p.estado}
+                        onValueChange={v => handleChangeEstado(p.id, v)}
+                        disabled={updatingEstado === p.id}
+                      >
+                        <SelectTrigger className="h-auto p-0 border-0 bg-transparent shadow-none focus:ring-0 w-auto gap-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground/50">
+                          <SelectValue>
+                            <StatusBadge status={p.estado} />
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ESTADOS.map(e => (
+                            <SelectItem key={e} value={e} className="text-xs">
+                              <StatusBadge status={e} />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
                     <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
                     <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
                     <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
