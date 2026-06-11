@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext } from "@hello-pangea/dnd";
 import KanbanColumn from "../components/KanbanColumn";
-import { Loader2, X, Search } from "lucide-react";
+import { Loader2, X, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
@@ -50,6 +50,22 @@ export default function Kanban() {
   const isAdmin = user?.role === "admin";
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 8);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  };
+
+  const scroll = (dir) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 260, behavior: "smooth" });
+  };
 
   // ── React Query: carga de pedidos ───────────────────────────────
   const { data: pedidosRaw = [], isLoading: loading } = useQuery({
@@ -250,6 +266,10 @@ export default function Kanban() {
     return acc;
   }, {});
 
+  useEffect(() => {
+    checkScroll();
+  }, [pedidos]);
+
   const activeCount = pedidos.filter(p => p.estado !== "Cerrado").length;
 
   if (loading) return (
@@ -327,23 +347,51 @@ export default function Kanban() {
 
       {/* Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-6 -mx-1 px-1">
-          {ESTADOS.map(estado => {
-           const colors = STAGE_COLORS[estado];
-           return (
-             <KanbanColumn
-               key={estado}
-               status={estado}
-               pedidos={grouped[estado]}
-               onDelete={isAdmin ? setDeleteTarget : null}
-               onArchive={isAdmin ? setArchiveTarget : null}
-               onConfidencial={isAdmin ? setConfidencialTarget : null}
-               accentColor={colors.accent}
-               backgroundColor={isDark ? colors.dark : colors.background}
-             />
-           );
-          })}
+        <div className="relative">
+          {/* Botón izquierdo */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scroll(-1)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-3 bg-card border border-border shadow-md rounded-full w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-all"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+
+          <div
+            ref={scrollRef}
+            onScroll={checkScroll}
+            className="flex gap-3 overflow-x-auto pb-6 -mx-1 px-1 scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            onMouseEnter={checkScroll}
+          >
+            {ESTADOS.map(estado => {
+             const colors = STAGE_COLORS[estado];
+             return (
+               <KanbanColumn
+                 key={estado}
+                 status={estado}
+                 pedidos={grouped[estado]}
+                 onDelete={isAdmin ? setDeleteTarget : null}
+                 onArchive={isAdmin ? setArchiveTarget : null}
+                 onConfidencial={isAdmin ? setConfidencialTarget : null}
+                 accentColor={colors.accent}
+                 backgroundColor={isDark ? colors.dark : colors.background}
+               />
+             );
+            })}
           </div>
+
+          {/* Botón derecho */}
+          {canScrollRight && (
+            <button
+              onClick={() => scroll(1)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-3 bg-card border border-border shadow-md rounded-full w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-all"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </DragDropContext>
 
       <ConfirmArchivarModal
