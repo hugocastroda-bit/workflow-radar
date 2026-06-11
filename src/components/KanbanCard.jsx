@@ -86,10 +86,12 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
       <div
         {...provided.dragHandleProps}
         onClick={e => e.stopPropagation()}
-        className="flex items-center justify-center w-full py-0.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-center gap-1 w-full py-1 text-muted-foreground/25 group-hover:text-muted-foreground/55 transition-colors cursor-grab active:cursor-grabbing"
         aria-label="Arrastrar tarjeta"
       >
-        <GripVertical className="h-3 w-3" />
+        <GripVertical className="h-3.5 w-3.5" />
+        <span className="text-[9px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity font-medium">arrastrar</span>
+        <GripVertical className="h-3.5 w-3.5" />
       </div>
 
       <div className="px-2.5 pb-2">

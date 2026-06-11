@@ -327,7 +327,7 @@ export default function Kanban() {
 
       {/* Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-6">
+        <div className="flex gap-3 overflow-x-auto pb-6 -mx-1 px-1">
           {ESTADOS.map(estado => {
            const colors = STAGE_COLORS[estado];
            return (

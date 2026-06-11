@@ -3,7 +3,7 @@ import KanbanCard from "./KanbanCard";
 
 export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onConfidencial, accentColor, backgroundColor }) {
   return (
-    <div className="flex-shrink-0 w-[268px] flex flex-col" style={{ maxHeight: "calc(100dvh - 160px)" }}>
+    <div className="flex-shrink-0 w-[240px] flex flex-col" style={{ maxHeight: "calc(100dvh - 160px)" }}>
       {/* Column header */}
       <div
         className="flex items-center justify-between mb-2 px-3 py-2 rounded-lg no-select"
@@ -39,6 +39,12 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
               outline: snapshot.isDraggingOver ? `2px dashed ${accentColor}55` : "2px solid transparent",
             }}
           >
+            {pedidos.length === 0 && !snapshot.isDraggingOver && (
+              <div className="flex flex-col items-center justify-center py-8 opacity-40 select-none">
+                <div className="w-8 h-8 rounded-lg border-2 border-dashed mb-2" style={{ borderColor: accentColor }} />
+                <span className="text-[10px] text-muted-foreground">Arrastra aquí</span>
+              </div>
+            )}
             {pedidos.map((pedido, index) => (
               <Draggable key={pedido.id} draggableId={pedido.id} index={index}>
                 {(provided, snapshot) => (
