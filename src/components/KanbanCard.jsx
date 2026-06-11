@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock } from "lucide-react";
+import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock, Copy, Check } from "lucide-react";
+import { useState } from "react";
 import PriorityBadge from "./PriorityBadge";
 import ConfidencialBadge from "./ConfidencialBadge";
 
@@ -44,10 +45,28 @@ function Iniciales({ nombre }) {
   );
 }
 
-export default function KanbanCard({ pedido, provided, isDragging, onDelete, onArchive, onConfidencial }) {
+export default function KanbanCard({ pedido, provided, isDragging, onDelete, onArchive, onConfidencial, onCopy }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    const lines = [
+      `📋 ${pedido.titulo}`,
+      pedido.proceso ? `Proceso: ${pedido.proceso}` : null,
+      pedido.solicitante ? `Solicitante: ${pedido.solicitante}` : null,
+      pedido.responsable ? `Responsable: ${pedido.responsable}` : null,
+      pedido.prioridad ? `Prioridad: ${pedido.prioridad}` : null,
+      pedido.estado ? `Estado: ${pedido.estado}` : null,
+      pedido.fecha_requerida ? `Fecha requerida: ${pedido.fecha_requerida}` : null,
+      pedido.descripcion ? `\n${pedido.descripcion}` : null,
+    ].filter(Boolean).join("\n");
+    navigator.clipboard.writeText(lines);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const today = new Date().toISOString().split("T")[0];
   const isOverdue = pedido.fecha_requerida && pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
@@ -154,9 +173,17 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           </span>
         )}
 
-        {/* Admin actions — hidden by default, visible on hover */}
-        {isAdmin && (onDelete || onArchive || onConfidencial) && (
+        {/* Actions — hidden by default, visible on hover */}
+        {(onCopy || (isAdmin && (onDelete || onArchive || onConfidencial))) && (
           <div className="flex justify-end mt-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            <button
+              onClick={handleCopy}
+              className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              aria-label="Copiar resumen de tarjeta"
+              title="Copiar"
+            >
+              {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
+            </button>
             {onConfidencial && (
               <button
                 onClick={e => { e.stopPropagation(); onConfidencial({ id: pedido.id, marcar: !pedido.confidencial }); }}
