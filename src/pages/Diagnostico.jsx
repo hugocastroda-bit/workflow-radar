@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button";
 
 function StatusRow({ label, value, ok }) {
   const icon = ok === true
-    ? <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+    ? <CheckCircle className="h-3.5 w-3.5 text-success flex-shrink-0" />
     : ok === false
-    ? <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+    ? <XCircle className="h-3.5 w-3.5 text-alert flex-shrink-0" />
     : null;
   return (
-    <div className="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0">
+    <div className="flex items-start gap-2 py-1.5 border-b border-border last:border-0">
       {icon && <div className="mt-0.5">{icon}</div>}
       <div className="flex-1 min-w-0">
-        <span className="text-xs font-medium text-slate-500">{label}: </span>
-        <span className="text-xs text-slate-800 break-all">{value ?? "—"}</span>
+        <span className="text-xs font-medium text-muted-foreground">{label}: </span>
+        <span className="text-xs text-foreground break-all">{value ?? "—"}</span>
       </div>
     </div>
   );
@@ -23,9 +23,9 @@ function StatusRow({ label, value, ok }) {
 
 function Section({ title, children }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{title}</p>
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="px-4 py-2.5 bg-secondary border-b border-border">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
       </div>
       <div className="px-4 py-1">{children}</div>
     </div>
@@ -110,8 +110,8 @@ export default function Diagnostico() {
   if (!isAdmin) {
     return (
       <div className="p-8 flex flex-col items-center justify-center py-24 gap-3">
-        <ShieldOff className="h-8 w-8 text-slate-300" />
-        <p className="text-sm font-medium text-slate-600">Solo los administradores pueden acceder al diagnóstico.</p>
+        <ShieldOff className="h-8 w-8 text-muted-foreground/30" />
+        <p className="text-sm font-medium text-muted-foreground">Solo los administradores pueden acceder al diagnóstico.</p>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export default function Diagnostico() {
     <div className="p-8 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-800">Diagnóstico del sistema</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Estado general de la aplicación.</p>
+          <h1 className="text-lg font-semibold text-foreground">Diagnóstico del sistema</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Estado general de la aplicación.</p>
         </div>
         <Button size="sm" variant="outline" onClick={runDiag} disabled={loading} className="gap-1.5 text-xs">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Actualizar
@@ -130,17 +130,17 @@ export default function Diagnostico() {
 
       {loading && (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {data && !loading && (
         <div className="space-y-4">
           {data.errors?.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-red-700">Errores detectados</p>
+            <div className="bg-alert/10 border border-alert/30 rounded-lg px-4 py-3 space-y-1">
+              <p className="text-xs font-semibold text-alert">Errores detectados</p>
               {data.errors.map((e, i) => (
-                <p key={i} className="text-xs text-red-600">{e}</p>
+                <p key={i} className="text-xs text-alert">{e}</p>
               ))}
             </div>
           )}
@@ -164,7 +164,7 @@ export default function Diagnostico() {
             <StatusRow label="Archivados" value={data.pedidosArchivados} />
           </Section>
 
-          <p className="text-xs text-slate-400 text-right">Actualizado: {data.timestamp}</p>
+          <p className="text-xs text-muted-foreground text-right">Actualizado: {data.timestamp}</p>
         </div>
       )}
     </div>

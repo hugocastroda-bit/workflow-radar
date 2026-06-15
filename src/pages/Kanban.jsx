@@ -354,9 +354,8 @@ export default function Kanban() {
 
       {/* ── Cards resumen ──────────────────────────────── */}
       {(() => {
-        const today = new Date().toISOString().split("T")[0];
         const activos = pedidos.filter(p => p.estado !== "Cerrado").length;
-        const vencidos = pedidos.filter(p => p.fecha_requerida < today && p.estado !== "Cerrado").length;
+        const vencidos = pedidos.filter(p => p.fecha_requerida < todayKanban && p.estado !== "Cerrado").length;
         const bloqueados = pedidos.filter(p => p.estado === "Bloqueado").length;
         const sinResponsable = pedidos.filter(p => !p.responsable).length;
         const fueraTimeBox = pedidos.filter(p => p.horasEstimadas != null && p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas).length;
