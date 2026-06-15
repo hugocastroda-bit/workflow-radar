@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
@@ -429,7 +430,18 @@ export default function Bandeja() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
                       <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
-                      {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
+                      {(() => { const sla = calcSLA(p); return sla && (
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 cursor-default ${slaColors[sla.type]}`} />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p>{sla.label}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ); })()}
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                     {ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 && (
@@ -515,7 +527,18 @@ export default function Bandeja() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
                         <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
-                        {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
+                        {(() => { const sla = calcSLA(p); return sla && (
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 cursor-default ${slaColors[sla.type]}`} />
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                <p>{sla.label}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ); })()}
                         {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
                       {(() => {
