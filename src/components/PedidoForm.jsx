@@ -47,12 +47,19 @@ async function loadCatalogs(forceRefresh = false) {
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
+const COMPLEJIDAD_HORAS = {
+  "Alta|Simple": 2, "Alta|Media": 4, "Alta|Alta": 8,
+  "Media|Simple": 1, "Media|Media": 3, "Media|Alta": 6,
+  "Baja|Simple": 0.5, "Baja|Media": 2, "Baja|Alta": 4,
+};
+
 const emptyForm = {
   titulo: "", descripcion: "", solicitante: "", proceso: "",
-  prioridad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
+  prioridad: "", complejidad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
   proxima_accion: "", motivo_bloqueo: "", comentarios_avance: "",
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
   confidencial: false,
+  horasEstimadas: null, horasReales: null, fechaCompromiso: "",
 };
 
 
@@ -107,6 +114,14 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
       if (field === "estado" && value === "Cerrado" && !prev.fecha_cierre_real) {
         updated.fecha_cierre_real = new Date().toISOString().split("T")[0];
       }
+      // Auto-suggest horasEstimadas when priority or complejidad change
+      if (field === "prioridad" || field === "complejidad") {
+        const p = field === "prioridad" ? value : prev.prioridad;
+        const c = field === "complejidad" ? value : prev.complejidad;
+        if (p && c) {
+          updated.horasEstimadas = COMPLEJIDAD_HORAS[`${p}|${c}`] ?? prev.horasEstimadas;
+        }
+      }
       return updated;
     });
   };
@@ -118,6 +133,10 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     if (!data.responsable) delete data.responsable;
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
+    if (!data.complejidad) delete data.complejidad;
+    if (data.horasEstimadas == null) delete data.horasEstimadas;
+    if (data.horasReales == null) delete data.horasReales;
+    if (!data.fechaCompromiso) delete data.fechaCompromiso;
 
     const timeout = setTimeout(() => {
       setSaving(false);
@@ -203,6 +222,11 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 value={form.prioridad} onChange={v => handleChange("prioridad", v)}
                 options={prioridadOpts} placeholder="Seleccionar"
               />
+              <SearchableSelect
+                label="Complejidad"
+                value={form.complejidad || ""} onChange={v => handleChange("complejidad", v)}
+                options={["Simple", "Media", "Alta"]} placeholder="Opcional"
+              />
               {pedido && (
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
@@ -212,6 +236,45 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                   />
                 </div>
               )}
+            </div>
+            {/* Horas estimadas + Fecha compromiso */}
+            <div className="grid gap-3 grid-cols-2">
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Horas estimadas</Label>
+                {isAdmin ? (
+                  <Input
+                    type="number" step="0.5" min="0"
+                    value={form.horasEstimadas != null ? form.horasEstimadas : ""}
+                    onChange={e => handleChange("horasEstimadas", e.target.value === "" ? null : parseFloat(e.target.value))}
+                    className="mt-1"
+                    placeholder={form.prioridad && form.complejidad ? `${COMPLEJIDAD_HORAS[form.prioridad + "|" + form.complejidad] || "—"}h` : "Sin estimación"}
+                  />
+                ) : (
+                  <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
+                    {form.horasEstimadas != null ? `${form.horasEstimadas}h` :
+                     form.prioridad && form.complejidad ? `${COMPLEJIDAD_HORAS[form.prioridad + "|" + form.complejidad] || "—"}h (sugerido)` :
+                     "Sin estimación"}
+                  </div>
+                )}
+              </div>
+              {isAdmin ? (
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso</Label>
+                  <Input
+                    type="date"
+                    value={form.fechaCompromiso || ""}
+                    onChange={e => handleChange("fechaCompromiso", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              ) : form.fechaCompromiso ? (
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso</Label>
+                  <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
+                    {form.fechaCompromiso}
+                  </div>
+                </div>
+              ) : null}
             </div>
             {!pedido && (
             <div className="flex items-center gap-2 mt-1">

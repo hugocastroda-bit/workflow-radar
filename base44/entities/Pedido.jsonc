@@ -27,6 +27,15 @@
         "Baja"
       ]
     },
+    "complejidad": {
+      "type": "string",
+      "title": "Complejidad",
+      "enum": [
+        "Simple",
+        "Media",
+        "Alta"
+      ]
+    },
     "fecha_requerida": {
       "type": "string",
       "format": "date",
