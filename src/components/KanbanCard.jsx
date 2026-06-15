@@ -164,11 +164,11 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         )}
 
         {/* Última actualización */}
-        <div className={`flex items-center gap-1 mt-1.5 ${
-          tiempoDesde.level === "alert" ? "text-alert/75" : tiempoDesde.level === "warn" ? "text-warning/75" : "text-muted-foreground/55"
+        <div className={`flex items-center gap-0.5 mt-1.5 ${
+          tiempoDesde.level === "alert" ? "text-alert/40" : tiempoDesde.level === "warn" ? "text-warning/40" : "text-muted-foreground/30"
         }`}>
-          <History className="h-2 w-2 flex-shrink-0" />
-          <span className="text-[9px]">{tiempoDesde.label}</span>
+          <History className="h-1.5 w-1.5 flex-shrink-0" />
+          <span className="text-[8px]">{tiempoDesde.label}</span>
         </div>
 
         {/* Responsable + solicitante */}
