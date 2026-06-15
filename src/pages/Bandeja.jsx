@@ -81,6 +81,24 @@ export default function Bandeja() {
   const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
   const calcDiasEstancado = (p) =>
     Math.floor((Date.now() - new Date(p.updated_date || p.created_date)) / 86400000);
+
+  const calcTiempoDesde = (p) => {
+    const ms = Date.now() - new Date(p.updated_date || p.created_date);
+    const mins = Math.floor(ms / 60000);
+    const hours = Math.floor(ms / 3600000);
+    const days = Math.floor(ms / 86400000);
+    if (mins < 1) return "Ahora";
+    if (mins < 60) return `Hace ${mins} min`;
+    if (hours < 24) return `Hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+    return `Hace ${days} ${days === 1 ? "día" : "días"}`;
+  };
+
+  const colorAntiguedad = (p) => {
+    const days = Math.floor((Date.now() - new Date(p.updated_date || p.created_date)) / 86400000);
+    if (days > 14) return "text-alert font-medium";
+    if (days > 7) return "text-warning font-medium";
+    return "text-muted-foreground";
+  };
   const isVencidoFilter = new URLSearchParams(location.search).get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
@@ -410,6 +428,7 @@ export default function Bandeja() {
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[95px]">Proceso</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Fecha req.</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Time Box</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[105px]">Última actualización</th>
                 {isAdmin && <th className="px-3 py-3 w-[56px]" />}
               </tr>
             </thead>
@@ -478,6 +497,9 @@ export default function Bandeja() {
                       ) : (
                         <span className="text-[11px] text-muted-foreground/50">—</span>
                       )}
+                    </td>
+                    <td className={`px-3 py-3 whitespace-nowrap text-[11px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
+                      {calcTiempoDesde(p)}
                     </td>
                     {isAdmin && (
                       <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
