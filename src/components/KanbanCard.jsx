@@ -95,7 +95,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         <GripVertical className="h-3.5 w-3.5" />
       </div>
 
-      <div className="px-2.5 pb-2">
+      <div className="px-3 pb-2.5">
         {/* Title row */}
         <div className="flex items-start gap-1.5 mb-1.5">
           <p className="text-[13px] font-medium text-foreground leading-snug line-clamp-2 flex-1">
@@ -106,7 +106,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Proceso chip */}
         {pedido.proceso && (
-          <span className="inline-block text-[10px] text-muted-foreground bg-secondary/80 dark:bg-muted/40 px-1.5 py-0.5 rounded mb-1.5 truncate max-w-full">
+          <span className="inline-block text-[10px] text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded mb-1.5 truncate max-w-full">
             {pedido.proceso}
           </span>
         )}
@@ -143,7 +143,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         )}
 
         {/* Responsable + solicitante */}
-        <div className="flex items-center justify-between mt-1.5 gap-1">
+        <div className="flex items-center justify-between mt-2 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">
             {pedido.responsable ? (
               <>
@@ -165,7 +165,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Aging warning */}
         {isAging && (
-          <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
+          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded border
             bg-warning/10 text-warning border-warning/30
             dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200]">
             <AlertCircle className="h-2.5 w-2.5" />
@@ -175,7 +175,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Actions — hidden by default, visible on hover */}
         {(onDuplicate || (isAdmin && (onDelete || onArchive || onConfidencial))) && (
-          <div className="flex justify-end mt-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="flex justify-end mt-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             {onDuplicate && (
               <button
                 onClick={e => { e.stopPropagation(); onDuplicate(pedido); }}

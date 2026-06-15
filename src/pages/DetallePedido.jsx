@@ -303,10 +303,10 @@ export default function DetallePedido() {
   if (!canVerConfidencial(pedido, user)) {
     return (
       <div className="p-8 max-w-xl mx-auto flex flex-col items-center justify-center h-64 gap-3 text-center">
-        <Lock className="h-8 w-8 text-slate-300" />
-        <p className="text-sm font-medium text-slate-600">No tienes permisos para acceder a este pedido.</p>
-        <p className="text-xs text-slate-400">Este pedido es confidencial y solo está disponible para usuarios autorizados.</p>
-        <button onClick={() => navigate(-1)} className="text-xs text-slate-500 underline mt-2">Volver</button>
+        <Lock className="h-8 w-8 text-muted-foreground/30" />
+        <p className="text-sm font-medium text-foreground">No tienes permisos para acceder a este pedido.</p>
+        <p className="text-xs text-muted-foreground">Este pedido es confidencial y solo está disponible para usuarios autorizados.</p>
+        <button onClick={() => navigate(-1)} className="text-xs text-primary underline mt-2">Volver</button>
       </div>
     );
   }
@@ -387,22 +387,22 @@ export default function DetallePedido() {
             <div className="flex flex-col items-end gap-1.5">
               {isArchived ? (
                 <button onClick={() => setShowRestore(true)}
-                  className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors">
+                  className="flex items-center gap-1 text-xs text-success hover:opacity-80 transition-colors">
                   <ArchiveRestore className="h-3 w-3" /> Restaurar pedido
                 </button>
               ) : (
                 <button onClick={() => setShowArchive(true)}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors">
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                   <Archive className="h-3 w-3" /> Archivar pedido
                 </button>
               )}
               <button onClick={() => setShowConfidencial(true)}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 transition-colors">
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
                 {pedido.confidencial ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                 {pedido.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}
               </button>
               <button onClick={() => setShowDelete(true)}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors">
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-alert transition-colors">
                 <Trash2 className="h-3 w-3" /> Borrar pedido
               </button>
             </div>
@@ -771,11 +771,11 @@ export default function DetallePedido() {
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold">Restaurar pedido</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600">¿Deseas restaurar este pedido? Volverá a aparecer en la Bandeja y en el Kanban.</p>
+          <p className="text-sm text-muted-foreground">¿Deseas restaurar este pedido? Volverá a aparecer en la Bandeja y en el Kanban.</p>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" size="sm" onClick={() => setShowRestore(false)} disabled={restoring}>Cancelar</Button>
             <Button size="sm" onClick={handleRestore} disabled={restoring}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white">
+              className="bg-success hover:bg-success/90 text-white">
               {restoring ? "Restaurando…" : "Sí, restaurar pedido"}
             </Button>
           </div>

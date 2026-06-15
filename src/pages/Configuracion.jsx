@@ -92,7 +92,7 @@ function NotificacionesTab() {
     setSaving(false);
   };
 
-  if (!config) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-slate-400" /></div>;
+  if (!config) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
 
   const items = [
     { key: "notif_asignado", label: "Nuevo pedido asignado", desc: "Envía correo al responsable cuando se le asigna un pedido" },
@@ -103,19 +103,19 @@ function NotificacionesTab() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-400">Los correos se envían usando el servicio transaccional de Base44. Asegúrate de registrar el correo de cada responsable y solicitante en sus respectivas pestañas.</p>
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <p className="text-xs text-muted-foreground">Los correos se envían usando el servicio transaccional de Base44. Asegúrate de registrar el correo de cada responsable y solicitante en sus respectivas pestañas.</p>
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         {items.map((item, i) => (
-          <div key={item.key} className={`flex items-start justify-between gap-4 px-5 py-4 ${i < items.length - 1 ? "border-b border-slate-100" : ""}` }>
+          <div key={item.key} className={`flex items-start justify-between gap-4 px-5 py-4 ${i < items.length - 1 ? "border-b border-border" : ""}` }>
             <div>
-              <p className="text-sm font-medium text-slate-700">{item.label}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
+              <p className="text-sm font-medium text-foreground">{item.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
             </div>
             <button
               onClick={() => toggle(item.key)}
               disabled={saving}
               className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-                config[item.key] ? "bg-slate-800" : "bg-slate-200"
+                config[item.key] ? "bg-primary" : "bg-secondary"
               }`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
@@ -506,16 +506,16 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
     <div className="space-y-4">
       {entityKey === "Responsable" && (
         <div className="space-y-3">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-            <p className="text-xs font-medium text-blue-900">Sincronizar Usuarios</p>
-            <p className="text-xs text-blue-700">Crea automáticamente Responsables para todos los usuarios del sistema. No crea duplicados.</p>
-            <Button size="sm" onClick={handleSync} disabled={syncing} className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700">
+          <div className="bg-accent border border-primary/20 rounded-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-primary">Sincronizar Usuarios</p>
+            <p className="text-xs text-muted-foreground">Crea automáticamente Responsables para todos los usuarios del sistema. No crea duplicados.</p>
+            <Button size="sm" onClick={handleSync} disabled={syncing} className="gap-1.5 text-xs">
               {syncing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Ejecutar sincronización"}
             </Button>
             {syncResult && (
-              <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
+              <div className="bg-card border border-border rounded p-2 mt-2 space-y-1 text-xs">
                 <p><strong>Resultado:</strong></p>
-                <ul className="ml-3 space-y-0.5 list-disc text-blue-700">
+                <ul className="ml-3 space-y-0.5 list-disc text-muted-foreground">
                   <li>Usuarios revisados: {syncResult.usuariosRevisados}</li>
                   <li>Responsables creados: {syncResult.responsablesCreados}</li>
                   <li>Responsables actualizados: {syncResult.responsablesActualizados}</li>
@@ -524,16 +524,16 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
             )}
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-            <p className="text-xs font-medium text-amber-900">Limpiar Duplicados</p>
-            <p className="text-xs text-amber-700">Detecta y consolida Responsables duplicados (mismo correo). Redirige pedidos y elimina o inactiva duplicados.</p>
-            <Button size="sm" onClick={handleCleanupDuplicates} disabled={cleanupLoading} className="gap-1.5 text-xs bg-amber-600 hover:bg-amber-700">
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-warning">Limpiar Duplicados</p>
+            <p className="text-xs text-muted-foreground">Detecta y consolida Responsables duplicados (mismo correo). Redirige pedidos y elimina o inactiva duplicados.</p>
+            <Button size="sm" onClick={handleCleanupDuplicates} disabled={cleanupLoading} className="gap-1.5 text-xs">
               {cleanupLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Limpiar duplicados"}
             </Button>
             {cleanupResult && (
-              <div className="bg-white rounded p-2 mt-2 space-y-1 text-xs">
+              <div className="bg-card border border-border rounded p-2 mt-2 space-y-1 text-xs">
                 <p><strong>Resultado:</strong></p>
-                <ul className="ml-3 space-y-0.5 list-disc text-amber-700">
+                <ul className="ml-3 space-y-0.5 list-disc text-muted-foreground">
                   <li>Revisados: {cleanupResult.responsablesRevisados}</li>
                   <li>Duplicados encontrados: {cleanupResult.duplicadosEncontrados}</li>
                   <li>Eliminados: {cleanupResult.duplicadosEliminados}</li>
@@ -721,7 +721,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
                         {item[extraField2] ? (
                           <div className="flex flex-col text-xs">
                             <span>{item[extraField2]}</span>
-                            {item.usuarioId && <span className="text-slate-300 text-[10px]">vinculado</span>}
+                            {item.usuarioId && <span className="text-muted-foreground/50 text-[10px]">vinculado</span>}
                           </div>
                         ) : (
                           <span className="text-warning">Sin correo</span>

@@ -320,11 +320,11 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-5">
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Torre de control de carga y capacidad</p>
+        <p className="text-xs text-muted-foreground mt-1">Torre de control de carga y capacidad</p>
       </div>
 
       {/* Dashboard Filters */}
