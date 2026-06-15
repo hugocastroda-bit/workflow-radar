@@ -399,18 +399,18 @@ export default function Bandeja() {
       {/* Desktop table */}
       {filtered.length > 0 && (
         <div className="hidden md:block bg-card border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs table-fixed">
             <thead>
               <tr className="border-b border-border bg-secondary">
                 <th className="text-left px-5 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Título</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Solicitante</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Responsable</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Estado</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prioridad</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Proceso</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Fecha req.</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Time Box</th>
-                {isAdmin && <th className="px-4 py-3" />}
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[110px]">Solicitante</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[110px]">Responsable</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[105px]">Estado</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[80px]">Prioridad</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[95px]">Proceso</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Fecha req.</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Time Box</th>
+                {isAdmin && <th className="px-3 py-3 w-[56px]" />}
               </tr>
             </thead>
             <tbody>
@@ -421,9 +421,9 @@ export default function Bandeja() {
                     className={`border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/40 transition-colors ${isOverdue ? "bg-alert/5" : ""}`}
                   >
                     <td className="px-5 py-3">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
-                        <span className="font-medium text-foreground truncate max-w-[200px]">{p.titulo}</span>
+                        <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
                         {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
                       {(() => {
@@ -437,9 +437,9 @@ export default function Bandeja() {
                         ) : null;
                       })()}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.solicitante}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.responsable || "—"}</td>
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.solicitante || ""}>{p.solicitante}</td>
+                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.responsable || ""}>{p.responsable || "—"}</td>
+                    <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                       <Select
                         value={p.estado}
                         onValueChange={v => handleChangeEstado(p.id, v)}
@@ -459,10 +459,10 @@ export default function Bandeja() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
-                    <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3"><PriorityBadge priority={p.prioridad} /></td>
+                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
+                    <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
+                    <td className="px-3 py-3">
                       {p.horasEstimadas != null ? (
                         <span className={`text-[11px] font-medium ${
                           p.horasReales != null && p.horasEstimadas > 0
@@ -480,7 +480,7 @@ export default function Bandeja() {
                       )}
                     </td>
                     {isAdmin && (
-                      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-1">
                           <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label={p.confidencial ? "Quitar confidencialidad" : "Marcar como confidencial"}>
                             {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
