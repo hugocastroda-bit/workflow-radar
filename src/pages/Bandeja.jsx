@@ -508,12 +508,12 @@ export default function Bandeja() {
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[110px]">Solicitante</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[110px]">Responsable</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[105px]">Estado</th>
-                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[80px]">Prioridad</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[92px]">Prioridad</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[95px]">Proceso</th>
-                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Fecha req.</th>
-                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Time Box</th>
-                <th className="text-left px-3 py-3 text-muted-foreground/60 uppercase tracking-wider text-[11px] w-[105px]">Última actualización</th>
-                <th className="px-2 py-3 w-[100px] text-center text-muted-foreground uppercase tracking-wider text-[11px] font-medium">Acciones</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[95px]">Fecha req.</th>
+                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[108px]">Time Box</th>
+                <th className="text-left px-3 py-3 text-muted-foreground/60 uppercase tracking-wider text-[11px] w-[112px]">Última actualización</th>
+                <th className="px-2 py-3 w-[112px] text-center text-muted-foreground uppercase tracking-wider text-[11px] font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -523,10 +523,17 @@ export default function Bandeja() {
                   <tr key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
                     className={`border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/40 transition-colors ${isOverdue ? "bg-alert/5" : ""}`}
                   >
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
-                        <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="font-medium text-foreground truncate">{p.titulo}</span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top"><p className="max-w-[300px] truncate">{p.titulo}</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {(() => { const sla = calcSLA(p); return sla && (
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
@@ -552,9 +559,27 @@ export default function Bandeja() {
                         ) : null;
                       })()}
                     </td>
-                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.solicitante || ""}>{p.solicitante}</td>
-                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.responsable || ""}>{p.responsable || "—"}</td>
-                    <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
+                    <td className="px-3 py-3.5">
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-muted-foreground truncate block">{p.solicitante || ""}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top"><p>{p.solicitante || ""}</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </td>
+                    <td className="px-3 py-3.5">
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-muted-foreground truncate block">{p.responsable || "—"}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top"><p>{p.responsable || "Sin responsable"}</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </td>
+                    <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <Select
                         value={p.estado}
                         onValueChange={v => handleChangeEstado(p.id, v)}
@@ -574,15 +599,24 @@ export default function Bandeja() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-1">
+                    <td className="px-3 py-3.5">
+                      <div className="flex items-center gap-1.5">
                         <PriorityBadge priority={p.prioridad} />
                         {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
-                    <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-3.5">
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-muted-foreground truncate block">{p.proceso || ""}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top"><p>{p.proceso || ""}</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </td>
+                    <td className={`px-3 py-3.5 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
+                    <td className="px-3 py-3.5">
                      {p.horasEstimadas != null && p.horasEstimadas > 0 ? (() => {
                        const minsEst = Math.round(p.horasEstimadas);
                        const minsReal = p.horasReales != null ? Math.round(p.horasReales) : 0;
@@ -600,25 +634,53 @@ export default function Bandeja() {
                        <span className="text-[11px] text-muted-foreground/40">⏱ Sin estimación</span>
                      )}
                     </td>
-                    <td className={`px-3 py-3 whitespace-nowrap text-[10px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
+                    <td className={`px-3 py-3.5 whitespace-nowrap text-[10px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
                       {calcTiempoDesde(p)}
                     </td>
-                    <td className="px-2 py-3" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-0.5">
-                        <button onClick={() => navigate(`/pedido/${p.id}`)} className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Ver detalle">
-                          <Eye className="h-3.5 w-3.5" />
-                        </button>
+                    <td className="px-2 py-3.5" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-center gap-1">
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button onClick={() => navigate(`/pedido/${p.id}`)} className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                                <Eye className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top"><p>Ver detalle</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {isAdmin && (
                           <>
-                            <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
-                              {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                            </button>
-                            <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-warning hover:bg-warning/10 transition-colors" title="Archivar">
-                              <Archive className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" title="Eliminar">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                            <TooltipProvider delayDuration={300}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                                    {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top"><p>{p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}</p></TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delayDuration={300}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-warning hover:bg-warning/10 transition-colors">
+                                    <Archive className="h-3.5 w-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top"><p>Archivar</p></TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delayDuration={300}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top"><p>Eliminar</p></TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </>
                         )}
                       </div>
