@@ -26,7 +26,7 @@ export default function SearchableSelect({ label, value, onChange, options, plac
       <button
         type="button"
         onClick={() => { setOpen(o => !o); setSearch(""); }}
-        className="mt-1 flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm text-left focus:outline-none focus:ring-1 focus:ring-ring"
+        className="mt-1 flex h-9 w-full items-center justify-between rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm text-left focus:outline-none focus:ring-1 focus:ring-ring"
       >
         <span className={display ? "text-foreground" : "text-muted-foreground"}>
           {display || placeholder}
@@ -34,7 +34,7 @@ export default function SearchableSelect({ label, value, onChange, options, plac
         {open ? <ChevronUp className="h-4 w-4 opacity-50" /> : <ChevronDown className="h-4 w-4 opacity-50" />}
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-input bg-popover shadow-md">
           <div className="flex items-center border-b px-2 py-1.5 gap-1">
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
