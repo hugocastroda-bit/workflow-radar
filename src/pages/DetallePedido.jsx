@@ -534,12 +534,12 @@ export default function DetallePedido() {
         {editSection === "timeboxing" ? (
           <div className="space-y-4">
             <div>
-              <Label className="text-xs text-muted-foreground">Horas estimadas</Label>
-              <Input type="number" step="0.5" min="0" value={draft.horasEstimadas ?? ""} onChange={e => set("horasEstimadas", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 8" />
+              <Label className="text-xs text-muted-foreground">Minutos estimados</Label>
+              <Input type="number" step="5" min="0" value={draft.horasEstimadas ?? ""} onChange={e => set("horasEstimadas", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 120" />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Horas reales</Label>
-              <Input type="number" step="0.5" min="0" value={draft.horasReales ?? ""} onChange={e => set("horasReales", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 10" />
+              <Label className="text-xs text-muted-foreground">Minutos reales</Label>
+              <Input type="number" step="5" min="0" value={draft.horasReales ?? ""} onChange={e => set("horasReales", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 150" />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Fecha compromiso</Label>
@@ -552,12 +552,12 @@ export default function DetallePedido() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Horas estimadas</p>
-                    <p className="text-sm text-foreground">{pedido.horasEstimadas}h</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Minutos estimados</p>
+                    <p className="text-sm text-foreground">{pedido.horasEstimadas} min</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Horas reales</p>
-                    <p className="text-sm text-foreground">{pedido.horasReales != null ? `${pedido.horasReales}h` : <span className="text-muted-foreground/50">—</span>}</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Minutos reales</p>
+                    <p className="text-sm text-foreground">{pedido.horasReales != null ? `${pedido.horasReales} min` : <span className="text-muted-foreground/50">—</span>}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Fecha compromiso</p>

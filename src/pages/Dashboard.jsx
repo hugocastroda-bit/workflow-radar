@@ -384,9 +384,9 @@ export default function Dashboard() {
         <StatCard label="Cerrados" value={cerrados.length} color="border-success/30" />
         <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-success/30" />
         <StatCard label="Fuera de Time Box" value={fueraDeTimeBox.length} color={fueraDeTimeBox.length > 0 ? "border-alert/30" : "border-success/30"} />
-        <StatCard label="Horas estimadas" value={`${horasEstimadasTotal}h`} subtitle={conEstimacion.length > 0 ? `${conEstimacion.length} pedidos` : null} />
-        <StatCard label="Horas reales" value={`${horasRealesTotal}h`} />
-        <StatCard label="Desviación horas" value={`${desviacionHoras > 0 ? "+" : ""}${desviacionHoras}h`} color={desviacionHoras > 0 ? "border-alert/30" : "border-success/30"} />
+        <StatCard label="Minutos estimados" value={`${horasEstimadasTotal} min`} subtitle={conEstimacion.length > 0 ? `${conEstimacion.length} pedidos` : null} />
+        <StatCard label="Minutos reales" value={`${horasRealesTotal} min`} />
+        <StatCard label="Desviación min" value={`${desviacionHoras > 0 ? "+" : ""}${desviacionHoras} min`} color={desviacionHoras > 0 ? "border-alert/30" : "border-success/30"} />
         <StatCard
           label="Sobre capacidad"
           value={responsablesSobrecapacidad.length}
@@ -416,8 +416,8 @@ export default function Dashboard() {
                         style={{ width: `${Math.min(pct, 150)}%`, backgroundColor: barColor }}
                       />
                     </div>
-                    <span className="text-xs font-medium tabular-nums w-[65px] text-right" style={{ color: barColor }}>
-                      {item.horasEstimadas}h / {item.capacidad}h
+                    <span className="text-xs font-medium tabular-nums w-[75px] text-right" style={{ color: barColor }}>
+                      {item.horasEstimadas} min / {item.capacidad} min
                     </span>
                     <span className="text-[10px] font-medium tabular-nums w-[32px] text-right" style={{ color: barColor }}>
                       {pct}%
@@ -434,8 +434,8 @@ export default function Dashboard() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
               <Clock className="h-6 w-6 text-muted-foreground/40" />
-              <p className="text-xs text-muted-foreground">Aún no hay horas estimadas registradas.</p>
-              <p className="text-[10px] text-muted-foreground/60">Agrega horas estimadas en los pedidos para visualizar carga por responsable.</p>
+              <p className="text-xs text-muted-foreground">Aún no hay minutos estimados registrados.</p>
+              <p className="text-[10px] text-muted-foreground/60">Agrega minutos estimados en los pedidos para visualizar carga por responsable.</p>
             </div>
           )}
         </Section>
@@ -467,26 +467,26 @@ export default function Dashboard() {
 
       {/* Horas por proceso + Desviación por responsable */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <Section title="Horas estimadas por proceso">
+        <Section title="Minutos estimados por proceso">
           {horasPorProceso.length > 0 ? (
             <ResponsiveContainer width="100%" height={barH(horasPorProceso.length)}>
               <BarChart data={horasPorProceso} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} formatter={(value) => [`${value}h`, "Horas estimadas"]} />
-                <Bar dataKey="horas" name="Horas" fill="hsl(217 91% 55%)" radius={[0, 3, 3, 0]} barSize={18} />
+                <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} formatter={(value) => [`${value} min`, "Minutos estimados"]} />
+                <Bar dataKey="horas" name="Minutos" fill="hsl(217 91% 55%)" radius={[0, 3, 3, 0]} barSize={18} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
               <Clock className="h-6 w-6 text-muted-foreground/40" />
-              <p className="text-xs text-muted-foreground">Aún no hay horas estimadas registradas por proceso.</p>
+              <p className="text-xs text-muted-foreground">Aún no hay minutos estimados registrados por proceso.</p>
             </div>
           )}
         </Section>
 
-        <Section title="Desviación de horas por responsable">
+        <Section title="Desviación de minutos por responsable">
           {desviacionPorResponsable.length > 0 ? (
             <ResponsiveContainer width="100%" height={barH(desviacionPorResponsable.length)}>
               <BarChart data={desviacionPorResponsable} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
@@ -497,9 +497,9 @@ export default function Dashboard() {
                   contentStyle={TT}
                   cursor={{ fill: "#f8fafc" }}
                   formatter={(value, name) => {
-                    if (name === "horasEstimadas") return [`${value}h`, "Horas estimadas"];
-                    if (name === "horasReales") return [`${value}h`, "Horas reales"];
-                    return [`${value > 0 ? "+" : ""}${value}h`, "Desviación"];
+                    if (name === "horasEstimadas") return [`${value} min`, "Minutos estimados"];
+                    if (name === "horasReales") return [`${value} min`, "Minutos reales"];
+                    return [`${value > 0 ? "+" : ""}${value} min`, "Desviación"];
                   }}
                 />
                 <Bar dataKey="horasEstimadas" name="Horas est." fill="hsl(217 91% 55%)" radius={[0, 0, 0, 0]} barSize={10} stackId="a" />
@@ -509,7 +509,7 @@ export default function Dashboard() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
               <Clock className="h-6 w-6 text-muted-foreground/40" />
-              <p className="text-xs text-muted-foreground">Aún no hay horas reales registradas.</p>
+              <p className="text-xs text-muted-foreground">Aún no hay minutos reales registrados.</p>
             </div>
           )}
         </Section>
@@ -527,8 +527,8 @@ export default function Dashboard() {
                   <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Proceso</th>
                   <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Prioridad</th>
                   <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Estado</th>
-                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Horas est.</th>
-                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Horas reales</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Minutos est.</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Minutos reales</th>
                   <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Desviación</th>
                   <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Fecha req.</th>
                 </tr>
@@ -541,9 +541,9 @@ export default function Dashboard() {
                     <td className="px-3 py-2.5 text-muted-foreground">{p.proceso}</td>
                     <td className="px-3 py-2.5"><PriorityBadge priority={p.prioridad} /></td>
                     <td className="px-3 py-2.5"><StatusBadge status={p.estado} /></td>
-                    <td className="px-3 py-2.5 text-center">{p.horasEstimadas}h</td>
-                    <td className="px-3 py-2.5 text-center font-medium text-alert">{p.horasReales}h</td>
-                    <td className="px-3 py-2.5 text-center font-medium text-alert">+{p._desviacion}h</td>
+                    <td className="px-3 py-2.5 text-center">{p.horasEstimadas} min</td>
+                    <td className="px-3 py-2.5 text-center font-medium text-alert">{p.horasReales} min</td>
+                    <td className="px-3 py-2.5 text-center font-medium text-alert">+{p._desviacion} min</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.fecha_requerida || "—"}</td>
                   </tr>
                 ))}
@@ -561,7 +561,7 @@ export default function Dashboard() {
               <thead>
                 <tr className="border-b border-border bg-secondary">
                   <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas asignadas</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Minutos asignados</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Capacidad semanal</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Utilización</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Pedidos activos</th>
@@ -579,8 +579,8 @@ export default function Dashboard() {
                   return (
                     <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-secondary/30">
                       <td className="px-4 py-2.5 font-medium text-foreground">{item.responsable}</td>
-                      <td className="px-4 py-2.5 text-center font-medium text-alert">{item.horasEstimadas}h</td>
-                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.capacidad}h</td>
+                      <td className="px-4 py-2.5 text-center font-medium text-alert">{item.horasEstimadas} min</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.capacidad} min</td>
                       <td className="px-4 py-2.5 text-center">
                         <span className="inline-block px-2.5 py-1 rounded-full bg-alert/10 text-alert font-medium text-xs">{pct}%</span>
                       </td>

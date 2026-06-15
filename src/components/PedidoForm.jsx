@@ -47,10 +47,10 @@ async function loadCatalogs(forceRefresh = false) {
 
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
-const COMPLEJIDAD_HORAS = {
-  "Alta|Simple": 2, "Alta|Media": 4, "Alta|Alta": 8,
-  "Media|Simple": 1, "Media|Media": 3, "Media|Alta": 6,
-  "Baja|Simple": 0.5, "Baja|Media": 2, "Baja|Alta": 4,
+const COMPLEJIDAD_MINUTOS = {
+  "Alta|Simple": 120, "Alta|Media": 240, "Alta|Alta": 480,
+  "Media|Simple": 60, "Media|Media": 180, "Media|Alta": 360,
+  "Baja|Simple": 30, "Baja|Media": 120, "Baja|Alta": 240,
 };
 
 const emptyForm = {
@@ -119,7 +119,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         const p = field === "prioridad" ? value : prev.prioridad;
         const c = field === "complejidad" ? value : prev.complejidad;
         if (p && c) {
-          updated.horasEstimadas = COMPLEJIDAD_HORAS[`${p}|${c}`] ?? prev.horasEstimadas;
+          updated.horasEstimadas = COMPLEJIDAD_MINUTOS[`${p}|${c}`] ?? prev.horasEstimadas;
         }
       }
       return updated;
@@ -240,19 +240,19 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             {/* Horas estimadas + Fecha compromiso */}
             <div className="grid gap-3 grid-cols-2">
               <div>
-                <Label className="text-xs font-medium text-muted-foreground">Horas estimadas</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Minutos estimados</Label>
                 {isAdmin ? (
                   <Input
-                    type="number" step="0.5" min="0"
+                    type="number" step="5" min="0"
                     value={form.horasEstimadas != null ? form.horasEstimadas : ""}
                     onChange={e => handleChange("horasEstimadas", e.target.value === "" ? null : parseFloat(e.target.value))}
                     className="mt-1"
-                    placeholder={form.prioridad && form.complejidad ? `${COMPLEJIDAD_HORAS[form.prioridad + "|" + form.complejidad] || "—"}h` : "Sin estimación"}
+                    placeholder={form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min` : "Sin estimación"}
                   />
                 ) : (
                   <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
-                    {form.horasEstimadas != null ? `${form.horasEstimadas}h` :
-                     form.prioridad && form.complejidad ? `${COMPLEJIDAD_HORAS[form.prioridad + "|" + form.complejidad] || "—"}h (sugerido)` :
+                    {form.horasEstimadas != null ? `${form.horasEstimadas} min` :
+                     form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min (sugerido)` :
                      "Sin estimación"}
                   </div>
                 )}
