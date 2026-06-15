@@ -143,23 +143,23 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           )}
         </div>
 
-        {/* Time Boxing indicator (minutos) */}
-        {pedido.horasEstimadas != null ? (() => {
-          const minsEst = Math.round(pedido.horasEstimadas * 60);
-          const minsReal = pedido.horasReales != null ? Math.round(pedido.horasReales * 60) : 0;
+        {/* Time Boxing (minutos) */}
+        {pedido.horasEstimadas != null && pedido.horasEstimadas > 0 ? (() => {
+          const minsEst = Math.round(pedido.horasEstimadas);
+          const minsReal = pedido.horasReales != null ? Math.round(pedido.horasReales) : 0;
           const ratio = minsEst > 0 ? minsReal / minsEst : 0;
           const over = ratio > 1;
-          const colorClass = over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success";
+          const colorClass = over ? "text-alert/70" : ratio >= 0.8 ? "text-warning/70" : "text-success/70";
           return (
             <div className="flex items-center gap-1 mt-1.5">
-              <span className={`text-[10px] font-medium ${colorClass}`}>
+              <span className={`text-[10px] ${colorClass}`}>
                 {over ? "⚠" : "⏱"} {minsReal} min / {minsEst} min
               </span>
             </div>
           );
         })() : (
           <div className="flex items-center gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground/30">—</span>
+            <span className="text-[10px] text-muted-foreground/30">⏱ Sin estimación</span>
           </div>
         )}
 
