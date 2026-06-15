@@ -79,7 +79,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
   const fechaInfo = formatFecha(pedido.fecha_requerida);
 
   const borderClass = isOverdue
-    ? "border-l-[3px] border-l-alert/60"
+    ? "border-l-[3px] border-l-alert/25"
     : isBlocked
     ? "border-l-[3px] border-l-warning"
     : "border-border";
@@ -135,7 +135,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           </div>
           {fechaInfo && (
             <span className={`flex items-center gap-1 text-[11px] font-medium ${
-              fechaInfo.overdue ? "text-alert/85" : fechaInfo.warn ? "text-warning" : "text-muted-foreground"
+              fechaInfo.overdue ? "text-alert/60" : fechaInfo.warn ? "text-warning" : "text-muted-foreground"
             }`}>
               {(fechaInfo.overdue || fechaInfo.warn) && <Clock className="h-2.5 w-2.5" />}
               {fechaInfo.label}
