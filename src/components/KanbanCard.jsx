@@ -177,16 +177,16 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
             {pedido.responsable ? (
               <>
                 <Iniciales nombre={pedido.responsable} />
-                <span className="text-[11px] text-muted-foreground truncate max-w-[110px]">
+                <span className="text-[11px] font-medium text-foreground truncate max-w-[110px]">
                   {pedido.responsable.split(" ")[0]}
                 </span>
               </>
             ) : (
-              <span className="text-[11px] text-muted-foreground/60 italic">Sin asignar</span>
+              <span className="text-[11px] text-muted-foreground/50 italic">Sin asignar</span>
             )}
           </div>
           {pedido.solicitante && (
-            <span className="text-[10px] text-muted-foreground/70 truncate max-w-[80px]" title={pedido.solicitante}>
+            <span className="text-[10px] text-muted-foreground/40 truncate max-w-[80px]" title={pedido.solicitante}>
               {pedido.solicitante}
             </span>
           )}
