@@ -99,6 +99,24 @@ export default function Bandeja() {
     if (days > 7) return "text-warning font-medium";
     return "text-muted-foreground";
   };
+
+  // SLA: basado en fechaCompromiso o fecha_requerida, independiente del estado
+  const calcSLA = (p) => {
+    if (p.estado === "Cerrado") return null;
+    const slaDate = p.fechaCompromiso || p.fecha_requerida;
+    if (!slaDate) return null;
+    const diffDays = (new Date(slaDate) - new Date(today)) / 86400000;
+    if (diffDays < 0) return { type: "red", label: "SLA vencido" };
+    if (diffDays <= 3) return { type: "yellow", label: "Próximo a vencer" };
+    return { type: "green", label: "Dentro del SLA" };
+  };
+
+  const slaColors = {
+    green:  "bg-emerald-500",
+    yellow: "bg-yellow-500",
+    red:    "bg-red-500",
+  };
+
   const isVencidoFilter = new URLSearchParams(location.search).get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
@@ -406,6 +424,7 @@ export default function Bandeja() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
                       <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
+                      {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                     {ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 && (
@@ -475,6 +494,7 @@ export default function Bandeja() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
                         <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
+                        {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                         {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
                       {(() => {
