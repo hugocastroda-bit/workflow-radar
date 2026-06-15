@@ -224,16 +224,16 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 options={prioridadOpts} placeholder="Seleccionar"
               />
               <SearchableSelect
-                label="Complejidad"
+                label="Complejidad (opcional)"
                 value={form.complejidad || ""} onChange={v => handleChange("complejidad", v)}
-                options={["Simple", "Media", "Alta"]} placeholder="Opcional"
+                options={["Simple", "Media", "Alta"]} placeholder="Sin definir"
               />
             </div>
             <div className="grid gap-3 grid-cols-2">
               <SearchableSelect
-                label="Riesgo"
+                label="Riesgo (opcional)"
                 value={form.riesgo || ""} onChange={v => handleChange("riesgo", v || null)}
-                options={["Bajo", "Medio", "Alto"]} placeholder="Sin riesgo"
+                options={["Bajo", "Medio", "Alto"]} placeholder="Sin definir"
               />
               {pedido && (
                 <div>
@@ -267,7 +267,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               </div>
               {isAdmin ? (
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso</Label>
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso <span className="text-muted-foreground/50 font-normal">(opcional)</span></Label>
                   <Input
                     type="date"
                     value={form.fechaCompromiso || ""}
@@ -301,7 +301,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
 
           {isAdmin && (
               <SearchableSelect
-                label="Responsable"
+                label="Responsable (opcional)"
                 value={form.responsable} onChange={v => handleChange("responsable", v)}
                 options={responsableOpts} placeholder="Sin asignar"
               />
@@ -322,7 +322,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
           {showOptional && (
             <div className="space-y-3 border-t pt-3">
               <div>
-                <Label className="text-xs font-medium text-muted-foreground">Descripción</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Descripción <span className="text-muted-foreground/50 font-normal">(opcional)</span></Label>
                 <Textarea
                   value={form.descripcion}
                   onChange={e => handleChange("descripcion", e.target.value)}
