@@ -366,12 +366,12 @@ export default function Kanban() {
         });
         const sobreCapacidad = Object.values(cargaPorResp).filter(c => c > 5).length;
         const cards = [
-          { label: "Activos", count: activos, left: "border-l-blue-500", num: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
-          { label: "Vencidos", count: vencidos, left: "border-l-red-500", num: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30" },
-          { label: "Bloqueados", count: bloqueados, left: "border-l-orange-500", num: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
-          { label: "Sin responsable", count: sinResponsable, left: "border-l-gray-400", num: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" },
-          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-500", num: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/30" },
-          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-amber-500", num: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30" },
+          { label: "Activos", count: activos, left: "border-l-primary", num: "text-primary", bg: "bg-accent/70 dark:bg-accent/20" },
+          { label: "Vencidos", count: vencidos, left: "border-l-alert", num: "text-alert", bg: "bg-alert/10 dark:bg-alert/10" },
+          { label: "Bloqueados", count: bloqueados, left: "border-l-warning", num: "text-warning", bg: "bg-warning/10 dark:bg-warning/10" },
+          { label: "Sin responsable", count: sinResponsable, left: "border-l-muted-foreground/40", num: "text-muted-foreground", bg: "bg-muted/50 dark:bg-muted/30" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-400", num: "text-purple-600 dark:text-purple-300", bg: "bg-purple-50 dark:bg-purple-950/20" },
+          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-amber-400", num: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-950/20" },
         ];
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
