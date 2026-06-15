@@ -148,7 +148,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
                   ? "text-alert"
                   : (pedido.horasReales / pedido.horasEstimadas) >= 0.8
                     ? "text-warning"
-                    : "text-emerald-600"
+                    : "text-success"
                 : "text-muted-foreground"
             }`}>
               {pedido.horasReales != null ? `${pedido.horasReales}h` : "0h"} / {pedido.horasEstimadas}h
