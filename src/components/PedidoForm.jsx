@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, Search, ChevronUp, Info } from "lucide-react";
@@ -305,20 +305,22 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                   <label htmlFor="confidencial" className="text-xs text-muted-foreground cursor-pointer select-none">
                     Pedido confidencial
                   </label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[220px] text-xs">
-                      <p className="font-medium mb-1.5">Visible únicamente para:</p>
-                      <ul className="space-y-0.5 text-muted-foreground">
-                        <li>• Admin</li>
-                        <li>• Creador</li>
-                        <li>• Responsable</li>
-                        <li>• Solicitante</li>
-                      </ul>
-                    </TooltipContent>
-                  </Tooltip>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px] text-xs">
+                        <p className="font-medium mb-1.5">Visible únicamente para:</p>
+                        <ul className="space-y-0.5 text-muted-foreground">
+                          <li>• Admin</li>
+                          <li>• Creador</li>
+                          <li>• Responsable</li>
+                          <li>• Solicitante</li>
+                        </ul>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
               {isAdmin && (
