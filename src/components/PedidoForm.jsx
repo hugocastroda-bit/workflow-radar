@@ -55,7 +55,7 @@ const COMPLEJIDAD_MINUTOS = {
 
 const emptyForm = {
   titulo: "", descripcion: "", solicitante: "", proceso: "",
-  prioridad: "", complejidad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
+  prioridad: "", complejidad: "", riesgo: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
   proxima_accion: "", motivo_bloqueo: "", comentarios_avance: "",
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
   confidencial: false,
@@ -134,6 +134,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
     if (!data.complejidad) delete data.complejidad;
+    if (!data.riesgo) delete data.riesgo;
     if (data.horasEstimadas == null) delete data.horasEstimadas;
     if (data.horasReales == null) delete data.horasReales;
     if (!data.fechaCompromiso) delete data.fechaCompromiso;
@@ -226,6 +227,13 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 label="Complejidad"
                 value={form.complejidad || ""} onChange={v => handleChange("complejidad", v)}
                 options={["Simple", "Media", "Alta"]} placeholder="Opcional"
+              />
+            </div>
+            <div className="grid gap-3 grid-cols-2">
+              <SearchableSelect
+                label="Riesgo"
+                value={form.riesgo || ""} onChange={v => handleChange("riesgo", v || null)}
+                options={["Bajo", "Medio", "Alto"]} placeholder="Sin riesgo"
               />
               {pedido && (
                 <div>

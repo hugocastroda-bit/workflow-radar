@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
+import RiesgoBadge from "../components/RiesgoBadge";
 import PedidoForm from "../components/PedidoForm";
 import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox, Eye } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
@@ -99,24 +100,6 @@ export default function Bandeja() {
     if (days > 7) return "text-warning font-medium";
     return "text-muted-foreground";
   };
-
-  // SLA: basado en fechaCompromiso o fecha_requerida, independiente del estado
-  const calcSLA = (p) => {
-    if (p.estado === "Cerrado") return null;
-    const slaDate = p.fechaCompromiso || p.fecha_requerida;
-    if (!slaDate) return null;
-    const diffDays = (new Date(slaDate) - new Date(today)) / 86400000;
-    if (diffDays < 0) return { type: "red", label: "SLA vencido" };
-    if (diffDays <= 3) return { type: "yellow", label: "Próximo a vencer" };
-    return { type: "green", label: "Dentro del SLA" };
-  };
-
-  const slaColors = {
-    green:  "bg-emerald-500",
-    yellow: "bg-yellow-500",
-    red:    "bg-red-500",
-  };
-
   const isVencidoFilter = new URLSearchParams(location.search).get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
@@ -424,7 +407,6 @@ export default function Bandeja() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
                       <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
-                      {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                     {ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 && (
@@ -435,6 +417,7 @@ export default function Bandeja() {
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <StatusBadge status={p.estado} />
                       <PriorityBadge priority={p.prioridad} />
+                      {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
                       {p.solicitante && <span>{p.solicitante}</span>}
@@ -494,7 +477,6 @@ export default function Bandeja() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
                         <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
-                        {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                         {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
                       {(() => {
@@ -530,7 +512,12 @@ export default function Bandeja() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-3 py-3"><PriorityBadge priority={p.prioridad} /></td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1">
+                        <PriorityBadge priority={p.prioridad} />
+                        {p.riesgo && <span className={`inline-block h-2 w-2 rounded-full ${p.riesgo === "Alto" ? "bg-red-500" : p.riesgo === "Medio" ? "bg-amber-500" : "bg-emerald-500"}`} title={`Riesgo: ${p.riesgo}`} />}
+                      </div>
+                    </td>
                     <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
                     <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
                     <td className="px-3 py-3">
