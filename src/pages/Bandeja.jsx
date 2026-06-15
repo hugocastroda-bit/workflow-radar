@@ -482,20 +482,22 @@ export default function Bandeja() {
                     <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
                     <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
                     <td className="px-3 py-3">
-                      {p.horasEstimadas != null ? (
-                        <span className={`text-[11px] font-medium ${
-                          p.horasReales != null && p.horasEstimadas > 0
-                            ? p.horasReales > p.horasEstimadas
-                              ? "text-alert"
-                              : (p.horasReales / p.horasEstimadas) >= 0.8
-                                ? "text-warning"
-                                : "text-emerald-600"
-                            : "text-muted-foreground"
-                        }`}>
-                          {p.horasReales != null ? `${p.horasReales}h` : "0h"} / {p.horasEstimadas}h
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-muted-foreground/50">—</span>
+                      {p.horasEstimadas != null ? (() => {
+                        const real = p.horasReales ?? 0;
+                        const estimadas = p.horasEstimadas;
+                        const pct = estimadas > 0 ? real / estimadas : 0;
+                        const excedido = real > estimadas && estimadas > 0;
+                        const proximo = pct >= 0.8 && estimadas > 0;
+                        return (
+                          <span className={`text-[11px] font-medium whitespace-nowrap ${
+                            excedido ? "text-alert" : proximo ? "text-warning" : "text-emerald-600 dark:text-emerald-400"
+                          }`}>
+                            {excedido || proximo ? "⚠ " : "⏱ "}
+                            {real}h / {estimadas}h
+                          </span>
+                        );
+                      })() : (
+                        <span className="text-[11px] text-muted-foreground">Sin estimación</span>
                       )}
                     </td>
                     <td className={`px-3 py-3 whitespace-nowrap text-[11px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
