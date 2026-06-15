@@ -313,16 +313,23 @@ export default function Bandeja() {
         const vencidos = pedidos.filter(p => p.fecha_requerida < today && p.estado !== "Cerrado").length;
         const bloqueados = pedidos.filter(p => p.estado === "Bloqueado").length;
         const sinResponsable = pedidos.filter(p => !p.responsable).length;
-        const fueraTimeBox = pedidos.filter(p => p.fueraDeTimeBox === true).length;
+        const fueraTimeBox = pedidos.filter(p => p.horasEstimadas != null && p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas).length;
+        const cargaPorResp = {};
+        pedidos.filter(p => p.estado !== "Cerrado" && p.responsable).forEach(p => {
+          const resp = p.responsable.trim();
+          cargaPorResp[resp] = (cargaPorResp[resp] || 0) + 1;
+        });
+        const sobreCapacidad = Object.values(cargaPorResp).filter(c => c > 5).length;
         const cards = [
-          { label: "Activos", count: activos, left: "border-l-blue-500", num: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
-          { label: "Vencidos", count: vencidos, left: "border-l-red-500", num: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30" },
-          { label: "Bloqueados", count: bloqueados, left: "border-l-orange-500", num: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
-          { label: "Sin responsable", count: sinResponsable, left: "border-l-gray-400", num: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" },
-          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-500", num: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/30" },
+          { label: "Activos", count: activos, left: "border-l-primary", num: "text-primary", bg: "bg-accent/70 dark:bg-accent/20" },
+          { label: "Vencidos", count: vencidos, left: "border-l-alert", num: "text-alert", bg: "bg-alert/10 dark:bg-alert/10" },
+          { label: "Bloqueados", count: bloqueados, left: "border-l-warning", num: "text-warning", bg: "bg-warning/10 dark:bg-warning/10" },
+          { label: "Sin responsable", count: sinResponsable, left: "border-l-muted-foreground/40", num: "text-muted-foreground", bg: "bg-muted/50 dark:bg-muted/30" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-400", num: "text-purple-600 dark:text-purple-300", bg: "bg-purple-50 dark:bg-purple-950/20" },
+          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-amber-400", num: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-950/20" },
         ];
         return (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             {cards.map(c => (
               <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
                 <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
@@ -440,6 +447,21 @@ export default function Bandeja() {
                       {p.responsable && <span>→ {p.responsable}</span>}
                       {p.fecha_requerida && <span className={isOverdue ? "text-alert font-medium" : ""}>{p.fecha_requerida}</span>}
                     </div>
+                    {p.horasEstimadas != null ? (() => {
+                      const minsEst = Math.round(p.horasEstimadas * 60);
+                      const minsReal = Math.round((p.horasReales ?? 0) * 60);
+                      const ratio = minsEst > 0 ? minsReal / minsEst : 0;
+                      const over = ratio > 1;
+                      return (
+                        <span className={`text-[10px] font-medium whitespace-nowrap mt-1 inline-block ${
+                          over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success"
+                        }`}>
+                          {over ? "⚠ " : "⏱ "}{minsReal} min / {minsEst} min
+                        </span>
+                      );
+                    })() : (
+                      <span className="text-[10px] text-muted-foreground/40 mt-1 inline-block">⏱ — min</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                     {isAdmin && (
@@ -532,29 +554,28 @@ export default function Bandeja() {
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <PriorityBadge priority={p.prioridad} />
-                        {p.riesgo && <span className={`inline-block h-2 w-2 rounded-full ${p.riesgo === "Alto" ? "bg-red-500" : p.riesgo === "Medio" ? "bg-amber-500" : "bg-emerald-500"}`} title={`Riesgo: ${p.riesgo}`} />}
+                        {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
                       </div>
                     </td>
                     <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
                     <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
                     <td className="px-3 py-3">
-                      {p.horasEstimadas != null ? (() => {
-                        const real = p.horasReales ?? 0;
-                        const estimadas = p.horasEstimadas;
-                        const pct = estimadas > 0 ? real / estimadas : 0;
-                        const excedido = real > estimadas && estimadas > 0;
-                        const proximo = pct >= 0.8 && estimadas > 0;
-                        return (
-                          <span className={`text-[11px] font-medium whitespace-nowrap ${
-                            excedido ? "text-alert" : proximo ? "text-warning" : "text-success"
-                          }`}>
-                            {excedido || proximo ? "⚠ " : "⏱ "}
-                            {real}h / {estimadas}h
-                          </span>
-                        );
-                      })() : (
-                        <span className="text-[11px] text-muted-foreground">Sin estimación</span>
-                      )}
+                     {p.horasEstimadas != null ? (() => {
+                       const minsEst = Math.round(p.horasEstimadas * 60);
+                       const minsReal = Math.round((p.horasReales ?? 0) * 60);
+                       const ratio = minsEst > 0 ? minsReal / minsEst : 0;
+                       const over = ratio > 1;
+                       return (
+                         <span className={`text-[11px] font-medium whitespace-nowrap ${
+                           over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success"
+                         }`}>
+                           {over ? "⚠ " : "⏱ "}
+                           {minsReal} min / {minsEst} min
+                         </span>
+                       );
+                     })() : (
+                       <span className="text-[11px] text-muted-foreground">Sin estimación</span>
+                     )}
                     </td>
                     <td className={`px-3 py-3 whitespace-nowrap text-[11px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
                       {calcTiempoDesde(p)}
