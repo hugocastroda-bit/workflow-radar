@@ -325,9 +325,9 @@ export default function Bandeja() {
           { label: "Activos", count: activos, left: "border-l-primary", num: "text-primary", bg: "bg-accent/70 dark:bg-accent/20" },
           { label: "Vencidos", count: vencidos, left: "border-l-alert", num: "text-alert", bg: "bg-alert/10 dark:bg-alert/10" },
           { label: "Bloqueados", count: bloqueados, left: "border-l-warning", num: "text-warning", bg: "bg-warning/10 dark:bg-warning/10" },
-          { label: "Sin responsable", count: sinResponsable, left: "border-l-muted-foreground/25", num: "text-muted-foreground/60", bg: "bg-muted/30 dark:bg-muted/15" },
-          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-400/40", num: "text-purple-400/80 dark:text-purple-400/60", bg: "bg-purple-50/40 dark:bg-purple-950/10" },
-          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-amber-300/40", num: "text-amber-500/70 dark:text-amber-400/50", bg: "bg-amber-50/40 dark:bg-amber-950/10" },
+          { label: "Sin responsable", count: sinResponsable, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
+          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
         ];
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
@@ -423,7 +423,7 @@ export default function Bandeja() {
             const dias = calcDiasEstancado(p);
             return (
               <div key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
-                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-4 border-l-alert/60 border-t-border border-r-border border-b-border" : "border-border"}`}
+                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-[3px] border-l-alert/25 border-t-border border-r-border border-b-border" : "border-border"}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -459,20 +459,20 @@ export default function Bandeja() {
                       {p.responsable && <span title={p.responsable}>→ {p.responsable}</span>}
                       {p.fecha_requerida && <span className={isOverdue ? "text-alert font-medium" : ""}>{p.fecha_requerida}</span>}
                     </div>
-                    {p.horasEstimadas != null ? (() => {
-                      const minsEst = Math.round(p.horasEstimadas * 60);
-                      const minsReal = Math.round((p.horasReales ?? 0) * 60);
-                      const ratio = minsEst > 0 ? minsReal / minsEst : 0;
+                    {p.horasEstimadas != null && p.horasEstimadas > 0 ? (() => {
+                      const minsEst = Math.round(p.horasEstimadas);
+                      const minsReal = p.horasReales != null ? Math.round(p.horasReales) : 0;
+                      const ratio = minsReal / minsEst;
                       const over = ratio > 1;
                       return (
                         <span className={`text-[10px] font-medium whitespace-nowrap mt-1 inline-block ${
-                          over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success"
+                          over ? "text-alert/70" : ratio >= 0.8 ? "text-warning/70" : "text-success/70"
                         }`}>
                           {over ? "⚠ " : "⏱ "}{minsReal} min / {minsEst} min
                         </span>
                       );
                     })() : (
-                      <span className="text-[10px] text-muted-foreground/30 mt-1 inline-block">—</span>
+                      <span className="text-[10px] text-muted-foreground/30 mt-1 inline-block">⏱ Sin estimación</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -583,21 +583,21 @@ export default function Bandeja() {
                     <td className="px-3 py-3 text-muted-foreground truncate" title={p.proceso || ""}>{p.proceso}</td>
                     <td className={`px-3 py-3 font-medium whitespace-nowrap ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
                     <td className="px-3 py-3">
-                     {p.horasEstimadas != null ? (() => {
-                       const minsEst = Math.round(p.horasEstimadas * 60);
-                       const minsReal = Math.round((p.horasReales ?? 0) * 60);
-                       const ratio = minsEst > 0 ? minsReal / minsEst : 0;
+                     {p.horasEstimadas != null && p.horasEstimadas > 0 ? (() => {
+                       const minsEst = Math.round(p.horasEstimadas);
+                       const minsReal = p.horasReales != null ? Math.round(p.horasReales) : 0;
+                       const ratio = minsReal / minsEst;
                        const over = ratio > 1;
                        return (
                          <span className={`text-[11px] font-medium whitespace-nowrap ${
-                           over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success"
+                           over ? "text-alert/70" : ratio >= 0.8 ? "text-warning/70" : "text-success/70"
                          }`}>
                            {over ? "⚠ " : "⏱ "}
                            {minsReal} min / {minsEst} min
                          </span>
                        );
                      })() : (
-                       <span className="text-[11px] text-muted-foreground/40">—</span>
+                       <span className="text-[11px] text-muted-foreground/40">⏱ Sin estimación</span>
                      )}
                     </td>
                     <td className={`px-3 py-3 whitespace-nowrap text-[10px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
