@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ChevronDown, Search, ChevronUp } from "lucide-react";
+import { ChevronDown, Search, ChevronUp, Info } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
@@ -294,8 +295,22 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 className="h-4 w-4 rounded border-border text-primary"
               />
               <label htmlFor="confidencial" className="text-xs text-muted-foreground cursor-pointer select-none">
-                Marcar como confidencial (solo visible para quien crea, responsable y admins)
+                Pedido confidencial
               </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  <p className="font-medium mb-1.5">Visible únicamente para:</p>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>• Admin</li>
+                    <li>• Creador</li>
+                    <li>• Responsable</li>
+                    <li>• Solicitante</li>
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
 
