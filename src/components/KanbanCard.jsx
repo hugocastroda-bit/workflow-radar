@@ -130,7 +130,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         {/* Priority + Riesgo + Fecha */}
         <div className="flex items-center justify-between gap-2 mt-1">
           <div className="flex items-center gap-1">
-            <PriorityBadge priority={pedido.prioridad} />
+            <PriorityBadge priority={pedido.prioridad} size="xs" />
             {pedido.riesgo && <RiesgoBadge riesgo={pedido.riesgo} size="xs" />}
           </div>
           {fechaInfo && (
