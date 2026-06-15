@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock, CopyPlus } from "lucide-react";
+import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock, CopyPlus, History } from "lucide-react";
 
 import PriorityBadge from "./PriorityBadge";
 import ConfidencialBadge from "./ConfidencialBadge";
@@ -59,6 +59,20 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
     (Date.now() - new Date(pedido.updated_date || pedido.created_date)) / 86400000
   );
   const isAging = ESTADOS_CONGELADOS.includes(pedido.estado) && diasEstancado >= 7;
+
+  // Última actualización relativa
+  const calcTiempoDesde = () => {
+    const ms = Date.now() - new Date(pedido.updated_date || pedido.created_date);
+    const mins = Math.floor(ms / 60000);
+    const hours = Math.floor(ms / 3600000);
+    const days = Math.floor(ms / 86400000);
+    if (mins < 1) return { label: "Ahora", alert: false };
+    if (mins < 60) return { label: `Hace ${mins} min`, alert: false };
+    if (hours < 24) return { label: `Hace ${hours} ${hours === 1 ? "hora" : "horas"}`, alert: false };
+    if (days <= 14) return { label: `Hace ${days} ${days === 1 ? "día" : "días"}`, alert: false };
+    return { label: `Hace ${days} días`, alert: true };
+  };
+  const tiempoDesde = calcTiempoDesde();
 
   const fechaInfo = formatFecha(pedido.fecha_requerida);
 
@@ -142,8 +156,16 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           </div>
         )}
 
+        {/* Última actualización */}
+        <div className={`flex items-center gap-1 mt-1.5 ${
+          tiempoDesde.alert ? "text-alert" : "text-muted-foreground"
+        }`}>
+          <History className="h-2.5 w-2.5 flex-shrink-0" />
+          <span className="text-[10px] font-medium">{tiempoDesde.label}</span>
+        </div>
+
         {/* Responsable + solicitante */}
-        <div className="flex items-center justify-between mt-2 gap-1">
+        <div className="flex items-center justify-between mt-1.5 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">
             {pedido.responsable ? (
               <>
@@ -165,9 +187,8 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Aging warning */}
         {isAging && (
-          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded border
-            bg-warning/10 text-warning border-warning/30
-            dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200]">
+          <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
+          bg-warning/10 text-warning border-warning/30">
             <AlertCircle className="h-2.5 w-2.5" />
             {diasEstancado}d sin gestión
           </span>
@@ -175,7 +196,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Actions — hidden by default, visible on hover */}
         {(onDuplicate || (isAdmin && (onDelete || onArchive || onConfidencial))) && (
-          <div className="flex justify-end mt-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="flex justify-end mt-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             {onDuplicate && (
               <button
                 onClick={e => { e.stopPropagation(); onDuplicate(pedido); }}
