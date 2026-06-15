@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen, History, User } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen, History, User, Clock } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -217,6 +217,8 @@ export default function DetallePedido() {
         await logCambiosSeccion(["link_evidencia"], "evidencias", prevPedido);
       } else if (editSection === "cierre") {
         await logCambiosSeccion(["resultado_final", "comentario_cierre", "fecha_cierre_real"], "cierre", prevPedido);
+      } else if (editSection === "timeboxing") {
+        await logCambiosSeccion(["horasEstimadas", "horasReales", "fechaCompromiso"], "timeboxing", prevPedido);
       }
       await loadHistorial();
 
@@ -518,6 +520,76 @@ export default function DetallePedido() {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Descripción</p>
                 <p className="text-sm text-foreground whitespace-pre-wrap">{pedido.descripcion}</p>
               </div>
+            )}
+          </>
+        )}
+      </Section>
+
+      {/* 1.5 Time Boxing */}
+      <Section title="Time Boxing">
+        <div className="flex items-center justify-between">
+          <div /> {isAdmin && <EditBar section="timeboxing" />}
+        </div>
+
+        {editSection === "timeboxing" ? (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs text-muted-foreground">Horas estimadas</Label>
+              <Input type="number" step="0.5" min="0" value={draft.horasEstimadas ?? ""} onChange={e => set("horasEstimadas", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 8" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Horas reales</Label>
+              <Input type="number" step="0.5" min="0" value={draft.horasReales ?? ""} onChange={e => set("horasReales", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 10" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Fecha compromiso</Label>
+              <Input type="date" value={draft.fechaCompromiso || ""} onChange={e => set("fechaCompromiso", e.target.value)} className="mt-1" />
+            </div>
+          </div>
+        ) : (
+          <>
+            {pedido.horasEstimadas != null ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Horas estimadas</p>
+                    <p className="text-sm text-foreground">{pedido.horasEstimadas}h</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Horas reales</p>
+                    <p className="text-sm text-foreground">{pedido.horasReales != null ? `${pedido.horasReales}h` : <span className="text-muted-foreground/50">—</span>}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Fecha compromiso</p>
+                    <p className="text-sm text-foreground">{pedido.fechaCompromiso || <span className="text-muted-foreground/50">—</span>}</p>
+                  </div>
+                </div>
+                {(() => {
+                  const est = pedido.horasEstimadas || 0;
+                  const real = pedido.horasReales;
+                  const pct = real != null && est > 0 ? real / est : null;
+                  const fueraDeTimeBox = real != null && est > 0 && real > est;
+                  let statusColor = "bg-emerald-500";
+                  let statusLabel = "Dentro del tiempo";
+                  if (pct !== null) {
+                    if (pct >= 1) { statusColor = "bg-red-500"; statusLabel = `Fuera del Time Box (${Math.round((pct - 1) * 100)}% excedido)`; }
+                    else if (pct >= 0.8) { statusColor = "bg-amber-500"; statusLabel = `Próximo al límite (${Math.round(pct * 100)}%)`; }
+                    else { statusColor = "bg-emerald-500"; statusLabel = `Dentro del tiempo (${Math.round(pct * 100)}%)`; }
+                  }
+                  return (
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <div className={`h-2.5 w-2.5 rounded-full ${statusColor}`} />
+                      <p className="text-xs text-muted-foreground">
+                        {statusLabel}
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground/50 flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" /> Sin estimación
+              </p>
             )}
           </>
         )}

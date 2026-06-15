@@ -447,6 +447,7 @@ export default function Bandeja() {
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prioridad</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Proceso</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Fecha req.</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Time Box</th>
                 {isAdmin && <th className="px-4 py-3" />}
               </tr>
             </thead>
@@ -499,6 +500,23 @@ export default function Bandeja() {
                     <td className="px-4 py-3"><PriorityBadge priority={p.prioridad} /></td>
                     <td className="px-4 py-3 text-muted-foreground">{p.proceso}</td>
                     <td className={`px-4 py-3 font-medium ${isOverdue ? "text-alert" : "text-muted-foreground"}`}>{p.fecha_requerida}</td>
+                    <td className="px-4 py-3">
+                      {p.horasEstimadas != null ? (
+                        <span className={`text-[11px] font-medium ${
+                          p.horasReales != null && p.horasEstimadas > 0
+                            ? p.horasReales > p.horasEstimadas
+                              ? "text-alert"
+                              : (p.horasReales / p.horasEstimadas) >= 0.8
+                                ? "text-warning"
+                                : "text-emerald-600"
+                            : "text-muted-foreground"
+                        }`}>
+                          {p.horasReales != null ? `${p.horasReales}h` : "0h"} / {p.horasEstimadas}h
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground/50">—</span>
+                      )}
+                    </td>
                     {isAdmin && (
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-1">

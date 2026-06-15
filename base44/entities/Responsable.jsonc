@@ -23,6 +23,11 @@
       "type": "boolean",
       "title": "Recibe notificaciones por correo",
       "default": true
+    },
+    "capacidadSemanalHoras": {
+      "type": "number",
+      "title": "Capacidad semanal (horas)",
+      "default": 40
     }
   },
   "required": [

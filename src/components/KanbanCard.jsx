@@ -124,6 +124,24 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           )}
         </div>
 
+        {/* Time Boxing indicator */}
+        {pedido.horasEstimadas != null && (
+          <div className="flex items-center gap-1 mt-1.5">
+            <Clock className="h-2.5 w-2.5 text-muted-foreground/60" />
+            <span className={`text-[10px] font-medium ${
+              pedido.horasReales != null && pedido.horasEstimadas > 0
+                ? pedido.horasReales > pedido.horasEstimadas
+                  ? "text-alert"
+                  : (pedido.horasReales / pedido.horasEstimadas) >= 0.8
+                    ? "text-warning"
+                    : "text-emerald-600"
+                : "text-muted-foreground"
+            }`}>
+              {pedido.horasReales != null ? `${pedido.horasReales}h` : "0h"} / {pedido.horasEstimadas}h
+            </span>
+          </div>
+        )}
+
         {/* Responsable + solicitante */}
         <div className="flex items-center justify-between mt-2 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">

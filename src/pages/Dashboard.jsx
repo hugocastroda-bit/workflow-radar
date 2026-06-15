@@ -76,6 +76,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [pedidos, setPedidos] = useState([]);
   const [responsablesMap, setResponsablesMap] = useState({});
+  const [responsables, setResponsables] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -85,8 +86,9 @@ export default function Dashboard() {
       base44.entities.Responsable.list().catch(() => []),
     ]).then(([pedidosData, responsablesData]) => {
       setPedidos(filtrarConfidenciales(pedidosData, user));
+      setResponsables(responsablesData);
       const map = {};
-      responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo }; });
+      responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo, capacidad: r.capacidadSemanalHoras ?? 40 }; });
       setResponsablesMap(map);
     }).finally(() => setLoading(false));
   }, [user]);
@@ -97,8 +99,9 @@ export default function Dashboard() {
       base44.entities.Responsable.list().catch(() => []),
     ]);
     setPedidos(filtrarConfidenciales(pedidosData, user));
+    setResponsables(responsablesData);
     const map = {};
-    responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo }; });
+    responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo, capacidad: r.capacidadSemanalHoras ?? 40 }; });
     setResponsablesMap(map);
   };
 
@@ -231,6 +234,30 @@ export default function Dashboard() {
   });
   const cargaData = Object.values(cargaPorResponsable).sort((a, b) => (b.abiertos + b.cerradosHoy) - (a.abiertos + b.cerradosHoy));
 
+  // Time Boxing metrics
+  const conEstimacion = abiertos.filter(p => p.horasEstimadas != null);
+  const fueraDeTimeBox = conEstimacion.filter(p => {
+    return p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas;
+  });
+  const horasEstimadasTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasEstimadas) || 0), 0);
+  const horasRealesTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasReales) || 0), 0);
+  const desviacionHoras = horasRealesTotal - horasEstimadasTotal;
+
+  // Carga por responsable con horas
+  const cargaHorasMap = {};
+  abiertos.forEach(p => {
+    if (!p.responsable || p.horasEstimadas == null) return;
+    const resp = extractNombre(p.responsable);
+    if (!cargaHorasMap[resp]) {
+      cargaHorasMap[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0, pedidos: 0, capacidad: 40 };
+    }
+    cargaHorasMap[resp].horasEstimadas += parseFloat(p.horasEstimadas) || 0;
+    cargaHorasMap[resp].horasReales += parseFloat(p.horasReales) || 0;
+    cargaHorasMap[resp].pedidos++;
+    cargaHorasMap[resp].capacidad = responsablesMap[resp]?.capacidad ?? 40;
+  });
+  const cargaHorasData = Object.values(cargaHorasMap).sort((a, b) => b.horasEstimadas - a.horasEstimadas);
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -240,13 +267,17 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard label="Abiertos" value={abiertos.length} />
         <StatCard label="Vencidos" value={vencidos.length} color="border-alert/30" />
         <StatCard label="Bloqueados" value={bloqueados.length} color="border-warning/30" />
         <StatCard label="Cerrados" value={cerrados.length} color="border-success/30" />
         <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-success/30" />
         <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} color="border-primary/20" />
+        <StatCard label="Fuera de Time Box" value={fueraDeTimeBox.length} color="border-alert/30" />
+        <StatCard label="Horas estimadas" value={`${horasEstimadasTotal}h`} color="border-primary/20" />
+        <StatCard label="Horas reales" value={`${horasRealesTotal}h`} color="border-primary/20" />
+        <StatCard label="Desviación horas" value={`${desviacionHoras > 0 ? "+" : ""}${desviacionHoras}h`} color={desviacionHoras > 0 ? "border-alert/30" : "border-success/30"} />
       </div>
 
       {/* Charts row 1 */}
@@ -401,6 +432,49 @@ export default function Dashboard() {
           ) : <p className="text-sm text-muted-foreground">Sin responsables asignados</p>}
         </Section>
       </div>
+
+      {/* Time Boxing: Carga horaria por responsable */}
+      {cargaHorasData.length > 0 && (
+        <Section title="Carga horaria por responsable (Time Boxing)">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-secondary">
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Pedidos</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas est.</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas reales</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Capacidad semanal</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">% Utilización</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cargaHorasData.map((item, idx) => {
+                  const pct = item.capacidad > 0 ? Math.round(item.horasEstimadas / item.capacidad * 100) : 0;
+                  return (
+                    <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-secondary/30">
+                      <td className="px-4 py-2.5 font-medium text-foreground">{item.responsable}</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.pedidos}</td>
+                      <td className="px-4 py-2.5 text-center font-medium">{item.horasEstimadas}h</td>
+                      <td className="px-4 py-2.5 text-center font-medium">{item.horasReales}h</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.capacidad}h</td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
+                          pct > 100 ? "bg-alert/10 text-alert" :
+                          pct >= 80 ? "bg-warning/10 text-warning" :
+                          "bg-emerald-500/10 text-emerald-600"
+                        }`}>
+                          {pct}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
 
       {/* Carga de trabajo: Cerrados semana vs Abiertos */}
       <Section title="Carga de trabajo — Cerrados (semana) vs Abiertos">

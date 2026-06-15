@@ -114,6 +114,24 @@
     "motivo_confidencial": {
       "type": "string",
       "title": "Motivo de confidencialidad"
+    },
+    "horasEstimadas": {
+      "type": "number",
+      "title": "Horas estimadas"
+    },
+    "horasReales": {
+      "type": "number",
+      "title": "Horas reales"
+    },
+    "fechaCompromiso": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha compromiso"
+    },
+    "fueraDeTimeBox": {
+      "type": "boolean",
+      "title": "Fuera del Time Box",
+      "default": false
     }
   },
   "required": [
