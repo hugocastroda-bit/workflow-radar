@@ -5,9 +5,11 @@ import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell
+  ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { Loader2, Filter, X, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import _ from "lodash";
 import { useAuth } from "@/lib/AuthContext";
 import { filtrarConfidenciales } from "@/lib/confidencial";
@@ -26,17 +28,7 @@ const DONUT_COLORS = {
 const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShadow: "none" };
 
 const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
-
-// Normaliza tipos numéricos del payload analítico (los conteos pueden venir como string)
-function normalizarRanking(rankingData) {
-  return (rankingData || []).map(r => ({
-    ...r,
-    activos:    parseInt(r.activos, 10)    || 0,
-    cerrados:   parseInt(r.cerrados, 10)   || 0,
-    vencidos:   parseInt(r.vencidos, 10)   || 0,
-    bloqueados: parseInt(r.bloqueados, 10) || 0,
-  }));
-}
+const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
 function calcAvgClose(cerrados) {
   const times = cerrados
@@ -47,7 +39,7 @@ function calcAvgClose(cerrados) {
   return parseFloat((times.reduce((a, b) => a + b, 0) / times.length).toFixed(1));
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, subtitle }) {
   return (
     <div className={`bg-card border rounded-lg px-5 py-4 ${color || "border-border"}`}>
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
@@ -57,13 +49,14 @@ function StatCard({ label, value, color }) {
         color === "border-success/30" ? "text-success" :
         "text-foreground"
       }`}>{value}</p>
+      {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5">{subtitle}</p>}
     </div>
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, children, accent }) {
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
+    <div className={`bg-card border rounded-lg overflow-hidden ${accent || "border-border"}`}>
       <div className="px-5 py-3 border-b border-border bg-secondary">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h3>
       </div>
@@ -79,6 +72,15 @@ export default function Dashboard() {
   const [responsables, setResponsables] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // Dashboard filters
+  const [fResponsable, setFResponsable] = useState("");
+  const [fProceso, setFProceso] = useState("");
+  const [fEstado, setFEstado] = useState("");
+  const [fPrioridad, setFPrioridad] = useState("");
+  const [fTimeBox, setFTimeBox] = useState("");
+  const [fFechaReqDesde, setFFechaReqDesde] = useState("");
+  const [fFechaReqHasta, setFFechaReqHasta] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -115,64 +117,119 @@ export default function Dashboard() {
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
   const weekStr = weekAgo.toISOString().split("T")[0];
 
-  const abiertos = pedidos.filter(p => p.estado !== "Cerrado");
-  const cerrados = pedidos.filter(p => p.estado === "Cerrado");
-  const vencidos = abiertos.filter(p => p.fecha_requerida < today);
-  const bloqueados = pedidos.filter(p => p.estado === "Bloqueado");
-  const cerradosSemana = cerrados.filter(p => p.fecha_cierre_real >= weekStr);
-
-  // MÉTRICA 1: Tiempo promedio de cierre (safety: days >= 0, 1 decimal, fallback null)
-  const avgClose = calcAvgClose(cerrados);
-
-  // Charts data
-  // Normaliza el nombre del responsable: extrae solo el nombre base descartando
-  // cualquier sufijo " — email", "@dominio" o variaciones con espacios inconsistentes.
-  // Esto es equivalente al TRIM(UPPER(SPLIT_PART(..., '—', 1))) de PostgreSQL.
   const extractNombre = (str) => {
     if (!str) return "";
-    // Cortar en " — " o en " - " seguido de @ (email inline) o simplemente en "@"
-    let clean = str.split(/\s*—\s*/)[0]  // quita "Nombre — email"
-                   .split(/@/)[0]             // quita si hubiera "nombre@dominio"
-                   .trim();
+    let clean = str.split(/\s*—\s*/)[0].split(/@/)[0].trim();
     return clean;
   };
 
-  // Deduplica por nombre base antes de renderizar (consolida micro-variaciones del mismo responsable)
-  const responsableCountMap = {};
-  abiertos.filter(p => p.responsable).forEach(p => {
-    const fullLabel = p.responsable;
-    const displayName = extractNombre(fullLabel);
-    if (!responsableCountMap[displayName]) {
-      responsableCountMap[displayName] = { displayName, fullLabel, count: 0 };
-    }
-    responsableCountMap[displayName].count++;
+  // Apply dashboard filters to pedidos
+  const filteredPedidos = pedidos.filter(p => {
+    if (fResponsable && extractNombre(p.responsable || "") !== fResponsable) return false;
+    if (fProceso && p.proceso !== fProceso) return false;
+    if (fEstado && p.estado !== fEstado) return false;
+    if (fPrioridad && p.prioridad !== fPrioridad) return false;
+    if (fTimeBox === "dentro" && (p.horasEstimadas == null || (p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas))) return false;
+    if (fTimeBox === "fuera" && (p.horasEstimadas == null || !(p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas))) return false;
+    if (fFechaReqDesde && (!p.fecha_requerida || p.fecha_requerida < fFechaReqDesde)) return false;
+    if (fFechaReqHasta && (!p.fecha_requerida || p.fecha_requerida > fFechaReqHasta)) return false;
+    return true;
   });
-  const byResponsable = Object.values(responsableCountMap)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+
+  const abiertos = filteredPedidos.filter(p => p.estado !== "Cerrado");
+  const cerrados = filteredPedidos.filter(p => p.estado === "Cerrado");
+  const vencidos = abiertos.filter(p => p.fecha_requerida < today);
+  const bloqueados = filteredPedidos.filter(p => p.estado === "Bloqueado");
+  const cerradosSemana = cerrados.filter(p => p.fecha_cierre_real >= weekStr);
+  const avgClose = calcAvgClose(cerrados);
+
+  // Time Boxing metrics
+  const conEstimacion = abiertos.filter(p => p.horasEstimadas != null);
+  const conEstimacionReal = conEstimacion.filter(p => p.horasReales != null && p.horasEstimadas > 0);
+  const fueraDeTimeBox = conEstimacionReal.filter(p => p.horasReales > p.horasEstimadas);
+  const dentroDeTimeBox = conEstimacionReal.filter(p => p.horasReales <= p.horasEstimadas);
+  const precisionEstimacion = conEstimacionReal.length > 0
+    ? Math.round(dentroDeTimeBox.length / conEstimacionReal.length * 100)
+    : null;
+
+  const horasEstimadasTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasEstimadas) || 0), 0);
+  const horasRealesTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasReales) || 0), 0);
+  const desviacionHoras = horasRealesTotal - horasEstimadasTotal;
+
+  // Responsables sobre capacidad
+  const responsablesSobrecapacidad = [];
+  const cargaHorasMap = {};
+  abiertos.forEach(p => {
+    if (!p.responsable) return;
+    const resp = extractNombre(p.responsable);
+    if (!cargaHorasMap[resp]) {
+      const cap = responsablesMap[resp]?.capacidad ?? 40;
+      cargaHorasMap[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0, pedidos: 0, vencidos: 0, bloqueados: 0, capacidad: cap };
+    }
+    cargaHorasMap[resp].horasEstimadas += parseFloat(p.horasEstimadas) || 0;
+    cargaHorasMap[resp].horasReales += parseFloat(p.horasReales) || 0;
+    cargaHorasMap[resp].pedidos++;
+    if (p.fecha_requerida && p.fecha_requerida < today) cargaHorasMap[resp].vencidos++;
+    if (p.estado === "Bloqueado") cargaHorasMap[resp].bloqueados++;
+  });
+  const cargaHorasData = Object.values(cargaHorasMap).sort((a, b) => b.horasEstimadas - a.horasEstimadas);
+
+  cargaHorasData.forEach(item => {
+    const pct = item.capacidad > 0 ? Math.round(item.horasEstimadas / item.capacidad * 100) : 0;
+    if (pct > 100) responsablesSobrecapacidad.push(item);
+  });
+
+  // Exclude "Sin asignar" from charts; keep it for tables
+  const byResponsable = Object.values(
+    abiertos.filter(p => p.responsable).reduce((acc, p) => {
+      const name = extractNombre(p.responsable);
+      if (!acc[name]) acc[name] = { displayName: name, count: 0 };
+      acc[name].count++;
+      return acc;
+    }, {})
+  ).sort((a, b) => b.count - a.count).slice(0, 10);
 
   const sinAsignar = abiertos.filter(p => !p.responsable).length;
 
-  const byProceso = Object.entries(_.countBy(pedidos, "proceso"))
+  const byProceso = Object.entries(_.countBy(filteredPedidos, "proceso"))
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count).slice(0, 10);
 
-  const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+  const horasPorProceso = Object.entries(
+    conEstimacion.reduce((acc, p) => {
+      const proc = p.proceso || "Sin proceso";
+      acc[proc] = (acc[proc] || 0) + (parseFloat(p.horasEstimadas) || 0);
+      return acc;
+    }, {})
+  ).map(([name, horas]) => ({ name, horas })).sort((a, b) => b.horas - a.horas).slice(0, 10);
+
+  // Desviación por responsable
+  const desviacionPorResponsable = Object.values(
+    conEstimacionReal.reduce((acc, p) => {
+      if (!p.responsable) return acc;
+      const resp = extractNombre(p.responsable);
+      if (!acc[resp]) acc[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0 };
+      acc[resp].horasEstimadas += parseFloat(p.horasEstimadas) || 0;
+      acc[resp].horasReales += parseFloat(p.horasReales) || 0;
+      return acc;
+    }, {})
+  )
+    .map(r => ({ ...r, desviacion: r.horasReales - r.horasEstimadas }))
+    .sort((a, b) => b.desviacion - a.desviacion);
+
   const byEstado = ESTADOS.map(name => ({
-    name, value: pedidos.filter(p => p.estado === name).length, color: DONUT_COLORS[name]
+    name, value: filteredPedidos.filter(p => p.estado === name).length, color: DONUT_COLORS[name]
   })).filter(e => e.value > 0);
 
   const byPrioridad = ["Alta", "Media", "Baja"].map(pr => ({
-    pr, count: pedidos.filter(p => p.prioridad === pr).length,
+    pr, count: filteredPedidos.filter(p => p.prioridad === pr).length,
     bar: pr === "Alta" ? "bg-red-300" : pr === "Media" ? "bg-yellow-300" : "bg-slate-200"
   }));
   const maxPr = Math.max(...byPrioridad.map(p => p.count), 1);
 
-  // MÉTRICA 2: Ranking — "⚠️ Sin Asignar" + inactivos etiquetados + ORDER BY activos DESC, cerrados DESC
-  // CLAVE: usamos extractNombre para normalizar "Nombre — email" → "Nombre" antes de agrupar,
-  // evitando duplicados por variaciones del campo responsable.
+  // Ranking
   const rankingRawMap = {};
-  pedidos.forEach(p => {
+  filteredPedidos.forEach(p => {
     const rawResponsable = p.responsable?.trim() || null;
     const nombreBase = rawResponsable ? extractNombre(rawResponsable) : null;
     let key;
@@ -194,13 +251,12 @@ export default function Dashboard() {
     }
   });
 
-  // Reduce defensivo: consolida cualquier entrada con nombre duplicado antes de renderizar
-  const rankingConsolidado = Object.values(
-    normalizarRanking(Object.values(rankingRawMap)).reduce((acc, r) => {
+  const ranking = Object.values(
+    Object.values(rankingRawMap).reduce((acc, r) => {
       if (acc[r.name]) {
-        acc[r.name].activos    += r.activos;
-        acc[r.name].cerrados   += r.cerrados;
-        acc[r.name].vencidos   += r.vencidos;
+        acc[r.name].activos += r.activos;
+        acc[r.name].cerrados += r.cerrados;
+        acc[r.name].vencidos += r.vencidos;
         acc[r.name].bloqueados += r.bloqueados;
       } else {
         acc[r.name] = { ...r };
@@ -209,19 +265,15 @@ export default function Dashboard() {
     }, {})
   ).sort((a, b) => b.activos - a.activos || b.cerrados - a.cerrados);
 
-  const ranking = rankingConsolidado;
-
   const barH = (n) => Math.max(n * 34 + 20, 80);
 
-  // Carga de trabajo: cerrados esta semana vs abiertos por responsable
-  // NORMALIZACIÓN: usamos extractNombre para que "Nombre — email" y "Nombre" se consoliden
-  // en la misma fila, igual que en el ranking y el gráfico de barras.
+  // Carga de trabajo semanal
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekStartStr = weekStart.toISOString().split("T")[0];
 
   const cargaPorResponsable = {};
-  pedidos.forEach(p => {
+  filteredPedidos.forEach(p => {
     const resp = p.responsable ? extractNombre(p.responsable) : "⚠️ Sin asignar";
     if (!cargaPorResponsable[resp]) {
       cargaPorResponsable[resp] = { responsable: resp, cerradosHoy: 0, abiertos: 0 };
@@ -234,108 +286,158 @@ export default function Dashboard() {
   });
   const cargaData = Object.values(cargaPorResponsable).sort((a, b) => (b.abiertos + b.cerradosHoy) - (a.abiertos + b.cerradosHoy));
 
-  // Time Boxing metrics
-  const conEstimacion = abiertos.filter(p => p.horasEstimadas != null);
-  const fueraDeTimeBox = conEstimacion.filter(p => {
-    return p.horasReales != null && p.horasEstimadas > 0 && p.horasReales > p.horasEstimadas;
-  });
-  const horasEstimadasTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasEstimadas) || 0), 0);
-  const horasRealesTotal = conEstimacion.reduce((sum, p) => sum + (parseFloat(p.horasReales) || 0), 0);
-  const desviacionHoras = horasRealesTotal - horasEstimadasTotal;
+  // Unique values for filters
+  const uniq = (arr, key) => {
+    const seen = new Set();
+    const result = [];
+    arr.forEach(item => {
+      const val = key ? item[key] : item;
+      if (!val || seen.has(val)) return;
+      seen.add(val);
+      result.push(val);
+    });
+    return result.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+  };
 
-  // Carga por responsable con horas
-  const cargaHorasMap = {};
-  abiertos.forEach(p => {
-    if (!p.responsable || p.horasEstimadas == null) return;
-    const resp = extractNombre(p.responsable);
-    if (!cargaHorasMap[resp]) {
-      cargaHorasMap[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0, pedidos: 0, capacidad: 40 };
-    }
-    cargaHorasMap[resp].horasEstimadas += parseFloat(p.horasEstimadas) || 0;
-    cargaHorasMap[resp].horasReales += parseFloat(p.horasReales) || 0;
-    cargaHorasMap[resp].pedidos++;
-    cargaHorasMap[resp].capacidad = responsablesMap[resp]?.capacidad ?? 40;
-  });
-  const cargaHorasData = Object.values(cargaHorasMap).sort((a, b) => b.horasEstimadas - a.horasEstimadas);
+  const respUniq = uniq(pedidos.filter(p => p.responsable).map(p => extractNombre(p.responsable)));
+  const procUniq = uniq(pedidos, "proceso");
+
+  const hasFilters = fResponsable || fProceso || fEstado || fPrioridad || fTimeBox || fFechaReqDesde || fFechaReqHasta;
+  const clearFilters = () => {
+    setFResponsable(""); setFProceso(""); setFEstado(""); setFPrioridad("");
+    setFTimeBox(""); setFFechaReqDesde(""); setFFechaReqHasta("");
+  };
+
+  // Pedidos fuera de Time Box (for dedicated table)
+  const fueraTimeBoxDetalle = conEstimacionReal
+    .filter(p => p.horasReales > p.horasEstimadas)
+    .map(p => ({
+      ...p,
+      _resp: extractNombre(p.responsable || ""),
+      _desviacion: p.horasReales - p.horasEstimadas,
+    }))
+    .sort((a, b) => b._desviacion - a._desviacion);
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Torre de control de carga de trabajo</p>
+        <p className="text-sm text-muted-foreground mt-1">Torre de control de carga y capacidad</p>
+      </div>
+
+      {/* Dashboard Filters */}
+      <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+        <Select value={fResponsable || "__placeholder__"} onValueChange={v => setFResponsable(v === "__placeholder__" ? "" : v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {respUniq.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fProceso || "__placeholder__"} onValueChange={v => setFProceso(v === "__placeholder__" ? "" : v)}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {procUniq.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fEstado || "__placeholder__"} onValueChange={v => setFEstado(v === "__placeholder__" ? "" : v)}>
+          <SelectTrigger className="h-8 text-xs w-[120px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {ESTADOS.map(e => <SelectItem key={e} value={e} className="text-xs">{e}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fPrioridad || "__placeholder__"} onValueChange={v => setFPrioridad(v === "__placeholder__" ? "" : v)}>
+          <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todas</SelectItem>
+            {["Alta", "Media", "Baja"].map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fTimeBox || "__placeholder__"} onValueChange={v => setFTimeBox(v === "__placeholder__" ? "" : v)}>
+          <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue placeholder="Time Box" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            <SelectItem value="dentro" className="text-xs">Dentro del Time Box</SelectItem>
+            <SelectItem value="fuera" className="text-xs">Fuera del Time Box</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="w-px h-5 bg-border mx-1" />
+        <Input type="date" value={fFechaReqDesde} onChange={e => setFFechaReqDesde(e.target.value)} className="h-8 text-xs w-[130px]" placeholder="Fecha desde" />
+        <Input type="date" value={fFechaReqHasta} onChange={e => setFFechaReqHasta(e.target.value)} className="h-8 text-xs w-[130px]" placeholder="Fecha hasta" />
+        {hasFilters && (
+          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-secondary transition-colors whitespace-nowrap">
+            <X className="h-3 w-3" /> Limpiar filtros
+          </button>
+        )}
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <StatCard label="Abiertos" value={abiertos.length} />
+        <StatCard label="Pedidos activos" value={abiertos.length} />
         <StatCard label="Vencidos" value={vencidos.length} color="border-alert/30" />
         <StatCard label="Bloqueados" value={bloqueados.length} color="border-warning/30" />
         <StatCard label="Cerrados" value={cerrados.length} color="border-success/30" />
         <StatCard label="Cerrados / semana" value={cerradosSemana.length} color="border-success/30" />
-        <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} color="border-primary/20" />
-        <StatCard label="Fuera de Time Box" value={fueraDeTimeBox.length} color="border-alert/30" />
-        <StatCard label="Horas estimadas" value={`${horasEstimadasTotal}h`} color="border-primary/20" />
-        <StatCard label="Horas reales" value={`${horasRealesTotal}h`} color="border-primary/20" />
+        <StatCard label="Fuera de Time Box" value={fueraDeTimeBox.length} color={fueraDeTimeBox.length > 0 ? "border-alert/30" : "border-success/30"} />
+        <StatCard label="Horas estimadas" value={`${horasEstimadasTotal}h`} subtitle={conEstimacion.length > 0 ? `${conEstimacion.length} pedidos` : null} />
+        <StatCard label="Horas reales" value={`${horasRealesTotal}h`} />
         <StatCard label="Desviación horas" value={`${desviacionHoras > 0 ? "+" : ""}${desviacionHoras}h`} color={desviacionHoras > 0 ? "border-alert/30" : "border-success/30"} />
+        <StatCard
+          label="Sobre capacidad"
+          value={responsablesSobrecapacidad.length}
+          color={responsablesSobrecapacidad.length > 0 ? "border-alert/30" : "border-success/30"}
+          subtitle={responsablesSobrecapacidad.length > 0 ? responsablesSobrecapacidad.map(r => r.responsable).join(", ").slice(0, 40) + (responsablesSobrecapacidad.length > 2 ? "…" : "") : null}
+        />
+        <StatCard label="Precisión est." value={precisionEstimacion !== null ? `${precisionEstimacion}%` : "—"} color={precisionEstimacion !== null && precisionEstimacion >= 70 ? "border-success/30" : precisionEstimacion !== null ? "border-warning/30" : ""} subtitle={precisionEstimacion !== null ? `${dentroDeTimeBox.length} de ${conEstimacionReal.length} dentro` : "Sin datos"} />
+        <StatCard label="Días prom. cierre" value={avgClose !== null ? `${avgClose}d` : "—"} color="border-primary/20" />
       </div>
 
-      {/* Charts row 1 */}
+      {/* Carga por responsable (capacity bars) + Distribución por estado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <Section title="Carga activa por responsable">
-          {byResponsable.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={byResponsable.length * 42 + 16}>
-                <BarChart
-                  data={byResponsable}
-                  layout="vertical"
-                  margin={{ left: 4, right: 24, top: 4, bottom: 4 }}
-                  barCategoryGap="35%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                    allowDecimals={false}
-                  />
-                  <YAxis
-                    dataKey="displayName"
-                    type="category"
-                    width={148}
-                    axisLine={false}
-                    tickLine={false}
-                    tick={(props) => {
-                      const { x, y, payload } = props;
-                      const raw = payload.value || "";
-                      const label = raw.length > 22 ? raw.slice(0, 20) + "…" : raw;
-                      return (
-                        <text x={x} y={y} dy={4} textAnchor="end" fill="#475569" fontSize={12} fontFamily="var(--font-inter)">
-                          {label}
-                        </text>
-                      );
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={TT}
-                    cursor={{ fill: "#f8fafc" }}
-                    formatter={(value, _name, props) => [value, "Pedidos activos"]}
-                    labelFormatter={(label, payload) => {
-                      const item = payload?.[0]?.payload;
-                      return item?.fullLabel || item?.displayName || label;
-                    }}
-                  />
-                  <Bar dataKey="count" name="Pedidos" fill="hsl(217 91% 40%)" radius={[0, 4, 4, 0]} barSize={16} />
-                </BarChart>
-              </ResponsiveContainer>
+        <Section title="Carga por responsable (capacidad)">
+          {cargaHorasData.length > 0 ? (
+            <div className="space-y-3">
+              {cargaHorasData.map((item, idx) => {
+                const pct = item.capacidad > 0 ? Math.round(item.horasEstimadas / item.capacidad * 100) : 0;
+                const barColor = pct > 100 ? "#EF4444" : pct >= 71 ? "#F59E0B" : "#22C55E";
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <span className="text-xs text-foreground w-[100px] truncate" title={item.responsable}>
+                      {item.responsable}
+                    </span>
+                    <div className="flex-1 bg-secondary rounded-full h-2.5 relative overflow-hidden">
+                      <div
+                        className="h-2.5 rounded-full absolute left-0 top-0 transition-all"
+                        style={{ width: `${Math.min(pct, 150)}%`, backgroundColor: barColor }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium tabular-nums w-[65px] text-right" style={{ color: barColor }}>
+                      {item.horasEstimadas}h / {item.capacidad}h
+                    </span>
+                    <span className="text-[10px] font-medium tabular-nums w-[32px] text-right" style={{ color: barColor }}>
+                      {pct}%
+                    </span>
+                  </div>
+                );
+              })}
               {sinAsignar > 0 && (
-                <p className="text-xs text-muted-foreground mt-3">
+                <p className="text-[10px] text-muted-foreground pt-2 border-t border-border">
                   {sinAsignar} pedido{sinAsignar > 1 ? "s" : ""} sin asignar
                 </p>
               )}
-            </>
-          ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+              <Clock className="h-6 w-6 text-muted-foreground/40" />
+              <p className="text-xs text-muted-foreground">Aún no hay horas estimadas registradas.</p>
+              <p className="text-[10px] text-muted-foreground/60">Agrega horas estimadas en los pedidos para visualizar carga por responsable.</p>
+            </div>
+          )}
         </Section>
 
         <Section title="Distribución por estado">
@@ -363,22 +465,136 @@ export default function Dashboard() {
         </Section>
       </div>
 
-      {/* Charts row 2 */}
-      <div className="grid grid-cols-1 gap-5">
-        <Section title="Pedidos por proceso">
-          {byProceso.length > 0 ? (
-            <ResponsiveContainer width="100%" height={barH(byProceso.length)}>
-              <BarChart data={byProceso} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+      {/* Horas por proceso + Desviación por responsable */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Section title="Horas estimadas por proceso">
+          {horasPorProceso.length > 0 ? (
+            <ResponsiveContainer width="100%" height={barH(horasPorProceso.length)}>
+              <BarChart data={horasPorProceso} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} />
-                <Bar dataKey="count" name="Pedidos" fill="hsl(152 40% 42%)" radius={[0, 3, 3, 0]} barSize={16} />
+                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} formatter={(value) => [`${value}h`, "Horas estimadas"]} />
+                <Bar dataKey="horas" name="Horas" fill="hsl(217 91% 55%)" radius={[0, 3, 3, 0]} barSize={18} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <p className="text-sm text-muted-foreground">Sin datos</p>}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+              <Clock className="h-6 w-6 text-muted-foreground/40" />
+              <p className="text-xs text-muted-foreground">Aún no hay horas estimadas registradas por proceso.</p>
+            </div>
+          )}
+        </Section>
+
+        <Section title="Desviación de horas por responsable">
+          {desviacionPorResponsable.length > 0 ? (
+            <ResponsiveContainer width="100%" height={barH(desviacionPorResponsable.length)}>
+              <BarChart data={desviacionPorResponsable} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="responsable" type="category" width={120} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={TT}
+                  cursor={{ fill: "#f8fafc" }}
+                  formatter={(value, name) => {
+                    if (name === "horasEstimadas") return [`${value}h`, "Horas estimadas"];
+                    if (name === "horasReales") return [`${value}h`, "Horas reales"];
+                    return [`${value > 0 ? "+" : ""}${value}h`, "Desviación"];
+                  }}
+                />
+                <Bar dataKey="horasEstimadas" name="Horas est." fill="hsl(217 91% 55%)" radius={[0, 0, 0, 0]} barSize={10} stackId="a" />
+                <Bar dataKey="horasReales" name="Horas reales" fill="hsl(152 40% 42%)" radius={[0, 3, 3, 0]} barSize={10} stackId="b" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+              <Clock className="h-6 w-6 text-muted-foreground/40" />
+              <p className="text-xs text-muted-foreground">Aún no hay horas reales registradas.</p>
+            </div>
+          )}
         </Section>
       </div>
+
+      {/* Pedidos fuera de Time Box */}
+      {fueraTimeBoxDetalle.length > 0 && (
+        <Section title={`Pedidos fuera de Time Box — ${fueraTimeBoxDetalle.length}`} accent="border-alert/30">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-secondary">
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Pedido</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Responsable</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Proceso</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Prioridad</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Estado</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Horas est.</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Horas reales</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-muted-foreground">Desviación</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Fecha req.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fueraTimeBoxDetalle.slice(0, 15).map((p, idx) => (
+                  <tr key={idx} onClick={() => navigate(`/pedido/${p.id}`)} className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-secondary/30">
+                    <td className="px-3 py-2.5 font-medium text-foreground truncate max-w-[160px]">{p.titulo}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{p._resp || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{p.proceso}</td>
+                    <td className="px-3 py-2.5"><PriorityBadge priority={p.prioridad} /></td>
+                    <td className="px-3 py-2.5"><StatusBadge status={p.estado} /></td>
+                    <td className="px-3 py-2.5 text-center">{p.horasEstimadas}h</td>
+                    <td className="px-3 py-2.5 text-center font-medium text-alert">{p.horasReales}h</td>
+                    <td className="px-3 py-2.5 text-center font-medium text-alert">+{p._desviacion}h</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{p.fecha_requerida || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
+
+      {/* Responsables sobre capacidad */}
+      {responsablesSobrecapacidad.length > 0 && (
+        <Section title={`Responsables sobre capacidad — ${responsablesSobrecapacidad.length}`} accent="border-alert/30">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-secondary">
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas asignadas</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Capacidad semanal</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Utilización</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Pedidos activos</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Vencidos</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Bloqueados</th>
+                </tr>
+              </thead>
+              <tbody>
+                {responsablesSobrecapacidad.sort((a, b) => {
+                  const pa = a.capacidad > 0 ? a.horasEstimadas / a.capacidad : 0;
+                  const pb = b.capacidad > 0 ? b.horasEstimadas / b.capacidad : 0;
+                  return pb - pa;
+                }).map((item, idx) => {
+                  const pct = item.capacidad > 0 ? Math.round(item.horasEstimadas / item.capacidad * 100) : 0;
+                  return (
+                    <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-secondary/30">
+                      <td className="px-4 py-2.5 font-medium text-foreground">{item.responsable}</td>
+                      <td className="px-4 py-2.5 text-center font-medium text-alert">{item.horasEstimadas}h</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.capacidad}h</td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-alert/10 text-alert font-medium text-xs">{pct}%</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.pedidos}</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.vencidos}</td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.bloqueados}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
 
       {/* Prioridad + Ranking */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -432,49 +648,6 @@ export default function Dashboard() {
           ) : <p className="text-sm text-muted-foreground">Sin responsables asignados</p>}
         </Section>
       </div>
-
-      {/* Time Boxing: Carga horaria por responsable */}
-      {cargaHorasData.length > 0 && (
-        <Section title="Carga horaria por responsable (Time Boxing)">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border bg-secondary">
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Pedidos</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas est.</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Horas reales</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Capacidad semanal</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">% Utilización</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cargaHorasData.map((item, idx) => {
-                  const pct = item.capacidad > 0 ? Math.round(item.horasEstimadas / item.capacidad * 100) : 0;
-                  return (
-                    <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-secondary/30">
-                      <td className="px-4 py-2.5 font-medium text-foreground">{item.responsable}</td>
-                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.pedidos}</td>
-                      <td className="px-4 py-2.5 text-center font-medium">{item.horasEstimadas}h</td>
-                      <td className="px-4 py-2.5 text-center font-medium">{item.horasReales}h</td>
-                      <td className="px-4 py-2.5 text-center text-muted-foreground">{item.capacidad}h</td>
-                      <td className="px-4 py-2.5 text-center">
-                        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
-                          pct > 100 ? "bg-alert/10 text-alert" :
-                          pct >= 80 ? "bg-warning/10 text-warning" :
-                          "bg-emerald-500/10 text-emerald-600"
-                        }`}>
-                          {pct}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-      )}
 
       {/* Carga de trabajo: Cerrados semana vs Abiertos */}
       <Section title="Carga de trabajo — Cerrados (semana) vs Abiertos">
