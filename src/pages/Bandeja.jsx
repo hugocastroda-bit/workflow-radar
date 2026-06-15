@@ -285,6 +285,32 @@ export default function Bandeja() {
 
       <SmartTabs activeTab={activeTab} onTabChange={setActiveTab} counts={tabCounts} />
 
+      {/* ── Cards resumen ──────────────────────────────── */}
+      {(() => {
+        const activos = pedidos.filter(p => p.estado !== "Cerrado").length;
+        const vencidos = pedidos.filter(p => p.fecha_requerida < today && p.estado !== "Cerrado").length;
+        const bloqueados = pedidos.filter(p => p.estado === "Bloqueado").length;
+        const sinResponsable = pedidos.filter(p => !p.responsable).length;
+        const fueraTimeBox = pedidos.filter(p => p.fueraDeTimeBox === true).length;
+        const cards = [
+          { label: "Activos", count: activos, color: "border-l-blue-500 text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
+          { label: "Vencidos", count: vencidos, color: "border-l-red-500 text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30" },
+          { label: "Bloqueados", count: bloqueados, color: "border-l-orange-500 text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
+          { label: "Sin responsable", count: sinResponsable, color: "border-l-gray-400 text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, color: "border-l-purple-500 text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/30" },
+        ];
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {cards.map(c => (
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border border-border border-l-4 ${c.color} ${c.bg} px-3 py-2.5`}>
+                <span className={`text-xl font-bold leading-none ${c.color.split(" ")[0]}`}>{c.count}</span>
+                <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Filters */}
       <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
