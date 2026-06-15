@@ -100,6 +100,19 @@ export default function Bandeja() {
     if (days > 7) return "text-warning font-medium";
     return "text-muted-foreground";
   };
+
+  const calcSLA = (p) => {
+    if (p.estado === "Cerrado") return null;
+    const slaDate = p.fechaCompromiso || p.fecha_requerida;
+    if (!slaDate) return null;
+    const diffDays = (new Date(slaDate) - new Date(today)) / 86400000;
+    if (diffDays < 0) return { type: "red", label: "SLA vencido" };
+    if (diffDays <= 3) return { type: "yellow", label: "Próximo a vencer" };
+    return { type: "green", label: "Dentro del SLA" };
+  };
+
+  const slaColors = { green: "bg-emerald-500", yellow: "bg-yellow-500", red: "bg-red-500" };
+
   const isVencidoFilter = new URLSearchParams(location.search).get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
@@ -164,6 +177,7 @@ export default function Bandeja() {
         ...(motivo ? { motivo_archivo: motivo } : {}),
       });
       setPedidos(prev => prev.filter(p => p.id !== archiveTarget));
+      eventBus.emit('pedidoArchivado', archiveTarget);
       setArchiveTarget(null);
       toast.success("Pedido archivado correctamente");
     } catch (err) {
@@ -179,6 +193,7 @@ export default function Bandeja() {
     try {
       await base44.entities.Pedido.delete(deleteTarget);
       setPedidos(prev => prev.filter(p => p.id !== deleteTarget));
+      eventBus.emit('pedidoEliminado', deleteTarget);
       setDeleteTarget(null);
       toast.success("Pedido borrado correctamente");
     } catch (err) {
@@ -300,17 +315,17 @@ export default function Bandeja() {
         const sinResponsable = pedidos.filter(p => !p.responsable).length;
         const fueraTimeBox = pedidos.filter(p => p.fueraDeTimeBox === true).length;
         const cards = [
-          { label: "Activos", count: activos, color: "border-blue-500 text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
-          { label: "Vencidos", count: vencidos, color: "border-red-500 text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30" },
-          { label: "Bloqueados", count: bloqueados, color: "border-orange-500 text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
-          { label: "Sin responsable", count: sinResponsable, color: "border-gray-400 text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" },
-          { label: "Fuera de Time Box", count: fueraTimeBox, color: "border-purple-500 text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/30" },
+          { label: "Activos", count: activos, left: "border-l-blue-500", num: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
+          { label: "Vencidos", count: vencidos, left: "border-l-red-500", num: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30" },
+          { label: "Bloqueados", count: bloqueados, left: "border-l-orange-500", num: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
+          { label: "Sin responsable", count: sinResponsable, left: "border-l-gray-400", num: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-purple-500", num: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/30" },
         ];
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
             {cards.map(c => (
-              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.color} ${c.bg} px-3 py-2.5 border border-border`}>
-                <span className={`text-xl font-bold leading-none ${c.color.split(" ")[0]}`}>{c.count}</span>
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border border-border`}>
+                <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
               </div>
             ))}
@@ -407,6 +422,7 @@ export default function Bandeja() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
                       <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
+                      {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                       {p.confidencial && <ConfidencialBadge size="xs" />}
                     </div>
                     {ESTADOS_CONGELADOS.includes(p.estado) && dias >= 7 && (
@@ -477,6 +493,7 @@ export default function Bandeja() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isOverdue && <AlertTriangle className="h-3 w-3 text-alert flex-shrink-0" />}
                         <span className="font-medium text-foreground truncate" title={p.titulo}>{p.titulo}</span>
+                        {(() => { const sla = calcSLA(p); return sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${slaColors[sla.type]}`} title={sla.label} />; })()}
                         {p.confidencial && <ConfidencialBadge size="xs" />}
                       </div>
                       {(() => {

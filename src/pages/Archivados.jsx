@@ -10,6 +10,7 @@ import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import { Loader2, Search, X, ArchiveRestore, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { eventBus } from "@/lib/eventBus";
 
 const PROCESOS = ["Selección","Bienestar","SST","Clima","Liderazgo","ACI","Onboarding","Comunicaciones internas","Legal laboral","Compensaciones","Gestión de talento","Otros"];
 const PRIORIDADES = ["Alta","Media","Baja"];
@@ -69,6 +70,7 @@ export default function Archivados() {
         archivado_por: null,
       });
       setPedidos(prev => prev.filter(p => p.id !== restoreTarget.id));
+      eventBus.emit('pedidoRestaurado', restoreTarget);
       toast.success("Pedido restaurado correctamente");
       setRestoreTarget(null);
     } catch {
