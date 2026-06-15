@@ -387,7 +387,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="sticky bottom-0 flex justify-end gap-2 pt-5 border-t border-border bg-background/95 backdrop-blur-sm -mx-6 px-6 pb-1">
             <Button variant="outline" size="sm" onClick={onClose} disabled={saving}>Cancelar</Button>
             <Button size="sm" onClick={handleSave} disabled={saving || !canSave}>
               {saving ? "Guardando..." : pedido ? "Guardar cambios" : "Crear pedido"}
