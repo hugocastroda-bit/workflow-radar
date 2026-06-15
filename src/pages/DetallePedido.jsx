@@ -29,7 +29,7 @@ function Field({ label, value, highlight, mono }) {
   return (
     <div>
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
-      <p className={`text-sm ${highlight ? "text-red-600 font-medium" : mono ? "font-mono" : "text-foreground"}`}>
+      <p className={`text-sm ${highlight ? "text-alert font-medium" : mono ? "font-mono" : "text-foreground"}`}>
         {value || <span className="text-muted-foreground/50">—</span>}
       </p>
     </div>
@@ -38,7 +38,7 @@ function Field({ label, value, highlight, mono }) {
 
 function Section({ title, children, accent }) {
   return (
-    <div className={`bg-card border rounded-lg p-6 space-y-5 dark:bg-[#121420] dark:border-[#22263F] ${accent || "border-border"}`}>
+    <div className={`bg-card border rounded-lg p-6 space-y-5 ${accent || "border-border"}`}>
       <p className={`text-xs font-semibold uppercase tracking-widest ${accent ? "text-emerald-600" : "text-muted-foreground"}`}>{title}</p>
       {children}
     </div>
@@ -354,7 +354,7 @@ export default function DetallePedido() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-5">
+    <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-5">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -366,7 +366,7 @@ export default function DetallePedido() {
             <div className="flex items-center gap-2 flex-wrap mb-1.5">
               <h1 className="text-lg font-semibold text-foreground">{pedido.titulo}</h1>
               {isOverdue && (
-                <span className="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-xs text-alert bg-alert/10 border border-alert/20 px-2 py-0.5 rounded">
                   <AlertTriangle className="h-3 w-3" /> Vencido
                 </span>
               )}
@@ -412,11 +412,11 @@ export default function DetallePedido() {
 
       {/* Alerta archivado */}
       {isArchived && (
-        <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-300 rounded-lg px-4 py-3">
-          <Archive className="h-4 w-4 text-slate-500 shrink-0" />
+        <div className="flex items-center gap-2.5 bg-secondary border border-border rounded-lg px-4 py-3">
+          <Archive className="h-4 w-4 text-muted-foreground shrink-0" />
           <div>
-            <p className="text-xs font-semibold text-slate-700">Pedido archivado</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Pedido archivado</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Archivado el {pedido.fecha_archivado || "—"} por {pedido.archivado_por || "—"}
               {pedido.motivo_archivo ? ` · ${pedido.motivo_archivo}` : ""}
             </p>
@@ -426,11 +426,11 @@ export default function DetallePedido() {
 
       {/* Alerta bloqueo */}
       {isBlocked && pedido.motivo_bloqueo && (
-        <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2.5 bg-warning/10 border border-warning/30 rounded-lg px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-semibold text-amber-700">Pedido bloqueado</p>
-            <p className="text-sm text-amber-800 mt-0.5">{pedido.motivo_bloqueo}</p>
+            <p className="text-xs font-semibold text-warning">Pedido bloqueado</p>
+            <p className="text-sm text-foreground/80 mt-0.5">{pedido.motivo_bloqueo}</p>
           </div>
         </div>
       )}
@@ -706,7 +706,7 @@ export default function DetallePedido() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Link relacionado</p>
                 <a href={pedido.link_evidencia} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-blue-700 hover:underline break-all">
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
                   <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                   {pedido.link_evidencia}
                 </a>

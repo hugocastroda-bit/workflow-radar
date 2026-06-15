@@ -906,7 +906,7 @@ export default function Configuracion() {
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Configuración</h1>
+        <h1 className="text-xl font-semibold text-foreground">Configuración</h1>
         <p className="text-xs text-muted-foreground mt-1">Administra las listas maestras de los desplegables del formulario</p>
       </div>
 

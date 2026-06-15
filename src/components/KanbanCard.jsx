@@ -143,7 +143,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         )}
 
         {/* Responsable + solicitante */}
-        <div className="flex items-center justify-between mt-2 gap-1">
+        <div className="flex items-center justify-between mt-1.5 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">
             {pedido.responsable ? (
               <>
@@ -165,7 +165,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Aging warning */}
         {isAging && (
-          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded border
+          <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded border
             bg-warning/10 text-warning border-warning/30
             dark:bg-[#331B00] dark:text-[#FF9F00] dark:border-[#5C3200]">
             <AlertCircle className="h-2.5 w-2.5" />
@@ -175,7 +175,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Actions — hidden by default, visible on hover */}
         {(onDuplicate || (isAdmin && (onDelete || onArchive || onConfidencial))) && (
-          <div className="flex justify-end mt-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="flex justify-end mt-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             {onDuplicate && (
               <button
                 onClick={e => { e.stopPropagation(); onDuplicate(pedido); }}

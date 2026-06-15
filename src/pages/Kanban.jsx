@@ -287,7 +287,7 @@ export default function Kanban() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Tablero Kanban</h1>
+          <h1 className="text-xl font-semibold text-foreground">Tablero Kanban</h1>
           <p className="text-xs text-muted-foreground mt-1">{activeCount} pedidos activos · {pedidos.filter(p => p.estado === "Cerrado").length} cerrados</p>
         </div>
       </div>

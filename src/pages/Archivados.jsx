@@ -86,36 +86,46 @@ export default function Archivados() {
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Archivados</h1>
+        <h1 className="text-xl font-semibold text-foreground">Archivados</h1>
         <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""} archivado{filtered.length !== 1 ? "s" : ""}</p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-60" />
+            placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-56" />
         </div>
-        <Select value={filters.proceso} onValueChange={v => setFilters(f => ({ ...f, proceso: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
-          <SelectContent>{PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+        <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
+        <Select value={filters.proceso || "__placeholder__"} onValueChange={v => setFilters(f => ({ ...f, proceso: v === "__placeholder__" ? "" : v }))}>
+          <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+            {PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select value={filters.prioridad} onValueChange={v => setFilters(f => ({ ...f, prioridad: v }))}>
-          <SelectTrigger className="h-8 text-xs w-[110px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
-          <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+        <Select value={filters.prioridad || "__placeholder__"} onValueChange={v => setFilters(f => ({ ...f, prioridad: v === "__placeholder__" ? "" : v }))}>
+          <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todas</SelectItem>
+            {PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+          </SelectContent>
         </Select>
         {responsables.length > 0 && (
-          <Select value={filters.responsable} onValueChange={v => setFilters(f => ({ ...f, responsable: v }))}>
-            <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
-            <SelectContent>{responsables.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}</SelectContent>
+          <Select value={filters.responsable || "__placeholder__"} onValueChange={v => setFilters(f => ({ ...f, responsable: v === "__placeholder__" ? "" : v }))}>
+            <SelectTrigger className="h-8 text-xs w-[130px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
+              {responsables.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+            </SelectContent>
           </Select>
         )}
         {hasFilters && (
-         <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded hover:bg-secondary transition-colors">
-           <X className="h-3 w-3" /> Limpiar
+         <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-secondary transition-colors whitespace-nowrap">
+           <X className="h-3 w-3" /> Limpiar filtros
          </button>
         )}
       </div>

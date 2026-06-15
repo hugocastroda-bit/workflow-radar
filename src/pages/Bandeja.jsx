@@ -288,10 +288,10 @@ export default function Bandeja() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Bandeja de pedidos</h1>
+          <h1 className="text-xl font-semibold text-foreground">Bandeja de pedidos</h1>
           <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
         <div className="flex gap-2">
@@ -324,7 +324,7 @@ export default function Bandeja() {
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
             {cards.map(c => (
-              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border border-border`}>
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
                 <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
               </div>

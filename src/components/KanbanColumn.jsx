@@ -6,7 +6,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
     <div className="flex-shrink-0 w-[240px] flex flex-col" style={{ maxHeight: "calc(100dvh - 160px)" }}>
       {/* Column header */}
       <div
-        className="flex items-center justify-between mb-2 px-3 py-2 rounded-lg no-select"
+        className="flex items-center justify-between mb-2.5 px-3 py-2 rounded-lg no-select"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="flex items-center gap-2">
