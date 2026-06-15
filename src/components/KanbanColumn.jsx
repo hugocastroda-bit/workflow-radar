@@ -31,9 +31,10 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="min-h-[120px] flex-1 overflow-y-auto rounded-lg p-1.5 transition-all duration-200 drag-zone [&::-webkit-scrollbar]:hidden"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="min-h-[120px] flex-1 overflow-y-auto rounded-lg p-2 transition-all duration-200 drag-zone [&::-webkit-scrollbar]:hidden"
             style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
               backgroundColor: snapshot.isDraggingOver
                 ? accentColor + "14"
                 : backgroundColor + "80",
