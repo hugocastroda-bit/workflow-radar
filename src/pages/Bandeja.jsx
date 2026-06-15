@@ -429,7 +429,7 @@ export default function Bandeja() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-alert flex-shrink-0" />}
-                      <span className="text-sm font-medium text-foreground line-clamp-2">{p.titulo}</span>
+                      <span className="text-sm font-medium text-foreground line-clamp-2" title={p.titulo}>{p.titulo}</span>
                       {(() => { const sla = calcSLA(p); return sla && (
                         <TooltipProvider delayDuration={300}>
                           <Tooltip>
@@ -455,8 +455,8 @@ export default function Bandeja() {
                       {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
-                      {p.solicitante && <span>{p.solicitante}</span>}
-                      {p.responsable && <span>→ {p.responsable}</span>}
+                      {p.solicitante && <span title={p.solicitante}>{p.solicitante}</span>}
+                      {p.responsable && <span title={p.responsable}>→ {p.responsable}</span>}
                       {p.fecha_requerida && <span className={isOverdue ? "text-alert font-medium" : ""}>{p.fecha_requerida}</span>}
                     </div>
                     {p.horasEstimadas != null ? (() => {
