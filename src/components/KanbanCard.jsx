@@ -142,21 +142,23 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           )}
         </div>
 
-        {/* Time Boxing indicator */}
-        {pedido.horasEstimadas != null && (
+        {/* Time Boxing indicator (minutos) */}
+        {pedido.horasEstimadas != null ? (() => {
+          const minsEst = Math.round(pedido.horasEstimadas * 60);
+          const minsReal = pedido.horasReales != null ? Math.round(pedido.horasReales * 60) : 0;
+          const ratio = minsEst > 0 ? minsReal / minsEst : 0;
+          const over = ratio > 1;
+          const colorClass = over ? "text-alert" : ratio >= 0.8 ? "text-warning" : "text-success";
+          return (
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className={`text-[10px] font-medium ${colorClass}`}>
+                {over ? "⚠" : "⏱"} {minsReal} min / {minsEst} min
+              </span>
+            </div>
+          );
+        })() : (
           <div className="flex items-center gap-1 mt-1.5">
-            <Clock className="h-2.5 w-2.5 text-muted-foreground/60" />
-            <span className={`text-[10px] font-medium ${
-              pedido.horasReales != null && pedido.horasEstimadas > 0
-                ? pedido.horasReales > pedido.horasEstimadas
-                  ? "text-alert"
-                  : (pedido.horasReales / pedido.horasEstimadas) >= 0.8
-                    ? "text-warning"
-                    : "text-success"
-                : "text-muted-foreground"
-            }`}>
-              {pedido.horasReales != null ? `${pedido.horasReales}h` : "0h"} / {pedido.horasEstimadas}h
-            </span>
+            <span className="text-[10px] font-medium text-muted-foreground/40">⏱ — min</span>
           </div>
         )}
 
