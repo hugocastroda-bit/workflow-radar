@@ -218,7 +218,7 @@ export default function DetallePedido() {
       } else if (editSection === "cierre") {
         await logCambiosSeccion(["resultado_final", "comentario_cierre", "fecha_cierre_real"], "cierre", prevPedido);
       } else if (editSection === "timeboxing") {
-        await logCambiosSeccion(["horasEstimadas", "horasReales", "fechaCompromiso"], "timeboxing", prevPedido);
+        await logCambiosSeccion(["complejidad", "horasEstimadas", "horasReales", "fechaCompromiso"], "timeboxing", prevPedido);
       }
       await loadHistorial();
 
@@ -534,6 +534,16 @@ export default function DetallePedido() {
         {editSection === "timeboxing" ? (
           <div className="space-y-4">
             <div>
+              <Label className="text-xs text-muted-foreground">Complejidad</Label>
+              <Select value={draft.complejidad || "__placeholder__"} onValueChange={v => set("complejidad", v === "__placeholder__" ? "" : v)}>
+                <SelectTrigger className="mt-1 text-sm"><SelectValue placeholder="Opcional" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Sin definir</SelectItem>
+                  {["Simple", "Media", "Alta"].map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-xs text-muted-foreground">Horas estimadas</Label>
               <Input type="number" step="0.5" min="0" value={draft.horasEstimadas ?? ""} onChange={e => set("horasEstimadas", e.target.value ? parseFloat(e.target.value) : null)} className="mt-1" placeholder="Ej: 8" />
             </div>
@@ -551,6 +561,10 @@ export default function DetallePedido() {
             {pedido.horasEstimadas != null ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Complejidad</p>
+                    <p className="text-sm text-foreground">{pedido.complejidad || <span className="text-muted-foreground/50">—</span>}</p>
+                  </div>
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Horas estimadas</p>
                     <p className="text-sm text-foreground">{pedido.horasEstimadas}h</p>

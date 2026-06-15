@@ -248,6 +248,12 @@ export default function Bandeja() {
       "Comentarios de Avance": p.comentarios_avance || "—",
       "Próxima Acción": p.proxima_accion || "—",
       "Confidencial": p.confidencial ? "Sí" : "No",
+      "Horas estimadas": p.horasEstimadas != null ? `${p.horasEstimadas}h` : "—",
+      "Horas reales": p.horasReales != null ? `${p.horasReales}h` : "—",
+      "Time Box": p.horasEstimadas != null && p.horasReales != null
+        ? (p.horasReales > p.horasEstimadas ? "Fuera" : "Dentro")
+        : "—",
+      "Fecha compromiso": p.fechaCompromiso || "—",
       "Creado": p.created_date?.split("T")[0] || "—",
       "Actualizado": p.updated_date?.split("T")[0] || "—",
     }));
