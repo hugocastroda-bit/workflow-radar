@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ const _persisted = {
 
 export default function Bandeja() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [pedidos, setPedidos]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -47,10 +48,10 @@ export default function Bandeja() {
   const [deleting, setDeleting] = useState(false);
   const [confidencialTarget, setConfidencialTarget] = useState(null); // { id, marcar }
   const [savingConf, setSavingConf] = useState(false);
-  const urlParams = new URLSearchParams(window.location.search);
 
   useEffect(() => {
-    if (urlParams.get("crear") === "true" || window.location.search.includes("crear=true")) setFormOpen(true);
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get("crear") === "true") setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
     
     const cargarPedidos = async () => {
@@ -100,13 +101,13 @@ export default function Bandeja() {
       unsubscribePedidoRestaurado();
       unsubscribePedidoEliminado();
     };
-  }, [user]);
+  }, [user, location.search]);
 
   const today = new Date().toISOString().split("T")[0];
   const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
   const calcDiasEstancado = (p) =>
     Math.floor((Date.now() - new Date(p.updated_date || p.created_date)) / 86400000);
-  const isVencidoFilter = urlParams.get("filtro_estado") === "vencidos";
+  const isVencidoFilter = new URLSearchParams(location.search).get("filtro_estado") === "vencidos";
 
   const tabFiltered = pedidos.filter(p => {
     if (activeTab === "mis")     return p.responsable === user?.full_name;
