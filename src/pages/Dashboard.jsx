@@ -27,6 +27,8 @@ const DONUT_COLORS = {
 
 const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShadow: "none" };
 
+const CAPACIDAD_MENSUAL_MINUTOS = 240 * 5 * 4; // 240 min/día × 5 días/sem × 4 sem = 4800 min/mes
+
 const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
@@ -163,8 +165,7 @@ export default function Dashboard() {
     if (!p.responsable) return;
     const resp = extractNombre(p.responsable);
     if (!cargaHorasMap[resp]) {
-      const cap = responsablesMap[resp]?.capacidad ?? 40;
-      cargaHorasMap[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0, pedidos: 0, vencidos: 0, bloqueados: 0, capacidad: cap };
+      cargaHorasMap[resp] = { responsable: resp, horasEstimadas: 0, horasReales: 0, pedidos: 0, vencidos: 0, bloqueados: 0, capacidad: CAPACIDAD_MENSUAL_MINUTOS };
     }
     cargaHorasMap[resp].horasEstimadas += parseFloat(p.horasEstimadas) || 0;
     cargaHorasMap[resp].horasReales += parseFloat(p.horasReales) || 0;
@@ -399,7 +400,7 @@ export default function Dashboard() {
 
       {/* Carga por responsable (capacity bars) + Distribución por estado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <Section title="Carga por responsable (capacidad)">
+        <Section title="Carga por responsable (4800 min/mes)">
           {cargaHorasData.length > 0 ? (
             <div className="space-y-3">
               {cargaHorasData.map((item, idx) => {
@@ -561,8 +562,8 @@ export default function Dashboard() {
               <thead>
                 <tr className="border-b border-border bg-secondary">
                   <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Responsable</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Minutos asignados</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Capacidad semanal</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Min. asignados</th>
+                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Cap. mensual</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Utilización</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Pedidos activos</th>
                   <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Vencidos</th>
