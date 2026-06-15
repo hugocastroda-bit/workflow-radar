@@ -332,11 +332,6 @@ export default function DetallePedido() {
         <Pencil className="h-3 w-3" /> Editar
       </Button>
     );
-    return (
-      <Button size="sm" variant="ghost" onClick={() => startEdit(section)} className="h-7 text-xs text-muted-foreground gap-1 -mr-1">
-        <Pencil className="h-3 w-3" /> Editar
-      </Button>
-    );
   };
 
   const EditBarSeguimiento = () => {

@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { eventBus } from "@/lib/eventBus";
+import { uniqNorm } from "@/lib/uniq-utils";
 import PullToRefresh from "@/components/PullToRefresh";
 import SmartTabs from "@/components/SmartTabs";
 
@@ -132,20 +133,9 @@ export default function Kanban() {
   const clearFilters = () => { setFilters({ responsable: "", prioridad: "", proceso: "", solicitante: "", estado: "" }); setSearch(""); };
   const hasFilters = Object.values(filters).some(Boolean) || !!search;
 
-  const uniq = (arr) => {
-    const seen = new Set();
-    const result = [];
-    for (const v of arr) {
-      if (!v || typeof v !== "string") continue;
-      const clean = v.trim().split(" — ")[0].trim(); // quitar "— email" si existe
-      const key = clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
-      if (!seen.has(key)) { seen.add(key); result.push(clean); }
-    }
-    return result.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
-  };
-  const responsables = uniq(pedidos.map(p => p.responsable));
-  const solicitantes = uniq(pedidos.map(p => p.solicitante));
-  const procesos     = uniq(pedidos.map(p => p.proceso));
+  const responsables = uniqNorm(pedidos.map(p => p.responsable));
+  const solicitantes = uniqNorm(pedidos.map(p => p.solicitante));
+  const procesos     = uniqNorm(pedidos.map(p => p.proceso));
 
   const tabFiltered = pedidos.filter(p => {
     if (activeTab === "mis")     return p.responsable === user?.full_name;

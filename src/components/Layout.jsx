@@ -126,13 +126,10 @@ export default function Layout() {
 
       {/* ── Main Content ──────────────────────────────── */}
       <main
-        className="flex-1 md:ml-52 overflow-y-auto overflow-x-hidden"
+        className="flex-1 md:ml-52 overflow-y-auto overflow-x-hidden ios-scroll"
         style={{
-          /* Scroll inercial nativo en iOS (aceleración por hardware) */
-          WebkitOverflowScrolling: "touch",
           marginTop:     "calc(56px + max(12px, env(safe-area-inset-top)))",
           paddingBottom: "calc(64px + max(12px, env(safe-area-inset-bottom)))",
-          /* En desktop no hay header móvil: resetear el margen superior */
         }}
       >
         <PageTransition>

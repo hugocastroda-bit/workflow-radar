@@ -186,6 +186,11 @@ html, body {
   .drag-zone-scroll-y {
     touch-action: pan-y; /* Scroll vertical libre; horizontal → app */
   }
+
+  /* Scroll inercial nativo en iOS */
+  .ios-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @layer components {

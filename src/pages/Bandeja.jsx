@@ -17,6 +17,7 @@ import ConfidencialBadge from "../components/ConfidencialBadge";
 import { filtrarConfidenciales } from "@/lib/confidencial";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
+import { uniqNorm } from "@/lib/uniq-utils";
 import PullToRefresh from "@/components/PullToRefresh";
 import SmartTabs from "@/components/SmartTabs";
 
@@ -49,59 +50,32 @@ export default function Bandeja() {
   const [confidencialTarget, setConfidencialTarget] = useState(null); // { id, marcar }
   const [savingConf, setSavingConf] = useState(false);
 
+  // Cargar pedidos y reaccionar a cambios de URL (crear=true, filtros por query)
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get("crear") === "true") setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
-    
-    const cargarPedidos = async () => {
-      try {
-        const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
-        setPedidos(filtrarConfidenciales(d, user));
-      } catch (err) {
-        console.error("[Bandeja] Error cargando pedidos:", err);
-        toast.error("No se pudieron cargar los pedidos. Inténtalo nuevamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargarPedidos();
-
-    // Escuchar eventos de cambios en pedidos
-    const unsubscribePedidoCreado = eventBus.on('pedidoCreado', (pedido) => {
-      const filtrado = filtrarConfidenciales([pedido], user);
-      if (filtrado.length > 0) {
-        setPedidos(prev => [pedido, ...prev]);
-      }
-    });
-
-    const unsubscribePedidoActualizado = eventBus.on('pedidoActualizado', (pedido) => {
-      setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p));
-    });
-
-    const unsubscribePedidoArchivado = eventBus.on('pedidoArchivado', (pedidoId) => {
-      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-    });
-
-    const unsubscribePedidoRestaurado = eventBus.on('pedidoRestaurado', (pedido) => {
-      const filtrado = filtrarConfidenciales([pedido], user);
-      if (filtrado.length > 0) {
-        setPedidos(prev => [pedido, ...prev]);
-      }
-    });
-
-    const unsubscribePedidoEliminado = eventBus.on('pedidoEliminado', (pedidoId) => {
-      setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-    });
-
-    return () => {
-      unsubscribePedidoCreado();
-      unsubscribePedidoActualizado();
-      unsubscribePedidoArchivado();
-      unsubscribePedidoRestaurado();
-      unsubscribePedidoEliminado();
-    };
+    base44.entities.Pedido.filter({ archivado: false }, "-created_date")
+      .then(d => setPedidos(filtrarConfidenciales(d, user)))
+      .catch(err => { console.error("[Bandeja] Error cargando pedidos:", err); toast.error("No se pudieron cargar los pedidos."); })
+      .finally(() => setLoading(false));
   }, [user, location.search]);
+
+  // Escuchar eventos de cambios (se registran una sola vez)
+  useEffect(() => {
+    const u1 = eventBus.on('pedidoCreado', pedido => {
+      const f = filtrarConfidenciales([pedido], user);
+      if (f.length) setPedidos(prev => [pedido, ...prev]);
+    });
+    const u2 = eventBus.on('pedidoActualizado', pedido => setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p)));
+    const u3 = eventBus.on('pedidoArchivado', id => setPedidos(prev => prev.filter(p => p.id !== id)));
+    const u4 = eventBus.on('pedidoRestaurado', pedido => {
+      const f = filtrarConfidenciales([pedido], user);
+      if (f.length) setPedidos(prev => [pedido, ...prev]);
+    });
+    const u5 = eventBus.on('pedidoEliminado', id => setPedidos(prev => prev.filter(p => p.id !== id)));
+    return () => { u1(); u2(); u3(); u4(); u5(); };
+  }, []);
 
   const today = new Date().toISOString().split("T")[0];
   const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
@@ -259,19 +233,6 @@ export default function Bandeja() {
     XLSX.writeFile(wb, `pedidos_${new Date().toISOString().split("T")[0]}.xlsx`);
     toast.success(`Exportados ${data.length} pedidos`);
     setExporting(false);
-  };
-
-  // Deduplica insensible a mayúsculas, acentos y espacios extra
-  const uniqNorm = (arr) => {
-    const seen = new Set();
-    const result = [];
-    for (const v of arr) {
-      if (!v || typeof v !== "string") continue;
-      const clean = v.trim().split(" — ")[0].trim(); // quitar "— email" si existe
-      const key = clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
-      if (!seen.has(key)) { seen.add(key); result.push(clean); }
-    }
-    return result.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
   };
 
   if (loading) return (
