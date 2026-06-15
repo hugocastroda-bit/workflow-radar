@@ -67,11 +67,12 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
     const mins = Math.floor(ms / 60000);
     const hours = Math.floor(ms / 3600000);
     const days = Math.floor(ms / 86400000);
-    if (mins < 1) return { label: "Ahora", alert: false };
-    if (mins < 60) return { label: `Hace ${mins} min`, alert: false };
-    if (hours < 24) return { label: `Hace ${hours} ${hours === 1 ? "hora" : "horas"}`, alert: false };
-    if (days <= 14) return { label: `Hace ${days} ${days === 1 ? "día" : "días"}`, alert: false };
-    return { label: `Hace ${days} días`, alert: true };
+    if (mins < 1) return { label: "Ahora", level: "none" };
+    if (mins < 60) return { label: `Hace ${mins} min`, level: "none" };
+    if (hours < 24) return { label: `Hace ${hours} ${hours === 1 ? "hora" : "horas"}`, level: "none" };
+    if (days < 7) return { label: `Hace ${days} ${days === 1 ? "día" : "días"}`, level: "none" };
+    if (days <= 14) return { label: `Hace ${days} días`, level: "warn" };
+    return { label: `Hace ${days} días`, level: "alert" };
   };
   const tiempoDesde = calcTiempoDesde();
 
@@ -164,7 +165,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
 
         {/* Última actualización */}
         <div className={`flex items-center gap-1 mt-1.5 ${
-          tiempoDesde.alert ? "text-alert" : "text-muted-foreground"
+          tiempoDesde.level === "alert" ? "text-alert" : tiempoDesde.level === "warn" ? "text-warning" : "text-muted-foreground"
         }`}>
           <History className="h-2.5 w-2.5 flex-shrink-0" />
           <span className="text-[10px] font-medium">{tiempoDesde.label}</span>
