@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox, Eye } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -429,7 +429,7 @@ export default function Bandeja() {
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Fecha req.</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Time Box</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[105px]">Última actualización</th>
-                {isAdmin && <th className="px-3 py-3 w-[56px]" />}
+                <th className="px-2 py-3 w-[100px] text-center text-muted-foreground uppercase tracking-wider text-[11px] font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -503,21 +503,26 @@ export default function Bandeja() {
                     <td className={`px-3 py-3 whitespace-nowrap text-[11px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
                       {calcTiempoDesde(p)}
                     </td>
-                    {isAdmin && (
-                      <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label={p.confidencial ? "Quitar confidencialidad" : "Marcar como confidencial"}>
-                            {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                          </button>
-                          <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label="Archivar pedido">
-                            <Archive className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" aria-label="Borrar pedido">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="px-2 py-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-center gap-0.5">
+                        <button onClick={() => navigate(`/pedido/${p.id}`)} className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Ver detalle">
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        {isAdmin && (
+                          <>
+                            <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title={p.confidencial ? "Quitar confidencialidad" : "Marcar confidencial"}>
+                              {p.confidencial ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                            </button>
+                            <button onClick={() => setArchiveTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-warning hover:bg-warning/10 transition-colors" title="Archivar">
+                              <Archive className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => setDeleteTarget(p.id)} className="p-1 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" title="Eliminar">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
