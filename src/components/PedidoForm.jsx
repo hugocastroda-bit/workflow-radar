@@ -49,9 +49,9 @@ async function loadCatalogs(forceRefresh = false) {
 const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
 
 const COMPLEJIDAD_MINUTOS = {
-  "Alta|Simple": 120, "Alta|Media": 240, "Alta|Alta": 480,
-  "Media|Simple": 60, "Media|Media": 180, "Media|Alta": 360,
-  "Baja|Simple": 30, "Baja|Media": 120, "Baja|Alta": 240,
+  "Alta|Simple": 30, "Alta|Media": 60, "Alta|Alta": 120,
+  "Media|Simple": 15, "Media|Media": 45, "Media|Alta": 90,
+  "Baja|Simple": 10, "Baja|Media": 30, "Baja|Alta": 60,
 };
 
 const emptyForm = {
@@ -187,6 +187,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
 
         <div className="space-y-4 mt-1">
           <div className="space-y-3">
+            {/* 1. Título */}
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Título *</Label>
               <Input
@@ -197,6 +198,8 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 className="mt-1"
               />
             </div>
+
+            {/* 2. Solicitante + Proceso */}
             <div className="grid gap-3 grid-cols-2">
               <SearchableSelect
                 label="Solicitante" required
@@ -209,6 +212,8 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 options={procesoOpts} placeholder="Seleccionar"
               />
             </div>
+
+            {/* 3. Fecha requerida */}
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Fecha requerida</Label>
               <Input
@@ -218,6 +223,8 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 className="mt-1"
               />
             </div>
+
+            {/* 4. Prioridad + Complejidad */}
             <div className="grid gap-3 grid-cols-2">
               <SearchableSelect
                 label="Prioridad" required
@@ -230,24 +237,14 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 options={["Simple", "Media", "Alta"]} placeholder="Sin definir"
               />
             </div>
+
+            {/* 5. Riesgo + Minutos estimados */}
             <div className="grid gap-3 grid-cols-2">
               <SearchableSelect
                 label="Riesgo (opcional)"
                 value={form.riesgo || ""} onChange={v => handleChange("riesgo", v || null)}
                 options={["Bajo", "Medio", "Alto"]} placeholder="Sin definir"
               />
-              {pedido && (
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
-                  <SearchableSelect
-                    label="" value={form.estado} onChange={v => handleChange("estado", v)}
-                    options={ESTADOS} placeholder="Estado"
-                  />
-                </div>
-              )}
-            </div>
-            {/* Horas estimadas + Fecha compromiso */}
-            <div className="grid gap-3 grid-cols-2">
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Minutos estimados</Label>
                 {isAdmin ? (
@@ -266,7 +263,11 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                   </div>
                 )}
               </div>
-              {isAdmin ? (
+            </div>
+
+            {/* 6. Fecha compromiso + Responsable (admin) o solo Fecha compromiso (usuario) */}
+            {isAdmin ? (
+              <div className="grid gap-3 grid-cols-2">
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso <span className="text-muted-foreground/50 font-normal">(opcional)</span></Label>
                   <Input
@@ -276,50 +277,60 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                     className="mt-1"
                   />
                 </div>
-              ) : form.fechaCompromiso ? (
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso</Label>
-                  <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
-                    {form.fechaCompromiso}
-                  </div>
+                <SearchableSelect
+                  label="Responsable (opcional)"
+                  value={form.responsable} onChange={v => handleChange("responsable", v)}
+                  options={responsableOpts} placeholder="Sin asignar"
+                />
+              </div>
+            ) : form.fechaCompromiso ? (
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Fecha compromiso</Label>
+                <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
+                  {form.fechaCompromiso}
                 </div>
-              ) : null}
-            </div>
-            {!pedido && (
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                type="checkbox"
-                id="confidencial"
-                checked={!!form.confidencial}
-                onChange={e => handleChange("confidencial", e.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary"
-              />
-              <label htmlFor="confidencial" className="text-xs text-muted-foreground cursor-pointer select-none">
-                Pedido confidencial
-              </label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[220px] text-xs">
-                  <p className="font-medium mb-1.5">Visible únicamente para:</p>
-                  <ul className="space-y-0.5 text-muted-foreground">
-                    <li>• Admin</li>
-                    <li>• Creador</li>
-                    <li>• Responsable</li>
-                    <li>• Solicitante</li>
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
+              </div>
+            ) : null}
 
-          {isAdmin && (
-              <SearchableSelect
-                label="Responsable (opcional)"
-                value={form.responsable} onChange={v => handleChange("responsable", v)}
-                options={responsableOpts} placeholder="Sin asignar"
-              />
+            {/* 7. Estado (solo edición) */}
+            {pedido && (
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
+                <SearchableSelect
+                  label="" value={form.estado} onChange={v => handleChange("estado", v)}
+                  options={ESTADOS} placeholder="Estado"
+                />
+              </div>
+            )}
+
+            {/* 8. Confidencialidad (solo nuevo) */}
+            {!pedido && (
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="checkbox"
+                  id="confidencial"
+                  checked={!!form.confidencial}
+                  onChange={e => handleChange("confidencial", e.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary"
+                />
+                <label htmlFor="confidencial" className="text-xs text-muted-foreground cursor-pointer select-none">
+                  Pedido confidencial
+                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[220px] text-xs">
+                    <p className="font-medium mb-1.5">Visible únicamente para:</p>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li>• Admin</li>
+                      <li>• Creador</li>
+                      <li>• Responsable</li>
+                      <li>• Solicitante</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             )}
           </div>
 
