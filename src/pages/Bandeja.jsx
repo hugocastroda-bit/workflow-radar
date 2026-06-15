@@ -385,7 +385,7 @@ export default function Bandeja() {
           </SelectContent>
         </Select>
         {hasFilters && (
-          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-secondary transition-colors whitespace-nowrap">
+          <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors whitespace-nowrap">
             <X className="h-3 w-3" /> Limpiar filtros
           </button>
         )}
@@ -423,7 +423,7 @@ export default function Bandeja() {
             const dias = calcDiasEstancado(p);
             return (
               <div key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
-                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-4 border-l-alert border-t-border border-r-border border-b-border" : "border-border"}`}
+                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-4 border-l-alert/60 border-t-border border-r-border border-b-border" : "border-border"}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -481,7 +481,7 @@ export default function Bandeja() {
                         <button onClick={() => setConfidencialTarget({ id: p.id, marcar: !p.confidencial })} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label={p.confidencial ? "Quitar confidencialidad" : "Marcar como confidencial"}>
                           {p.confidencial ? <LockOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                         </button>
-                        <button onClick={() => setArchiveTarget(p.id)} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" aria-label="Archivar pedido">
+                        <button onClick={() => setArchiveTarget(p.id)} className="p-1.5 rounded text-muted-foreground hover:text-warning hover:bg-warning/10 transition-colors" aria-label="Archivar pedido">
                           <Archive className="h-4 w-4" />
                         </button>
                         <button onClick={() => setDeleteTarget(p.id)} className="p-1.5 rounded text-muted-foreground hover:text-alert hover:bg-alert/10 transition-colors" aria-label="Borrar pedido">
