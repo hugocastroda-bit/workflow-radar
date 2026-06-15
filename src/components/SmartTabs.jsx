@@ -1,7 +1,10 @@
 const TABS = [
-  { key: "todos",   label: "Todos" },
-  { key: "mis",     label: "Mis Pedidos" },
-  { key: "asignar", label: "Por Asignar" },
+  { key: "todos",           label: "Todos" },
+  { key: "mis",             label: "Mis Pedidos" },
+  { key: "asignar",         label: "Por Asignar" },
+  { key: "vencidos",        label: "Vencidos" },
+  { key: "bloqueados",      label: "Bloqueados" },
+  { key: "sin_responsable", label: "Sin Responsable" },
 ];
 
 export default function SmartTabs({ activeTab, onTabChange, counts }) {
