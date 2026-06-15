@@ -97,9 +97,9 @@ export default function Bandeja() {
 
   const colorAntiguedad = (p) => {
     const days = Math.floor((Date.now() - new Date(p.updated_date || p.created_date)) / 86400000);
-    if (days > 14) return "text-alert font-medium";
-    if (days > 7) return "text-warning font-medium";
-    return "text-muted-foreground";
+    if (days > 14) return "text-alert/75";
+    if (days > 7) return "text-warning/75";
+    return "text-muted-foreground/55";
   };
 
   const calcSLA = (p) => {
@@ -472,7 +472,7 @@ export default function Bandeja() {
                         </span>
                       );
                     })() : (
-                      <span className="text-[10px] text-muted-foreground/40 mt-1 inline-block">⏱ — min</span>
+                      <span className="text-[10px] text-muted-foreground/30 mt-1 inline-block">—</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -512,7 +512,7 @@ export default function Bandeja() {
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[95px]">Proceso</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Fecha req.</th>
                 <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[85px]">Time Box</th>
-                <th className="text-left px-3 py-3 font-medium text-muted-foreground uppercase tracking-wider text-[11px] w-[105px]">Última actualización</th>
+                <th className="text-left px-3 py-3 text-muted-foreground/60 uppercase tracking-wider text-[11px] w-[105px]">Última actualización</th>
                 <th className="px-2 py-3 w-[100px] text-center text-muted-foreground uppercase tracking-wider text-[11px] font-medium">Acciones</th>
               </tr>
             </thead>
@@ -597,10 +597,10 @@ export default function Bandeja() {
                          </span>
                        );
                      })() : (
-                       <span className="text-[11px] text-muted-foreground">Sin estimación</span>
+                       <span className="text-[11px] text-muted-foreground/40">—</span>
                      )}
                     </td>
-                    <td className={`px-3 py-3 whitespace-nowrap text-[11px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
+                    <td className={`px-3 py-3 whitespace-nowrap text-[10px] ${colorAntiguedad(p)}`} title={p.updated_date ? new Date(p.updated_date).toLocaleString("es-PE") : (p.created_date ? new Date(p.created_date).toLocaleString("es-PE") : "")}>
                       {calcTiempoDesde(p)}
                     </td>
                     <td className="px-2 py-3" onClick={e => e.stopPropagation()}>
