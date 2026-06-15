@@ -4,6 +4,7 @@ import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock, Copy
 
 import PriorityBadge from "./PriorityBadge";
 import ConfidencialBadge from "./ConfidencialBadge";
+import RiesgoBadge from "./RiesgoBadge";
 
 function formatFecha(fechaStr) {
   if (!fechaStr) return null;
@@ -53,6 +54,18 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
   const today = new Date().toISOString().split("T")[0];
   const isOverdue = pedido.fecha_requerida && pedido.fecha_requerida < today && pedido.estado !== "Cerrado";
   const isBlocked = pedido.estado === "Bloqueado";
+
+  // SLA indicator
+  const calcSLA = () => {
+    if (pedido.estado === "Cerrado") return null;
+    const slaDate = pedido.fechaCompromiso || pedido.fecha_requerida;
+    if (!slaDate) return null;
+    const diffDays = (new Date(slaDate + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000;
+    if (diffDays < 0) return "bg-red-500";
+    if (diffDays <= 3) return "bg-yellow-500";
+    return "bg-emerald-500";
+  };
+  const sla = calcSLA();
 
   const ESTADOS_CONGELADOS = ["Nuevo", "Por priorizar"];
   const diasEstancado = Math.floor(
@@ -115,6 +128,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           <p className="text-[13px] font-medium text-foreground leading-snug line-clamp-2 flex-1">
             {pedido.titulo}
           </p>
+          {sla && <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 mt-0.5 ${sla}`} title={sla === "bg-red-500" ? "SLA vencido" : sla === "bg-yellow-500" ? "Próximo a vencer" : "Dentro del SLA"} />}
           {pedido.confidencial && <ConfidencialBadge size="xs" />}
         </div>
 
@@ -125,9 +139,12 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
           </span>
         )}
 
-        {/* Priority + Fecha */}
+        {/* Priority + Riesgo + Fecha */}
         <div className="flex items-center justify-between gap-2 mt-1">
-          <PriorityBadge priority={pedido.prioridad} />
+          <div className="flex items-center gap-1.5 min-w-0">
+            <PriorityBadge priority={pedido.prioridad} />
+            {pedido.riesgo && <RiesgoBadge riesgo={pedido.riesgo} size="xs" />}
+          </div>
           {fechaInfo && (
             <span className={`flex items-center gap-1 text-[11px] font-medium ${
               fechaInfo.overdue ? "text-alert" : fechaInfo.warn ? "text-warning" : "text-muted-foreground"

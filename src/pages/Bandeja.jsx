@@ -546,7 +546,7 @@ export default function Bandeja() {
                         const proximo = pct >= 0.8 && estimadas > 0;
                         return (
                           <span className={`text-[11px] font-medium whitespace-nowrap ${
-                            excedido ? "text-alert" : proximo ? "text-warning" : "text-emerald-600 dark:text-emerald-400"
+                            excedido ? "text-alert" : proximo ? "text-warning" : "text-success"
                           }`}>
                             {excedido || proximo ? "⚠ " : "⏱ "}
                             {real}h / {estimadas}h

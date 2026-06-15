@@ -137,16 +137,24 @@ export default function Kanban() {
   const solicitantes = uniqNorm(pedidos.map(p => p.solicitante));
   const procesos     = uniqNorm(pedidos.map(p => p.proceso));
 
+  const todayKanban = new Date().toISOString().split("T")[0];
+
   const tabFiltered = pedidos.filter(p => {
-    if (activeTab === "mis")     return p.responsable === user?.full_name;
-    if (activeTab === "asignar") return !p.responsable;
+    if (activeTab === "mis")             return p.responsable === user?.full_name;
+    if (activeTab === "asignar")         return !p.responsable;
+    if (activeTab === "vencidos")        return p.fecha_requerida < todayKanban && p.estado !== "Cerrado";
+    if (activeTab === "bloqueados")      return p.estado === "Bloqueado";
+    if (activeTab === "sin_responsable") return !p.responsable;
     return true;
   });
 
   const tabCounts = {
-    todos:   pedidos.length,
-    mis:     pedidos.filter(p => p.responsable === user?.full_name).length,
-    asignar: pedidos.filter(p => !p.responsable).length,
+    todos:           pedidos.length,
+    mis:             pedidos.filter(p => p.responsable === user?.full_name).length,
+    asignar:         pedidos.filter(p => !p.responsable).length,
+    vencidos:        pedidos.filter(p => p.fecha_requerida < todayKanban && p.estado !== "Cerrado").length,
+    bloqueados:      pedidos.filter(p => p.estado === "Bloqueado").length,
+    sin_responsable: pedidos.filter(p => !p.responsable).length,
   };
 
   const filtered = tabFiltered.filter(p => {
