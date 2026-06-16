@@ -4,13 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Download, Upload, CheckCircle, AlertCircle, AlertTriangle, Loader2, X } from "lucide-react";
 import * as XLSX from "xlsx";
 
-const COLS = ["Título", "Solicitante", "Proceso", "Prioridad", "Responsable", "Fecha requerida", "Descripción"];
+const COLS = [
+  "Título", "Solicitante", "Proceso", "Prioridad", "Responsable",
+  "Fecha requerida", "Complejidad", "Riesgo", "Horas estimadas",
+  "Fecha compromiso", "Descripción", "Estado"
+];
 const REQUIRED = ["Título", "Solicitante", "Proceso", "Prioridad"];
+const ENUMS = {
+  "Complejidad": ["Simple", "Media", "Alta"],
+  "Riesgo": ["Bajo", "Medio", "Alto"],
+  "Prioridad": ["Alta", "Media", "Baja"],
+  "Estado": ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"],
+};
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
     COLS,
-    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "", "", "Pedido cargado como ejemplo"]
+    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "", "2026-06-23", "Media", "Bajo", "45", "2026-06-20", "Pedido cargado como ejemplo", "Nuevo"]
   ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
@@ -63,6 +73,18 @@ export default function CargaMasiva() {
         errors.push("El responsable no existe en el catálogo.");
     }
 
+    // Validar valores de enum
+    for (const [col, valores] of Object.entries(ENUMS)) {
+      const val = row[col]?.toString().trim();
+      if (val && !valores.map(v => v.toLowerCase()).includes(val.toLowerCase()))
+        errors.push(`${col} debe ser: ${valores.join(", ")}.`);
+    }
+
+    // Validar horas estimadas como número
+    const hrs = row["Horas estimadas"]?.toString().trim();
+    if (hrs && (isNaN(Number(hrs)) || Number(hrs) < 0))
+      errors.push("Horas estimadas debe ser un número positivo (en minutos).");
+
     const isDuplicate = existing.some(p =>
       p.titulo?.toLowerCase() === row["Título"]?.toLowerCase() &&
       p.solicitante?.toLowerCase() === row["Solicitante"]?.toLowerCase() &&
@@ -105,16 +127,27 @@ export default function CargaMasiva() {
 
   const handleImport = async () => {
    setImporting(true);
-   const toImport = readyRows.map(r => ({
-     titulo: r["Título"],
-     solicitante: r["Solicitante"],
-     proceso: r["Proceso"],
-     prioridad: r["Prioridad"],
-     responsable: r["Responsable"] || undefined,
-     fecha_requerida: r["Fecha requerida"] || undefined,
-     descripcion: r["Descripción"] || undefined,
-     estado: "Nuevo",
-   }));
+   const toImport = readyRows.map(r => {
+     const hrsEst = r["Horas estimadas"]?.toString().trim();
+     const estadoRaw = r["Estado"]?.toString().trim();
+     const data = {
+       titulo: r["Título"],
+       solicitante: r["Solicitante"],
+       proceso: r["Proceso"],
+       prioridad: r["Prioridad"],
+       responsable: r["Responsable"] || undefined,
+       fecha_requerida: r["Fecha requerida"] || undefined,
+       complejidad: r["Complejidad"] || undefined,
+       riesgo: r["Riesgo"] || undefined,
+       horasEstimadas: hrsEst && !isNaN(Number(hrsEst)) ? Number(hrsEst) : undefined,
+       fechaCompromiso: r["Fecha compromiso"] || undefined,
+       descripcion: r["Descripción"] || undefined,
+       estado: estadoRaw || "Nuevo",
+     };
+     // Remove undefined keys
+     Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
+     return data;
+   });
 
     const duplicateRows = rows.filter(r => !r._skip && r._errors.length === 0 && r._warnings.length > 0);
     const skipped = rows.filter(r => r._skip);
@@ -204,15 +237,19 @@ export default function CargaMasiva() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border bg-secondary">
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">#</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Título</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Solicitante</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Proceso</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Prioridad</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Responsable</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Fecha req.</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Estado</th>
-                        <th className="px-3 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Acción</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">#</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Título</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Solicitante</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Proceso</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Prioridad</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Resp.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Complej.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Riesgo</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Hrs est.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">F. req.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">F. comp.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Estado</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -221,34 +258,38 @@ export default function CargaMasiva() {
                         const hasWarning = row._warnings.length > 0;
                         return (
                           <tr key={i} className={`border-b border-border last:border-0 ${row._skip ? "opacity-40" : hasError ? "bg-alert/5" : hasWarning ? "bg-warning/10" : ""}`}>
-                            <td className="px-3 py-2 text-muted-foreground">{row._idx}</td>
-                            <td className="px-3 py-2 text-foreground max-w-[180px] truncate">{row["Título"]}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{row["Solicitante"]}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{row["Proceso"]}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{row["Prioridad"]}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{row["Responsable"] || "—"}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{row["Fecha requerida"] || "—"}</td>
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row._idx}</td>
+                            <td className="px-2 py-2 text-foreground max-w-[140px] truncate" title={row["Título"]}>{row["Título"]}</td>
+                            <td className="px-2 py-2 text-muted-foreground max-w-[100px] truncate" title={row["Solicitante"]}>{row["Solicitante"]}</td>
+                            <td className="px-2 py-2 text-muted-foreground max-w-[100px] truncate" title={row["Proceso"]}>{row["Proceso"]}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Prioridad"]}</td>
+                            <td className="px-2 py-2 text-muted-foreground max-w-[90px] truncate" title={row["Responsable"]}>{row["Responsable"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Complejidad"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Riesgo"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Horas estimadas"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha requerida"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha compromiso"] || "—"}</td>
+                            <td className="px-2 py-2">
                               {row._skip ? (
-                                <span className="text-muted-foreground">Omitido</span>
+                                <span className="text-muted-foreground whitespace-nowrap">Omitido</span>
                               ) : hasError ? (
-                                <span className="text-alert flex items-center gap-1">
+                                <span className="text-alert flex items-center gap-1 whitespace-nowrap">
                                   <AlertCircle className="h-3 w-3" /> Error
                                 </span>
                               ) : hasWarning ? (
-                                <span className="text-warning flex items-center gap-1">
+                                <span className="text-warning flex items-center gap-1 whitespace-nowrap">
                                   <AlertTriangle className="h-3 w-3" /> Duplicado
                                 </span>
                               ) : (
-                                <span className="text-success flex items-center gap-1">
+                                <span className="text-success flex items-center gap-1 whitespace-nowrap">
                                   <CheckCircle className="h-3 w-3" /> Listo
                                 </span>
                               )}
                             </td>
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2">
                               <button
                                 onClick={() => toggleSkip(i)}
-                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 whitespace-nowrap"
                               >
                                 <X className="h-3 w-3" /> {row._skip ? "Incluir" : "Omitir"}
                               </button>
