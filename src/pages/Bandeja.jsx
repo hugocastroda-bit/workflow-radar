@@ -42,8 +42,8 @@ export default function Bandeja() {
   const [search, setSearch]     = useState(_persisted.search);
   const [filters, setFilters]   = useState(_persisted.filters);
 
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const [activeTab, setActiveTab] = useState("todos");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, CheckCircle, AlertCircle, AlertTriangle, Loader2, X, RefreshCw } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -48,6 +49,7 @@ function parseDateToISO(raw) {
 }
 
 export default function CargaMasiva() {
+  const { empresaActiva } = useAuth();
   const fileRef = useRef(null);
   const [catalogs, setCatalogs] = useState(null);
   const [rows, setRows] = useState([]);
@@ -177,6 +179,7 @@ export default function CargaMasiva() {
      const hrsReal = r["Horas reales"]?.toString().trim();
      const estadoRaw = r["Estado"]?.toString().trim();
      const data = {
+       empresaId: empresaActiva?.empresaId,
        titulo: r["Título"],
        solicitante: r["Solicitante"],
        proceso: r["Proceso"],

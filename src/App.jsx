@@ -18,6 +18,7 @@ import CargaMasiva from './pages/CargaMasiva';
 import Archivados from './pages/Archivados';
 import Diagnostico from './pages/Diagnostico';
 import Landing from './pages/Landing';
+import SeleccionarEmpresa from './pages/SeleccionarEmpresa';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Landing />} />}>
+        <Route path="/seleccionar-empresa" element={<SeleccionarEmpresa />} />
         <Route element={<Layout />}>
           <Route path="/bandeja" element={<Bandeja />} />
           <Route path="/kanban" element={<Kanban />} />

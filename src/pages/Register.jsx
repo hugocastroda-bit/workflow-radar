@@ -39,7 +39,7 @@ export default function Register() {
     try {
       const res = await base44.auth.verifyOtp({ email, otpCode });
       base44.auth.setToken(res.access_token);
-      window.location.href = "/";
+      window.location.href = "/seleccionar-empresa";
     } catch (err) {
       setError(err.message || "Codigo incorrecto");
     } finally {
@@ -79,7 +79,7 @@ export default function Register() {
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">o</span></div>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/")}>
+              <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
                 Continuar con Google
               </Button>
             </>

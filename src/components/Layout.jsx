@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bug } from "lucide-react";
+import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bug, Building2, ChevronDown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
@@ -38,8 +38,8 @@ const BOTTOM_NAV = [
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isAdmin  = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin  = empresaActiva?.rol === "Admin";
   const visible  = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const isActive = (path) => location.pathname === path;
@@ -60,9 +60,17 @@ export default function Layout() {
 
       {/* ── Desktop Sidebar ───────────────────────────── */}
       <aside className="hidden md:flex w-52 flex-col border-r border-border bg-card fixed inset-y-0 left-0 z-30 no-select">
-        <div className="px-5 py-4 border-b border-border">
-          <p className="text-xs font-semibold text-muted-foreground">WORKFLOW</p>
-          <h1 className="text-sm font-semibold text-foreground">RADAR</h1>
+        <div className="px-5 py-4 border-b border-border space-y-2">
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground">WORKFLOW</p>
+            <h1 className="text-sm font-semibold text-foreground">RADAR</h1>
+          </div>
+          {empresaActiva && (
+            <div className="flex items-center gap-1.5">
+              <Building2 className="h-3 w-3 text-primary shrink-0" />
+              <span className="text-[11px] text-muted-foreground truncate">{empresaActiva.nombre}</span>
+            </div>
+          )}
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           {visible.map((item) => (
@@ -87,14 +95,21 @@ export default function Layout() {
           >
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
             <button
-              onClick={() => base44.auth.logout(window.location.origin + '/')}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              onClick={() => base44.auth.logout(window.location.origin + "/")}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full"
             >
               <LogOut className="h-3.5 w-3.5" /> Salir
             </button>
-            <ThemeToggle />
+            <div className="flex items-center justify-between px-3 py-1.5">
+              <Link to="/seleccionar-empresa" className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors">
+                <Building2 className="h-3 w-3 shrink-0" />
+                <span className="truncate max-w-[100px]">{empresaActiva?.nombre || "Empresa"}</span>
+                <ChevronDown className="h-3 w-3 shrink-0" />
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </aside>
@@ -109,9 +124,14 @@ export default function Layout() {
         }}
       >
         <div className="flex items-center justify-between px-4 pb-2">
-          <div>
-            <p className="text-xs text-muted-foreground leading-none">Workflow Radar</p>
-            <p className="text-sm font-semibold text-foreground leading-tight">{currentPageTitle}</p>
+          <div className="min-w-0 flex-1 mr-2">
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-muted-foreground leading-none">Workflow Radar</p>
+              {empresaActiva && (
+                <span className="text-[10px] text-primary/70 leading-none truncate">· {empresaActiva.nombre}</span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-foreground leading-tight truncate">{currentPageTitle}</p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />

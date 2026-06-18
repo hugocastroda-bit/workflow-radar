@@ -47,8 +47,8 @@ export default function Kanban() {
   const [deleting, setDeleting] = useState(false);
   const [confidencialTarget, setConfidencialTarget] = useState(null);
   const [savingConf, setSavingConf] = useState(false);
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const scrollRef = useRef(null);
@@ -237,7 +237,7 @@ export default function Kanban() {
 
   const handleDuplicate = async (pedido) => {
     const { id, created_date, updated_date, archivado, fecha_archivado, archivado_por, motivo_archivo, ...datos } = pedido;
-    const nuevo = { ...datos, titulo: `${pedido.titulo} (copia)`, archivado: false };
+    const nuevo = { ...datos, empresaId: empresaActiva?.empresaId, titulo: `${pedido.titulo} (copia)`, archivado: false };
     const creado = await base44.entities.Pedido.create(nuevo);
     queryClient.setQueryData(QUERY_KEY, (prev = []) => [creado, ...prev]);
     eventBus.emit('pedidoCreado', creado);

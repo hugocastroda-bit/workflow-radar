@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function ComentariosHilo({ pedidoId }) {
-  const { user } = useAuth();
+  const { user, empresaActiva } = useAuth();
   const [comentarios, setComentarios] = useState([]);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -32,6 +32,7 @@ export default function ComentariosHilo({ pedidoId }) {
     if (!texto.trim() || enviando) return;
     setEnviando(true);
     const nuevo = {
+      empresaId: empresaActiva?.empresaId,
       pedido_id: pedidoId,
       contenido: texto.trim(),
       nombre_usuario: user?.full_name || user?.email || "Usuario",

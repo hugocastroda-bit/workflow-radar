@@ -61,8 +61,8 @@ export default function DetallePedido() {
   const [deleting, setDeleting] = useState(false);
   const [showConfidencial, setShowConfidencial] = useState(false);
   const [savingConf, setSavingConf] = useState(false);
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const [catalogs, setCatalogs] = useState({});
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
   const [historial, setHistorial] = useState([]);
@@ -117,6 +117,7 @@ export default function DetallePedido() {
   const logCambio = async (campo, valorAnterior, valorNuevo, tipoCambio) => {
     if (String(valorAnterior ?? "") === String(valorNuevo ?? "")) return;
     await base44.entities.HistorialPedido.create({
+      empresaId: empresaActiva?.empresaId,
       pedido_id: id,
       campo,
       valor_anterior: String(valorAnterior ?? ""),

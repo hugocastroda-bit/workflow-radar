@@ -12,7 +12,9 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [appPublicSettings, setAppPublicSettings] = useState(null);
+  const [empresaActiva, setEmpresaActivaState] = useState(null);
+  const [isLoadingEmpresa, setIsLoadingEmpresa] = useState(false);
 
   useEffect(() => {
     checkAppState();
@@ -86,26 +88,94 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loadEmpresaActiva = async (currentUser) => {
+    setIsLoadingEmpresa(true);
+    try {
+      const membresias = await base44.entities.UsuarioEmpresa.filter({
+        usuarioId: currentUser.id,
+        estado: "Activo",
+      });
+
+      if (membresias.length === 0) {
+        setEmpresaActivaState(null);
+        setIsLoadingEmpresa(false);
+        return { tieneEmpresas: false };
+      }
+
+      // If user already has active_empresa_id, use it
+      const activeId = currentUser.active_empresa_id;
+      if (activeId) {
+        const activeMembership = membresias.find(m => m.empresaId === activeId);
+        if (activeMembership) {
+          try {
+            const empresa = await base44.entities.Empresa.get(activeId);
+            setEmpresaActivaState({
+              empresaId: activeId,
+              nombre: empresa?.nombreEmpresa || "Empresa",
+              plan: empresa?.plan || "Basic",
+              rol: activeMembership.rol,
+              membresiaId: activeMembership.id,
+            });
+            setIsLoadingEmpresa(false);
+            return { tieneEmpresas: true, esUnica: membresias.length === 1 };
+          } catch (e) {
+            // empresa not found — fall through
+          }
+        }
+      }
+
+      // No active empresa set or not found — user must select
+      setEmpresaActivaState(null);
+      setIsLoadingEmpresa(false);
+      return { tieneEmpresas: true, esUnica: membresias.length === 1, necesitaSeleccion: true };
+    } catch (error) {
+      console.error("Error loading empresa activa:", error);
+      setEmpresaActivaState(null);
+      setIsLoadingEmpresa(false);
+      return { tieneEmpresas: false };
+    }
+  };
+
+  const setEmpresaActiva = async (empresaId, rol) => {
+    try {
+      await base44.auth.updateMe({ active_empresa_id: empresaId });
+      const empresa = await base44.entities.Empresa.get(empresaId);
+      setEmpresaActivaState({
+        empresaId,
+        nombre: empresa?.nombreEmpresa || "Empresa",
+        plan: empresa?.plan || "Basic",
+        rol,
+      });
+      // Update user in state
+      setUser(prev => prev ? { ...prev, active_empresa_id: empresaId } : prev);
+    } catch (error) {
+      console.error("Error setting active empresa:", error);
+      throw error;
+    }
+  };
+
   const checkUserAuth = async () => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
+      
+      // Load active company
+      await loadEmpresaActiva(currentUser);
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setAuthChecked(true);
+      setEmpresaActivaState(null);
       
-      // If user auth fails, it might be an expired token
       if (error.status === 401 || error.status === 403) {
         setAuthError({
           type: 'auth_required',
-          message: 'Authentication required'
+          message: 'Tu sesión expiró. Inicia sesión nuevamente para continuar.'
         });
       }
     }
@@ -138,6 +208,9 @@ export const AuthProvider = ({ children }) => {
       authError,
       appPublicSettings,
       authChecked,
+      empresaActiva,
+      isLoadingEmpresa,
+      setEmpresaActiva,
       logout,
       navigateToLogin,
       checkUserAuth,

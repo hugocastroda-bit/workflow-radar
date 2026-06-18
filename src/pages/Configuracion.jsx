@@ -20,6 +20,7 @@ const BULK_CONFIG = {
       email: row["Correo"] || undefined,
       cargo_area: row["Área / Cargo"] || undefined,
       activo: true,
+      empresaId: null, // se llena en el import handler
     }),
     example: [["Paola Montenegro", "paola@empresa.com", "Gestión Humana"]],
   },
@@ -46,6 +47,7 @@ const BULK_CONFIG = {
     mapData: (row) => ({
       nombre: row["Nombre"],
       activo: true,
+      empresaId: null,
     }),
     example: [["Selección"]],
   },
@@ -55,6 +57,7 @@ const BULK_CONFIG = {
     mapData: (row) => ({
       nombre: row["Nombre"],
       activo: true,
+      empresaId: null,
     }),
     example: [["Alta"]],
   },
@@ -68,7 +71,7 @@ const TABS = [
   { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
 ];
 
-function NotificacionesTab() {
+function NotificacionesTab({ empresaActiva }) {
   const [config, setConfig] = useState(null);
   const [configId, setConfigId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -86,7 +89,10 @@ function NotificacionesTab() {
     setSaving(true);
     try {
       if (configId) await base44.entities.ConfigNotificaciones.update(configId, updated);
-      else { const created = await base44.entities.ConfigNotificaciones.create(updated); setConfigId(created.id); }
+      else { 
+        const created = await base44.entities.ConfigNotificaciones.create({ ...updated, empresaId: empresaActiva?.empresaId }); 
+        setConfigId(created.id); 
+      }
       toast.success("Configuración guardada");
     } catch { toast.error("No se pudo guardar"); }
     setSaving(false);
@@ -131,7 +137,7 @@ function NotificacionesTab() {
 
 const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", Proceso: "proceso", Prioridad: "prioridad" };
 
-function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, bulkType }) {
+function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabel2, bulkType, empresaActiva }) {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [syncing, setSyncing]   = useState(false);
@@ -233,7 +239,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
   const handleBulkImport = async () => {
     const cfg = BULK_CONFIG[bulkType];
     const readyRows = bulkRows.filter(r => !r._skip && r._errors.length === 0);
-    const toImport = readyRows.map(r => cfg.mapData(r));
+    const toImport = readyRows.map(r => ({ ...cfg.mapData(r), empresaId: empresaActiva?.empresaId }));
     setBulkImporting(true);
     try {
       await base44.entities[cfg.entity].bulkCreate(toImport);
@@ -401,7 +407,7 @@ function CatalogoTab({ entityKey, extraField, extraLabel, extraField2, extraLabe
         }
       }
 
-      const data = { nombre: newForm.nombre.trim(), activo: true };
+      const data = { nombre: newForm.nombre.trim(), activo: true, empresaId: empresaActiva?.empresaId };
       if (extraField) data[extraField] = newForm[extraField] || "";
       if (extraField2) {
         const normalized = (newForm[extraField2] || "").toLowerCase().trim();
@@ -886,8 +892,8 @@ function DeleteAccountSection() {
 
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const tab = TABS.find(t => t.key === activeTab);
 
   if (!isAdmin) {
@@ -928,7 +934,7 @@ export default function Configuracion() {
       </div>
 
       {activeTab === "notificaciones" ? (
-        <NotificacionesTab />
+        <NotificacionesTab empresaActiva={empresaActiva} />
       ) : (
         <CatalogoTab
           key={activeTab}
@@ -938,6 +944,7 @@ export default function Configuracion() {
           extraField2={tab.extra2}
           extraLabel2={tab.extraLabel2}
           bulkType={tab.bulkType}
+          empresaActiva={empresaActiva}
         />
       )}
 

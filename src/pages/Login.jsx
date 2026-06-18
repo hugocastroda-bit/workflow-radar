@@ -17,7 +17,7 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/bandeja";
+      window.location.href = "/seleccionar-empresa";
     } catch (err) {
       setError(err.message || "Error al iniciar sesion");
     } finally {
@@ -56,7 +56,7 @@ export default function Login() {
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
             <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
-          <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/bandeja")}>
+          <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
             Continuar con Google
           </Button>
           <div className="text-center space-y-1">

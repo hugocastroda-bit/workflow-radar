@@ -10,7 +10,7 @@ const DefaultFallback = () => (
 );
 
 export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement }) {
-  const { isAuthenticated, isLoadingAuth, authChecked, authError, checkUserAuth } = useAuth();
+  const { isAuthenticated, isLoadingAuth, authChecked, authError, empresaActiva, isLoadingEmpresa, checkUserAuth } = useAuth();
 
   useEffect(() => {
     if (!authChecked && !isLoadingAuth) {
@@ -18,7 +18,7 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     }
   }, [authChecked, isLoadingAuth, checkUserAuth]);
 
-  if (isLoadingAuth || !authChecked) {
+  if (isLoadingAuth || isLoadingEmpresa || !authChecked) {
     return fallback;
   }
 
@@ -31,6 +31,16 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
 
   if (!isAuthenticated) {
     return unauthenticatedElement;
+  }
+
+  // --- Company guard: only for Layout-wrapped routes ---
+  // If authenticated but no empresa activa and not on /seleccionar-empresa,
+  // redirect to company selection
+  const pathname = window.location.pathname;
+  if (pathname !== "/seleccionar-empresa" && !empresaActiva && !isLoadingEmpresa) {
+    // Redirect to company selection
+    window.location.href = "/seleccionar-empresa";
+    return null;
   }
 
   return <Outlet />;

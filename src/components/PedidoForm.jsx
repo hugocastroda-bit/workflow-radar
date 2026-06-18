@@ -59,8 +59,8 @@ const emptyForm = {
 
 
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [catalogs, setCatalogs] = useState({});
@@ -143,6 +143,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
         saved = await base44.entities.Pedido.update(pedido.id, data);
       } else {
         data.estado = "Nuevo";
+        data.empresaId = empresaActiva?.empresaId;
         saved = await base44.entities.Pedido.create(data);
       }
       clearTimeout(timeout);

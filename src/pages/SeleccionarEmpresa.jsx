@@ -19,18 +19,22 @@ const ESTADO_COLORS = {
 };
 
 export default function SeleccionarEmpresa() {
-  const { user, setEmpresaActiva } = useAuth();
+  const { user, setEmpresaActiva, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
     loadEmpresas();
-  }, []);
+  }, [isAuthenticated]);
 
   const loadEmpresas = async () => {
     try {
-      if (!user) return;
+      if (!user?.id) return;
       const membresias = await base44.entities.UsuarioEmpresa.filter({
         usuarioId: user.id,
         estado: "Activo",
