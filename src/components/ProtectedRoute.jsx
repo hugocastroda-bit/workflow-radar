@@ -22,15 +22,21 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     return fallback;
   }
 
+  // ── Auth failure: redirect to landing ──────────────────
+  // Always redirect to "/" so the URL matches what the user sees.
+  // Pass ?expired=true when the session expired so Landing shows a message.
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
-    return unauthenticatedElement;
+    // Auth required / session expired → landing with message
+    window.location.href = "/?expired=true";
+    return null;
   }
 
   if (!isAuthenticated) {
-    return unauthenticatedElement;
+    window.location.href = "/?expired=true";
+    return null;
   }
 
   // --- Company guard: only for Layout-wrapped routes ---

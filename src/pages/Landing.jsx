@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
   Check,
   ChevronDown,
@@ -235,6 +236,19 @@ export default function Landing() {
   const [formSent, setFormSent] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // ── Session expired: show message when bounced from ProtectedRoute ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("expired") === "true") {
+      toast.info("Tu sesión expiró. Inicia sesión nuevamente para continuar.", {
+        duration: 6000,
+        position: "top-center",
+      });
+      // Clean URL so the message doesn't reappear on refresh
+      window.history.replaceState(null, "", "/");
+    }
+  }, []);
 
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
