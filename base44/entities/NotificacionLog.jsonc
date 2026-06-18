@@ -2,6 +2,10 @@
   "name": "NotificacionLog",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "pedido_id": {
       "type": "string",
       "title": "ID del pedido"
@@ -41,28 +45,21 @@
   },
   "required": [
     "pedido_id",
-    "tipo"
+    "tipo",
+    "empresaId"
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
   }
 }
