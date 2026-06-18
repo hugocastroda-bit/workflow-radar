@@ -6,7 +6,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
     <div className="flex-shrink-0 w-[240px] flex flex-col" style={{ maxHeight: "calc(100dvh - 160px)" }}>
       {/* Column header */}
       <div
-        className="flex items-center justify-between mb-2.5 px-3 py-2 rounded-lg no-select"
+        className="flex items-center justify-between mb-2.5 px-3 py-2 rounded-xl no-select"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export default function KanbanColumn({ status, pedidos, onDelete, onArchive, onC
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="min-h-[120px] flex-1 overflow-y-auto rounded-lg p-2 transition-all duration-200 drag-zone [&::-webkit-scrollbar]:hidden"
+            className="min-h-[120px] flex-1 overflow-y-auto rounded-xl p-2 transition-all duration-200 drag-zone [&::-webkit-scrollbar]:hidden"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",

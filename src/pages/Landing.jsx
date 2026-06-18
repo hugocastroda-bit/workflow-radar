@@ -86,7 +86,7 @@ const PLANS = [
       "Soporte prioritario",
     ],
     destacado: true,
-    color: "border-primary ring-2 ring-primary/30",
+    color: "border-[#8B5CF6] ring-2 ring-[#8B5CF6]/30",
   },
   {
     name: "Business",
@@ -146,7 +146,7 @@ const FAQ_ITEMS = [
 
 function FaqItem({ item, open, onToggle }) {
   return (
-    <div className="border border-border rounded-xl overflow-hidden">
+    <div className="border border-border rounded-2xl overflow-hidden shadow-sm">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
@@ -303,7 +303,7 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground">
 
       {/* ── HEADER ──────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-[#F5F7FB]/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 h-14">
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-semibold tracking-tight text-foreground">Workflow Radar</span>
@@ -333,12 +333,12 @@ export default function Landing() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <Button size="sm" className="h-8 text-xs" onClick={() => scrollTo("demo")}>
-              Solicitar demo
+            <Button size="sm" className="h-8 text-xs rounded-[12px]" onClick={() => scrollTo("demo")}>
+            Solicitar demo
             </Button>
             {isAuthenticated ? (
               <Link to="/bandeja">
-                <Button variant="default" size="sm" className="h-8 text-xs">
+                <Button variant="default" size="sm" className="h-8 text-xs rounded-[12px]">
                   Ir a mi bandeja
                 </Button>
               </Link>
@@ -378,10 +378,10 @@ export default function Landing() {
               ))}
             </ul>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button onClick={() => scrollTo("demo")}>
+              <Button onClick={() => scrollTo("demo")} className="rounded-[14px]">
                 Solicitar demo <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
               </Button>
-              <Button variant="outline" onClick={() => scrollTo("planes")}>
+              <Button variant="outline" onClick={() => scrollTo("planes")} className="rounded-[14px]">
                 Ver planes
               </Button>
             </div>
@@ -411,8 +411,8 @@ export default function Landing() {
               { title: "Seguimiento manual", desc: "Sin una vista central, los responsables actualizan tarde o no actualizan.", icon: Search },
               { title: "Poca visibilidad ejecutiva", desc: "Los líderes necesitan ver estado, prioridad, riesgo y capacidad en minutos.", icon: Eye },
             ].map((item) => (
-              <div key={item.title} className="bg-card border border-border rounded-xl p-5 space-y-3">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div key={item.title} className="bg-card border border-border rounded-2xl p-5 space-y-3 shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4F46E5]/10 to-[#8B5CF6]/10 flex items-center justify-center">
                   <item.icon className="h-4 w-4 text-primary" />
                 </div>
                 <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
@@ -437,8 +437,8 @@ export default function Landing() {
             { title: "Configuración flexible", desc: "Personaliza solicitantes, procesos, prioridades y responsables.", icon: Settings },
             { title: "Trazabilidad", desc: "Mantén registro de avance, próxima acción y responsables.", icon: TrendingUp },
           ].map((item) => (
-            <div key={item.title} className="bg-card border border-border rounded-xl p-5 space-y-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div key={item.title} className="bg-card border border-border rounded-2xl p-5 space-y-3 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4F46E5]/10 to-[#8B5CF6]/10 flex items-center justify-center">
                 <item.icon className="h-4 w-4 text-primary" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
@@ -460,10 +460,10 @@ export default function Landing() {
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className={`bg-card border rounded-xl p-5 flex flex-col relative ${plan.color}`}
+                className={`bg-card border rounded-2xl p-6 flex flex-col relative shadow-sm ${plan.color}`}
               >
                 {plan.destacado && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-3 py-0.5 rounded-full">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full shadow-sm">
                     Recomendado
                   </span>
                 )}
@@ -498,7 +498,7 @@ export default function Landing() {
                 <Button
                   variant={plan.destacado ? "default" : "outline"}
                   size="sm"
-                  className="w-full text-xs"
+                  className="w-full text-xs rounded-[12px]"
                   onClick={() => plan.name === "Business" ? selectPlan("Business") : selectPlan(plan.name)}
                 >
                   {plan.name === "Business" ? "Contactar ventas" : `Solicitar ${plan.name}`}
@@ -518,7 +518,7 @@ export default function Landing() {
               Los créditos permiten solicitar ajustes menores o mejoras dentro de Workflow Radar durante el mes, sin iniciar un proyecto adicional.
             </p>
           </div>
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-secondary/30">
@@ -553,15 +553,15 @@ export default function Landing() {
           </div>
 
           {formSent ? (
-            <div className="bg-card border border-border rounded-xl p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
+            <div className="bg-card border border-border rounded-2xl p-6 text-center space-y-3 shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-[#ECFDF5] dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
                 <Check className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h3 className="text-base font-semibold text-foreground">¡Gracias!</h3>
               <p className="text-sm text-muted-foreground">Te contactaremos para coordinar tu demo.</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
               {form.plan && (
                 <div className="bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-lg text-center">
                   Plan seleccionado: {form.plan}
@@ -598,7 +598,7 @@ export default function Landing() {
                 <Textarea value={form.mensaje} onChange={(e) => handleFormChange("mensaje", e.target.value)} placeholder="Cuéntanos sobre tu equipo y lo que necesitas..." className="mt-1" rows={3} />
               </div>
               {formError && <p className="text-sm text-destructive">{formError}</p>}
-              <Button type="submit" disabled={formLoading} className="w-full">
+              <Button type="submit" disabled={formLoading} className="w-full rounded-[14px]">
                 {formLoading ? "Enviando..." : "Solicitar demo"}
               </Button>
               <p className="text-center text-xs text-muted-foreground">

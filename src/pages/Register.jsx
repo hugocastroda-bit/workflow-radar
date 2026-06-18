@@ -48,13 +48,13 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workflow Radar</h1>
-          <p className="text-sm text-muted-foreground mt-1">Crear cuenta</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">by Design Lab</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
           {!showOtp ? (
             <>
               <form onSubmit={handleRegister} className="space-y-4">
@@ -71,7 +71,7 @@ export default function Register() {
                   <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="********" className="mt-1" required />
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" disabled={loading} className="w-full">
+                <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
                   {loading ? "Registrando..." : "Registrarse"}
                 </Button>
               </form>
@@ -79,7 +79,7 @@ export default function Register() {
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">o</span></div>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
+              <Button variant="outline" className="w-full rounded-[14px]" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
                 Continuar con Google
               </Button>
             </>
@@ -91,7 +91,7 @@ export default function Register() {
                 <Input value={otpCode} onChange={e => setOtpCode(e.target.value)} placeholder="123456" className="mt-1" required />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
                 {loading ? "Verificando..." : "Verificar"}
               </Button>
               <Button variant="ghost" type="button" onClick={() => base44.auth.resendOtp(email)} className="w-full text-xs">
@@ -100,7 +100,7 @@ export default function Register() {
             </form>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            {"Ya tienes cuenta? "}<Link to="/login" className="text-primary hover:underline">Inicia sesion</Link>
+            {"Ya tienes cuenta? "}<Link to="/login" className="text-[#3B82F6] hover:underline">Inicia sesion</Link>
           </p>
         </div>
       </div>

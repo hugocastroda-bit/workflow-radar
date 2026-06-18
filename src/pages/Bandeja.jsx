@@ -367,7 +367,7 @@ export default function Bandeja() {
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             {cards.map(c => (
-              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-xl border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
                 <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
               </div>
@@ -377,7 +377,7 @@ export default function Bandeja() {
       })()}
 
       {/* Filters */}
-      <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
+      <div className="bg-card border border-border rounded-xl px-4 py-3 flex flex-wrap gap-3 items-center">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input value={search} onChange={e => handleSetSearch(e.target.value)} placeholder="Buscar por título, solicitante..." className="pl-8 h-8 text-xs w-56" />
@@ -428,7 +428,7 @@ export default function Bandeja() {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="bg-card border border-border rounded-lg px-6 py-14 flex flex-col items-center text-center gap-3">
+        <div className="bg-card border border-border rounded-2xl px-6 py-14 flex flex-col items-center text-center gap-3 shadow-sm">
           <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
             <Inbox className="h-6 w-6 text-muted-foreground" />
           </div>
@@ -458,7 +458,7 @@ export default function Bandeja() {
             const dias = calcDiasEstancado(p);
             return (
               <div key={p.id} onClick={() => navigate(`/pedido/${p.id}`)}
-                className={`bg-card border rounded-lg px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors ${isOverdue ? "border-l-[3px] border-l-alert/25 border-t-border border-r-border border-b-border" : "border-border"}`}
+                className={`bg-card border rounded-xl px-4 py-3 cursor-pointer active:bg-secondary/40 transition-colors shadow-sm ${isOverdue ? "border-l-[3px] border-l-alert/25 border-t-border border-r-border border-b-border" : "border-border"}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -534,7 +534,7 @@ export default function Bandeja() {
 
       {/* Desktop table */}
       {filtered.length > 0 && (
-        <div className="hidden md:block bg-card border border-border rounded-lg overflow-hidden">
+        <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full text-xs table-fixed">
             <thead>
               <tr className="border-b border-border bg-secondary">

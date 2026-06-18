@@ -12,34 +12,100 @@ html, body {
 @layer base {
   :root {
     --font-inter: 'Inter', sans-serif;
-    --background: 0 0% 96.5%;
-    --foreground: 0 0% 11.4%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 11.4%;
+
+    /* ── New brand palette ────────────────────── */
+    --background: 220 43% 97%;           /* #F5F7FB */
+    --foreground: 222 47% 11%;           /* #0F172A */
+    --card: 0 0% 100%;                   /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 11.4%;
-    --primary: 217 100% 40%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary — indigo-purple gradient base */
+    --primary: 243 75% 59%;              /* #4F46E5 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.5%;
-    --secondary-foreground: 0 0% 43%;
-    --muted: 0 0% 92%;
-    --muted-foreground: 0 0% 43%;
-    --accent: 217 92% 97%;
-    --accent-foreground: 217 100% 40%;
-    --destructive: 0 100% 50%;
+
+    /* Secondary / muted */
+    --secondary: 220 43% 97%;            /* #F5F7FB */
+    --secondary-foreground: 213 19% 45%;  /* #64748B */
+    --muted: 220 14% 96%;                /* #F1F5F9 */
+    --muted-foreground: 213 19% 45%;     /* #64748B */
+
+    /* Accent */
+    --accent: 243 75% 96%;               /* indigo tint */
+    --accent-foreground: 243 75% 59%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;            /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 82.4%;
-    --input: 0 0% 92%;
-    --ring: 217 100% 40%;
-    --radius: 0.5rem;
+
+    /* Borders & inputs */
+    --border: 213 27% 84%;               /* #E2E8F0 */
+    --input: 213 27% 84%;
+    --ring: 243 75% 59%;
+
+    /* Radius */
+    --radius: 0.625rem;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 11.4%;
-    --sidebar-primary: 217 100% 40%;
+    --sidebar-foreground: 213 19% 45%;
+    --sidebar-primary: 243 75% 59%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 92% 97%;
-    --sidebar-accent-foreground: 217 100% 40%;
-    --sidebar-border: 0 0% 82.4%;
-    --sidebar-ring: 217 100% 40%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 243 75% 59%;
+    --sidebar-border: 213 27% 84%;
+    --sidebar-ring: 243 75% 59%;
+
+    /* Chart colors */
+    --chart-1: 243 75% 59%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 187 94% 43%;
+    --chart-4: 142 71% 45%;
+    --chart-5: 271 81% 56%;
+  }
+
+  .dark {
+    --background:         222 47% 6%;     /* deep navy */
+    --foreground:         213 27% 84%;
+
+    --card:               222 47% 9%;
+    --card-foreground:    213 27% 84%;
+    --popover:            222 47% 9%;
+    --popover-foreground: 213 27% 84%;
+
+    --primary:            258 90% 66%;    /* #8B5CF6 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary:          222 47% 10%;
+    --secondary-foreground: 213 19% 55%;
+    --muted:              222 47% 10%;
+    --muted-foreground:   213 19% 55%;
+
+    --accent:             258 30% 18%;
+    --accent-foreground:  258 90% 66%;
+
+    --destructive:        0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:             222 30% 18%;
+    --input:              222 30% 18%;
+    --ring:               258 90% 66%;
+
+    --sidebar-background:         222 47% 9%;
+    --sidebar-foreground:         213 19% 55%;
+    --sidebar-primary:            258 90% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:             258 30% 18%;
+    --sidebar-accent-foreground:  258 90% 66%;
+    --sidebar-border:             222 30% 18%;
+    --sidebar-ring:               258 90% 66%;
+
+    --chart-1: 258 90% 66%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 187 94% 43%;
+    --chart-4: 142 71% 45%;
+    --chart-5: 271 81% 56%;
   }
 }
 
@@ -53,7 +119,6 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Minimum readable font size on mobile — prevents iOS auto-zoom on focus */
   @media (max-width: 767px) {
     table, th, td,
     input, select, textarea,
@@ -61,28 +126,28 @@ html, body {
       font-size: max(14px, 0.875rem) !important;
     }
   }
-  /* ── Dark mode: forzar fondo oscuro en inputs / autofill ─────── */
+
   .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   .dark textarea {
-    background-color: #16192B;
-    border-color: #2C3154;
-    color: #fff;
+    background-color: hsl(222 47% 9%);
+    border-color: hsl(222 30% 18%);
+    color: hsl(213 27% 84%);
     color-scheme: dark;
   }
-  /* Elimina el destello blanco del autofill en WebKit */
+
   .dark input:-webkit-autofill,
   .dark input:-webkit-autofill:hover,
   .dark input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px #16192B inset !important;
-    -webkit-text-fill-color: #fff !important;
-    border-color: #2C3154 !important;
-    caret-color: #fff;
+    -webkit-box-shadow: 0 0 0 1000px hsl(222 47% 9%) inset !important;
+    -webkit-text-fill-color: hsl(213 27% 84%) !important;
+    border-color: hsl(222 30% 18%) !important;
+    caret-color: hsl(213 27% 84%);
   }
-  /* Radix Select trigger y content en dark */
+
   .dark [data-radix-popper-content-wrapper] [role="listbox"],
   .dark [cmdk-list] {
-    background-color: #121420;
-    border-color: #22263F;
+    background-color: hsl(222 47% 9%);
+    border-color: hsl(222 30% 18%);
   }
 
   :root {
@@ -91,103 +156,39 @@ html, body {
     --safe-left:   env(safe-area-inset-left,   0px);
     --safe-right:  env(safe-area-inset-right,  0px);
   }
-
-  /* ── Dark Mode ─── Cyber-Premium / Deep Dark Neon ────────── */
-  .dark {
-    /* Fondo abisal azul-negro */
-    --background:         230 25% 5%;        /* #090A0F */
-    --foreground:         0 0% 100%;         /* #FFFFFF */
-
-    /* Cards, modales, tablas — carbón con tinte azul */
-    --card:               233 26% 9%;        /* #121420 */
-    --card-foreground:    0 0% 100%;
-    --popover:            233 26% 9%;
-    --popover-foreground: 0 0% 100%;
-
-    /* Primario — azul eléctrico intenso */
-    --primary:            221 96% 57%;       /* #4364F7 */
-    --primary-foreground: 0 0% 100%;
-
-    /* Secundario / muted */
-    --secondary:          230 22% 13%;       /* #1A1D2A */
-    --secondary-foreground: 228 17% 57%;    /* #7E84A3 */
-    --muted:              230 22% 13%;
-    --muted-foreground:   228 17% 57%;       /* #7E84A3 */
-
-    /* Accent */
-    --accent:             221 70% 15%;       /* #0C1640 */
-    --accent-foreground:  221 96% 57%;
-
-    /* Destructivo */
-    --destructive:        0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Bordes e inputs — azul carbón brillante */
-    --border:             230 30% 19%;       /* #22263F */
-    --input:              230 30% 19%;
-    --ring:               221 96% 57%;
-
-    /* Sidebar */
-    --sidebar-background:         233 26% 9%;
-    --sidebar-foreground:         0 0% 100%;
-    --sidebar-primary:            221 96% 57%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent:             221 70% 15%;
-    --sidebar-accent-foreground:  221 96% 57%;
-    --sidebar-border:             230 30% 19%;
-    --sidebar-ring:               221 96% 57%;
-  }
 }
 
 @layer utilities {
-  /* ── Cyber Neon Glow effects ─────────────────────────────── */
-  .glow-blue   { box-shadow: 0 0 12px rgba(0, 163, 255, 0.45); }
-  .glow-cyan   { box-shadow: 0 0 12px rgba(0, 229, 255, 0.45); }
-  .glow-green  { box-shadow: 0 0 12px rgba(57, 255, 20,  0.40); }
-  .glow-orange { box-shadow: 0 0 12px rgba(255, 159, 0, 0.40); }
-  .glow-purple { box-shadow: 0 0 12px rgba(209, 71, 255, 0.40); }
-  .glow-emerald{ box-shadow: 0 0 12px rgba(0, 255, 135, 0.40); }
-  .glow-primary{ box-shadow: 0 0 18px rgba(67, 100, 247, 0.50); }
+  /* ── Brand gradient utility ─────────────── */
+  .brand-gradient {
+    background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+  }
 
-  /* ── 1. Bloqueo de selección de texto accidental ──────────────────
-     Evita que el usuario active la lupa de texto o el menú "Copiar"
-     al pulsar/arrastrar sobre elementos interactivos.
-     Aplicar en: nav labels, botones, headers de columnas Kanban,
-     tarjetas Kanban, elementos del Dashboard. */
+  .brand-gradient-text {
+    background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Touch utilities ───────────────────── */
   .no-select {
-    -webkit-user-select: none; /* Safari / iOS / Chrome (WebKit) */
-    -moz-user-select:    none; /* Firefox */
-    -ms-user-select:     none; /* IE / Edge Legacy */
-    user-select:         none; /* Estándar W3C */
-
-    /* ── 2. Long-press guard (iOS Safari) ─────────────────────────
-       Impide que mantener pulsado un elemento dispare el menú nativo
-       de iOS ("Guardar imagen / Copiar texto / Compartir").
-       Solo funciona en WebKit; en Android Chrome se controla con JS. */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     -webkit-touch-callout: none;
-
-    /* ── 4a. Sin destello gris al tocar (iOS / Android Chrome) ────
-       Elimina el overlay translúcido gris/azul que iOS y Android
-       dibujan sobre el elemento al hacer tap. */
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* ── 3. Touch-action para zonas de arrastre Kanban ───────────────
-     Le dice al navegador que la app gestiona los gestos horizontales
-     y de libre arrastre, eliminando la latencia de 300 ms y evitando
-     que el scroll nativo interfiera con el DnD.
-     Aplicar en: columnas Kanban, tarjetas draggables, listas. */
   .drag-zone {
-    touch-action: none; /* App controla todos los gestos táctiles */
+    touch-action: none;
   }
 
-  /* Variante cuando solo se quiere scroll vertical libre (listas largas
-     donde el DnD es solo horizontal entre columnas). */
   .drag-zone-scroll-y {
-    touch-action: pan-y; /* Scroll vertical libre; horizontal → app */
+    touch-action: pan-y;
   }
 
-  /* Scroll inercial nativo en iOS */
   .ios-scroll {
     -webkit-overflow-scrolling: touch;
   }
@@ -195,42 +196,56 @@ html, body {
 
 @layer components {
   .card-minimal {
-    @apply bg-card border border-border rounded-lg shadow-sm;
+    @apply bg-card border border-border rounded-2xl shadow-sm;
   }
 
-  /* Dark mode: botón principal con degradado eléctrico + glow */
-  .dark .btn-primary-apple,
-  .dark .btn-primary-apple:is(button, a) {
-    background: linear-gradient(to right, #0052D4, #4364F7);
-    box-shadow: 0 0 15px rgba(67, 100, 247, 0.5);
-    @apply text-white;
+  /* ── Button primaries ──────────────────── */
+  .btn-brand {
+    background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    @apply text-white font-medium rounded-[14px] px-4 py-2 transition-all;
+  }
+  .btn-brand:hover {
+    background: linear-gradient(135deg, #4338CA, #7C3AED);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-brand:active {
+    transform: translateY(0);
   }
 
-  .btn-primary-apple {
-    @apply bg-primary text-primary-foreground font-medium rounded-lg px-4 py-2 hover:bg-primary/90 transition-colors;
+  .btn-secondary-light {
+    @apply bg-white border border-[#E2E8F0] text-[#0F172A] font-medium rounded-[14px] px-4 py-2 transition-all;
   }
-  
-  .btn-secondary-apple {
-    @apply bg-secondary text-secondary-foreground font-medium rounded-lg px-4 py-2 hover:bg-secondary/80 transition-colors;
+  .btn-secondary-light:hover {
+    @apply bg-[#F8FAFC];
   }
-  
+
+  .dark .btn-secondary-light {
+    @apply bg-card border-border text-foreground;
+  }
+  .dark .btn-secondary-light:hover {
+    @apply bg-secondary;
+  }
+
+  /* ── Input ─────────────────────────────── */
   .input-apple {
-    @apply border border-border rounded-lg bg-background focus:ring-1 focus:ring-primary focus:border-primary transition-all;
+    @apply border border-border rounded-xl bg-background focus:ring-1 focus:ring-primary focus:border-primary transition-all;
   }
-  
+
   .table-apple {
     @apply bg-card border-collapse;
   }
-  
+
   .table-apple th {
     @apply bg-secondary text-muted-foreground font-medium text-xs border-b border-border;
   }
-  
+
   .table-apple td {
     @apply border-b border-border/50 text-sm text-foreground;
   }
-  
+
   .table-apple tr:hover {
-    @apply bg-secondary/30;
+    @apply bg-secondary/50;
   }
 }

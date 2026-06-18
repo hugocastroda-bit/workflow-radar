@@ -53,33 +53,38 @@ module.exports = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
-  			success: {
-  				DEFAULT: '#34C759',
-  				light: '#E9F8EF'
-  			},
+  			/* Status colors */
+  			'status-nuevo':       '#3B82F6',
+  			'status-priorizar':   '#94A3B8',
+  			'status-asignado':    '#06B6D4',
+  			'status-encurso':     '#22C55E',
+  			'status-bloqueado':   '#F59E0B',
+  			'status-revision':    '#A855F7',
+  			'status-cerrado':     '#10B981',
+  			/* Priority colors */
+  			'prio-alta-bg':  '#FEF2F2',
+  			'prio-alta-tx':  '#EF4444',
+  			'prio-media-bg': '#FFF7ED',
+  			'prio-media-tx': '#F59E0B',
+  			'prio-baja-bg':  '#F1F5F9',
+  			'prio-baja-tx':  '#64748B',
+  			/* Legacy alert/warning/success (keep for compatibility) */
   			alert: {
-  				DEFAULT: '#FF3B30',
-  				light: '#FFF1F0'
+  				DEFAULT: '#EF4444',
+  				light: '#FEF2F2'
   			},
   			warning: {
-  				DEFAULT: '#FF9500',
-  				light: '#FFF4E5'
+  				DEFAULT: '#F59E0B',
+  				light: '#FFF7ED'
   			},
-  			yellow: {
-  				DEFAULT: '#FFD60A',
-  				light: '#FFFEF0'
+  			success: {
+  				DEFAULT: '#10B981',
+  				light: '#ECFDF5'
   			},
-  			slate: {
-  				50: '#F9FAFB',
-  				100: '#F5F5F7',
-  				200: '#E5E5EA',
-  				300: '#D2D2D7',
-  				400: '#A2A2A7',
-  				500: '#8E8E93',
-  				600: '#6E6E73',
-  				700: '#515155',
-  				800: '#424245',
-  				900: '#1D1D1F'
+  			/* Brand gradient stops */
+  			brand: {
+  				start: '#4F46E5',
+  				end: '#8B5CF6',
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
@@ -91,17 +96,6 @@ module.exports = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			},
-  			status: {
-  				closed: '#34C759',
-  				ovdue: '#FF3B30',
-  				blocked: '#FF9500'
-  			},
-  			/* Fondos funcionales modo oscuro */
-  			dark: {
-  				'blocked-bg':  '#2C1E0F',
-  				'closed-bg':   '#0F2C1B',
-  				'new-bg':      '#0F2038',
-  			}
   		},
   		keyframes: {
   			'accordion-down': {

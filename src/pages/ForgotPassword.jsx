@@ -21,20 +21,20 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workflow Radar</h1>
-          <p className="text-sm text-muted-foreground mt-1">{"Recuperar contrasena"}</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">by Design Lab</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label className="text-xs font-medium text-muted-foreground">Email</Label>
                 <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" className="mt-1" required />
               </div>
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
                 {loading ? "Enviando..." : "Enviar enlace de recuperacion"}
               </Button>
             </form>
@@ -44,7 +44,7 @@ export default function ForgotPassword() {
             </p>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            <Link to="/login" className="text-primary hover:underline">Volver al inicio de sesion</Link>
+            <Link to="/login" className="text-[#3B82F6] hover:underline">Volver al inicio de sesion</Link>
           </p>
         </div>
       </div>

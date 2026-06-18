@@ -24,13 +24,13 @@ import SmartTabs from "@/components/SmartTabs";
 import { ESTADOS } from "@/lib/pedidoConstants";
 
 const STAGE_COLORS = {
-  "Nuevo":        { accent: "#0066CC",  background: "#EAF3FF", dark: "#002244" },
-  "Por priorizar":{ accent: "#8E8E93",  background: "#F0F0F5", dark: "#1A1C23" },
-  "Asignado":     { accent: "#00A3E0",  background: "#E6F7FF", dark: "#002B3D" },
-  "En curso":     { accent: "#34C759",  background: "#E9F8EF", dark: "#092D1A" },
-  "Bloqueado":    { accent: "#FF9500",  background: "#FFF4E5", dark: "#331B00" },
-  "En revisión":  { accent: "#AF52DE",  background: "#F3ECFF", dark: "#20003B" },
-  "Cerrado":      { accent: "#30A46C",  background: "#E6F4EA", dark: "#052E16" },
+  "Nuevo":        { accent: "#3B82F6",  background: "#EFF6FF", dark: "#1E3A5F" },
+  "Por priorizar":{ accent: "#94A3B8",  background: "#F1F5F9", dark: "#1E293B" },
+  "Asignado":     { accent: "#06B6D4",  background: "#ECFEFF", dark: "#164E63" },
+  "En curso":     { accent: "#22C55E",  background: "#F0FDF4", dark: "#14532D" },
+  "Bloqueado":    { accent: "#F59E0B",  background: "#FFF7ED", dark: "#431407" },
+  "En revisión":  { accent: "#A855F7",  background: "#FAF5FF", dark: "#3B0764" },
+  "Cerrado":      { accent: "#10B981",  background: "#ECFDF5", dark: "#064E3B" },
 };
 
 const QUERY_KEY = ['pedidos-kanban'];
@@ -302,7 +302,7 @@ export default function Kanban() {
       <SmartTabs activeTab={activeTab} onTabChange={setActiveTab} counts={tabCounts} />
 
       {/* Filters */}
-      <div className="bg-card border border-border rounded-lg px-3 py-2.5 flex flex-wrap gap-2 items-center">
+      <div className="bg-card border border-border rounded-xl px-3 py-2.5 flex flex-wrap gap-2 items-center">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="pl-8 h-8 text-xs w-44" />
@@ -375,7 +375,7 @@ export default function Kanban() {
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             {cards.map(c => (
-              <div key={c.label} className={`flex items-center gap-2.5 rounded-lg border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-xl border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
                 <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
               </div>

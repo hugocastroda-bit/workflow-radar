@@ -40,7 +40,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-[#F5F7FB]/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 h-14">
           <Link to="/" className="flex items-baseline gap-2">
             <span className="text-sm font-semibold tracking-tight text-foreground">Workflow Radar</span>
@@ -59,7 +59,7 @@ export default function Contact() {
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/">
-              <Button variant="ghost" size="sm" className="h-8 text-xs">
+              <Button variant="ghost" size="sm" className="h-8 text-xs rounded-[12px]">
                 Inicio
               </Button>
             </Link>
@@ -118,7 +118,7 @@ export default function Contact() {
           </div>
 
           {/* Contact form */}
-          <div className="bg-card border border-border rounded-xl p-6">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             {sent ? (
               <div className="text-center space-y-3 py-8">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
@@ -162,7 +162,7 @@ export default function Contact() {
                   />
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" disabled={loading} className="w-full gap-1.5">
+                <Button type="submit" disabled={loading} className="w-full gap-1.5 rounded-[14px]">
                   {loading ? "Enviando..." : "Enviar mensaje"}
                   <Send className="h-3.5 w-3.5" />
                 </Button>

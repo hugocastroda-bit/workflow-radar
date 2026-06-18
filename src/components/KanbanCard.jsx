@@ -90,12 +90,12 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
       {...provided.draggableProps}
       onClick={() => navigate(`/pedido/${pedido.id}`)}
       className={`
-        group bg-card rounded-lg border cursor-pointer mb-2 no-select drag-zone
-        transition-all duration-150
+        group bg-card rounded-xl border cursor-pointer mb-2 no-select drag-zone
+        transition-all duration-150 shadow-sm
         ${borderClass}
         ${isDragging
           ? "shadow-lg ring-1 ring-primary/30 rotate-[0.5deg] scale-[1.02]"
-          : "hover:shadow-md hover:border-border/80"
+          : "hover:shadow-md hover:border-[#CBD5E1]"
         }
       `}
     >

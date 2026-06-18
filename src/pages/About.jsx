@@ -7,7 +7,7 @@ export default function About() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-[#F5F7FB]/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 h-14">
           <Link to="/" className="flex items-baseline gap-2">
             <span className="text-sm font-semibold tracking-tight text-foreground">Workflow Radar</span>
@@ -26,7 +26,7 @@ export default function About() {
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/">
-              <Button variant="ghost" size="sm" className="h-8 text-xs">
+              <Button variant="ghost" size="sm" className="h-8 text-xs rounded-[12px]">
                 Inicio
               </Button>
             </Link>
@@ -69,8 +69,8 @@ export default function About() {
             { icon: Lightbulb, title: "Enfoque", desc: "Resolver el problema específico de los pedidos entre áreas, no ser una herramienta genérica de proyectos. Simple, enfocado, efectivo." },
             { icon: Users, title: "Equipo", desc: "Design Lab combina diseño, desarrollo y consultoría para crear productos que se adaptan a procesos reales de equipos latinoamericanos." },
           ].map((item) => (
-            <div key={item.title} className="bg-card border border-border rounded-xl p-5 space-y-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div key={item.title} className="bg-card border border-border rounded-2xl p-5 space-y-3 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4F46E5]/10 to-[#8B5CF6]/10 flex items-center justify-center">
                 <item.icon className="h-4 w-4 text-primary" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
@@ -80,10 +80,10 @@ export default function About() {
         </div>
 
         {/* CTA */}
-        <div className="mt-12 bg-primary/5 border border-primary/20 rounded-xl p-6 text-center space-y-3">
+        <div className="mt-12 bg-gradient-to-r from-[#4F46E5]/5 to-[#8B5CF6]/5 border border-[#8B5CF6]/20 rounded-2xl p-6 text-center space-y-3 shadow-sm">
           <p className="text-sm font-medium text-foreground">¿Listo para ordenar los pedidos de tu equipo?</p>
           <Link to="/">
-            <Button variant="default" size="sm">
+            <Button variant="default" size="sm" className="rounded-[14px]">
               Solicitar una demo <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
             </Button>
           </Link>

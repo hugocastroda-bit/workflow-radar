@@ -32,13 +32,13 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workflow Radar</h1>
-          <p className="text-sm text-muted-foreground mt-1">Nueva contrasena</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">by Design Lab</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label className="text-xs font-medium text-muted-foreground">Nueva contrasena</Label>
@@ -49,7 +49,7 @@ export default function ResetPassword() {
               <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="********" className="mt-1" required />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
               {loading ? "Guardando..." : "Restablecer contrasena"}
             </Button>
           </form>

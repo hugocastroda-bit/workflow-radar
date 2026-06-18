@@ -48,7 +48,7 @@ function calcAvgClose(cerrados) {
 
 function StatCard({ label, value, color, subtitle }) {
   return (
-    <div className={`bg-card border rounded-lg px-5 py-4 ${color || "border-border"}`}>
+    <div className={`bg-card border rounded-2xl px-5 py-4 shadow-sm ${color || "border-border"}`}>
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
       <p className={`text-3xl font-semibold mt-1.5 tracking-tight ${
         color === "border-alert/30" ? "text-alert" :
@@ -63,7 +63,7 @@ function StatCard({ label, value, color, subtitle }) {
 
 function Section({ title, children, accent }) {
   return (
-    <div className={`bg-card border rounded-lg overflow-hidden ${accent || "border-border"}`}>
+    <div className={`bg-card border rounded-2xl overflow-hidden shadow-sm ${accent || "border-border"}`}>
       <div className="px-5 py-3 border-b border-border bg-secondary">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h3>
       </div>
@@ -231,7 +231,7 @@ export default function Dashboard() {
 
   const byPrioridad = ["Alta", "Media", "Baja"].map(pr => ({
     pr, count: filteredPedidos.filter(p => p.prioridad === pr).length,
-    bar: pr === "Alta" ? "bg-red-300" : pr === "Media" ? "bg-yellow-300" : "bg-slate-200"
+    bar: pr === "Alta" ? "bg-[#EF4444]/30" : pr === "Media" ? "bg-[#F59E0B]/30" : "bg-[#94A3B8]/30"
   }));
   const maxPr = Math.max(...byPrioridad.map(p => p.count), 1);
 
@@ -336,7 +336,7 @@ export default function Dashboard() {
       </div>
 
       {/* Dashboard Filters */}
-      <div className="bg-card border border-border rounded-lg px-4 py-3 flex flex-wrap gap-3 items-center">
+      <div className="bg-card border border-border rounded-xl px-4 py-3 flex flex-wrap gap-3 items-center">
         <Filter className="h-3.5 w-3.5 text-muted-foreground" />
         <Select value={fResponsable || "__placeholder__"} onValueChange={v => setFResponsable(v === "__placeholder__" ? "" : v)}>
           <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Responsable" /></SelectTrigger>
@@ -691,7 +691,7 @@ export default function Dashboard() {
 
       {/* Alert tables */}
       {vencidos.length > 0 && (
-        <div className="bg-card border border-alert/30 rounded-lg overflow-hidden">
+        <div className="bg-card border border-alert/30 rounded-2xl overflow-hidden shadow-sm">
           <div className="px-5 py-3 border-b border-alert/20 bg-alert/10">
             <h3 className="text-xs font-semibold text-alert uppercase tracking-wider">Pedidos vencidos — {vencidos.length}</h3>
           </div>
@@ -719,7 +719,7 @@ export default function Dashboard() {
       )}
 
       {bloqueados.length > 0 && (
-        <div className="bg-card border border-warning/30 rounded-lg overflow-hidden">
+        <div className="bg-card border border-warning/30 rounded-2xl overflow-hidden shadow-sm">
           <div className="px-5 py-3 border-b border-warning/20 bg-warning/10">
             <h3 className="text-xs font-semibold text-warning uppercase tracking-wider">Pedidos bloqueados — {bloqueados.length}</h3>
           </div>
