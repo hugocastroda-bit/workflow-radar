@@ -2,6 +2,10 @@
   "name": "HistorialPedido",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "pedido_id": {
       "type": "string",
       "title": "ID del pedido"
@@ -51,40 +55,21 @@
     "valor_nuevo",
     "usuario",
     "fecha_cambio",
-    "tipo_cambio"
+    "tipo_cambio",
+    "empresaId"
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {}
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "created_by": "{{user.email}}"
-        }
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
   }
 }
