@@ -91,7 +91,7 @@ export default function Layout() {
           </Link>
           <div className="flex items-center justify-between">
             <button
-              onClick={() => base44.auth.logout()}
+              onClick={() => base44.auth.logout(window.location.origin + '/')}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
               <LogOut className="h-3.5 w-3.5" /> Salir

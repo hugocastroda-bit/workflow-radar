@@ -32,6 +32,11 @@ export default function Login() {
           <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workflow Radar</h1>
           <p className="text-sm text-muted-foreground mt-1">Gestión de pedidos</p>
         </div>
+        <div className="text-center">
+          <Link to="/landing" className="text-sm text-primary hover:underline font-medium">
+            ← Conocer Workflow Radar
+          </Link>
+        </div>
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
