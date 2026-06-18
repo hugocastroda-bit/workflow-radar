@@ -1,0 +1,90 @@
+{
+  "name": "Empresa",
+  "type": "object",
+  "properties": {
+    "nombreEmpresa": {
+      "type": "string",
+      "title": "Nombre de la empresa"
+    },
+    "ruc": {
+      "type": "string",
+      "title": "RUC"
+    },
+    "logoEmpresa": {
+      "type": "string",
+      "title": "Logo de la empresa"
+    },
+    "plan": {
+      "type": "string",
+      "title": "Plan",
+      "enum": [
+        "Basic",
+        "Team",
+        "Pro",
+        "Business"
+      ],
+      "default": "Basic"
+    },
+    "limiteUsuarios": {
+      "type": "number",
+      "title": "L\u00edmite de usuarios",
+      "default": 5
+    },
+    "creditosMensuales": {
+      "type": "number",
+      "title": "Cr\u00e9ditos mensuales",
+      "default": 5
+    },
+    "creditosUsados": {
+      "type": "number",
+      "title": "Cr\u00e9ditos usados",
+      "default": 0
+    },
+    "estado": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "Activa",
+        "Suspendida",
+        "Prueba"
+      ],
+      "default": "Prueba"
+    },
+    "fechaInicio": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha de inicio"
+    },
+    "fechaFinPrueba": {
+      "type": "string",
+      "format": "date",
+      "title": "Fin de periodo de prueba"
+    }
+  },
+  "required": [
+    "nombreEmpresa",
+    "plan"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
