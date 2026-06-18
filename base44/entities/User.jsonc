@@ -3,14 +3,6 @@
   "name": "User",
   "title": "User",
   "properties": {
-    "email": {
-      "type": "string",
-      "description": "The email of the user"
-    },
-    "full_name": {
-      "type": "string",
-      "description": "The full name of the user"
-    },
     "role": {
       "type": "string",
       "title": "Rol global",
@@ -23,12 +15,13 @@
         "user": "Usuario"
       },
       "default": "user"
+    },
+    "active_empresa_id": {
+      "type": "string",
+      "title": "Empresa activa"
     }
   },
-  "required": [
-    "email",
-    "full_name"
-  ],
+  "required": [],
   "rls": {
     "create": {},
     "read": {},
