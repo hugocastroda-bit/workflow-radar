@@ -4,6 +4,9 @@ import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bu
 import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
+import Bandeja from "@/pages/Bandeja";
+import Kanban from "@/pages/Kanban";
+import Dashboard from "@/pages/Dashboard";
 
 const PAGE_TITLES = {
   "/":             "Bandeja",
@@ -50,7 +53,7 @@ export default function Layout() {
     if (isActive(path)) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      navigate(path);
+      navigate(path, { replace: true });
     }
   };
 
@@ -132,9 +135,29 @@ export default function Layout() {
           paddingBottom: "calc(64px + max(12px, env(safe-area-inset-bottom)))",
         }}
       >
-        <PageTransition>
-          <Outlet />
-        </PageTransition>
+        {(() => {
+          const isMainPage = ["/", "/bandeja", "/kanban", "/dashboard"].includes(location.pathname);
+          if (isMainPage) {
+            return (
+              <>
+                <div style={{ display: (isActive("/") || isActive("/bandeja")) ? 'block' : 'none' }}>
+                  <Bandeja />
+                </div>
+                <div style={{ display: isActive("/kanban") ? 'block' : 'none' }}>
+                  <Kanban />
+                </div>
+                <div style={{ display: isActive("/dashboard") ? 'block' : 'none' }}>
+                  <Dashboard />
+                </div>
+              </>
+            );
+          }
+          return (
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
+          );
+        })()}
       </main>
 
       {/* ── Mobile Bottom Navigation Bar ──────────────── */}

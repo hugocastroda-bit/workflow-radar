@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ChevronDown, Search, ChevronUp, Info } from "lucide-react";
-import SearchableSelect from "@/components/SearchableSelect";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
+import AdaptiveSelect from "@/components/AdaptiveSelect";
 import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
 import { eventBus } from "@/lib/eventBus";
@@ -191,12 +191,12 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
               />
             </div>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Solicitante" required
                 value={form.solicitante} onChange={v => handleChange("solicitante", v)}
                 options={solicitanteOpts} placeholder="Seleccionar"
               />
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Proceso" required
                 value={form.proceso} onChange={v => handleChange("proceso", v)}
                 options={procesoOpts} placeholder="Seleccionar"
@@ -211,13 +211,13 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 className="mt-1"
               />
             </div>
-            <SearchableSelect
+            <AdaptiveSelect
               label="Prioridad" required
               value={form.prioridad} onChange={v => handleChange("prioridad", v)}
               options={prioridadOpts} placeholder="Seleccionar"
             />
             {pedido && (
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Estado"
                 value={form.estado} onChange={v => handleChange("estado", v)}
                 options={ESTADOS} placeholder="Estado"
@@ -238,12 +238,12 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
 
           {showOptional && (
             <div className="space-y-3 border-t pt-4">
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Complejidad (opcional)"
                 value={form.complejidad || ""} onChange={v => handleChange("complejidad", v)}
                 options={["Simple", "Media", "Alta"]} placeholder="Sin definir"
               />
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Riesgo (opcional)"
                 value={form.riesgo || ""} onChange={v => handleChange("riesgo", v || null)}
                 options={["Bajo", "Medio", "Alto"]} placeholder="Sin definir"
@@ -330,7 +330,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 </div>
               )}
               {isAdmin && (
-                <SearchableSelect
+                <AdaptiveSelect
                   label="Responsable (opcional)"
                   value={form.responsable} onChange={v => handleChange("responsable", v)}
                   options={responsableOpts} placeholder="Sin asignar"

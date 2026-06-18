@@ -401,8 +401,13 @@ export default function Kanban() {
           <div
             ref={scrollRef}
             onScroll={checkScroll}
-            className="flex gap-3 overflow-x-auto pb-6 -mx-1 px-1 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              paddingLeft: "max(4px, env(safe-area-inset-left))",
+              paddingRight: "max(4px, env(safe-area-inset-right))",
+            }}
             onMouseEnter={checkScroll}
           >
             {ESTADOS.map(estado => {

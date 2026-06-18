@@ -18,7 +18,7 @@ import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
 import { canVerConfidencial } from "@/lib/confidencial";
 import { toast } from "sonner";
-import SearchableSelect from "@/components/SearchableSelect";
+import AdaptiveSelect from "@/components/AdaptiveSelect";
 import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 import { eventBus } from "@/lib/eventBus";
 import ComentariosHilo from "@/components/ComentariosHilo";
@@ -452,7 +452,7 @@ export default function DetallePedido() {
               <Textarea value={draft.descripcion || ""} onChange={e => set("descripcion", e.target.value)} className="mt-1" rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Solicitante *"
                 value={draft.solicitante || ""}
                 onChange={v => set("solicitante", v)}
@@ -460,7 +460,7 @@ export default function DetallePedido() {
                 placeholder="Seleccionar"
                 required
               />
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Responsable"
                 value={draft.responsable || ""}
                 onChange={v => set("responsable", v)}
@@ -471,7 +471,7 @@ export default function DetallePedido() {
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Proceso *"
                 value={draft.proceso || ""}
                 onChange={v => set("proceso", v)}
@@ -479,7 +479,7 @@ export default function DetallePedido() {
                 placeholder="Seleccionar"
                 required
               />
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Prioridad *"
                 value={draft.prioridad || ""}
                 onChange={v => set("prioridad", v)}
@@ -489,7 +489,7 @@ export default function DetallePedido() {
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Estado *"
                 value={draft.estado || ""}
                 onChange={v => set("estado", v)}
@@ -497,7 +497,7 @@ export default function DetallePedido() {
                 placeholder="Seleccionar"
                 required
               />
-              <SearchableSelect
+              <AdaptiveSelect
                 label="Riesgo"
                 value={draft.riesgo || ""}
                 onChange={v => set("riesgo", v || null)}

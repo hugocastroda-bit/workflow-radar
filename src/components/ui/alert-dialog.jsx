@@ -51,6 +51,7 @@ const AlertDialogFooter = ({
 }) => (
   <div
     className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+    style={{ paddingBottom: "max(0px, env(safe-area-inset-bottom))" }}
     {...props} />
 )
 AlertDialogFooter.displayName = "AlertDialogFooter"
