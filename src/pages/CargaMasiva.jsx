@@ -14,7 +14,7 @@ import {
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
     COLS,
-    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "Ana López", "2026-06-23", "Media", "Bajo", "45", "30", "2026-06-20", "Pedido cargado como ejemplo", "Nuevo", "No", "Coordinar con legal", "", "Avance al 50%", "https://drive.google.com/..."]
+    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "Ana López", "2026-06-23", "Media", "45", "30", "2026-06-20", "Pedido cargado como ejemplo", "Nuevo", "No", "Coordinar con legal", "", "Avance al 50%", "https://drive.google.com/..."]
   ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
@@ -184,7 +184,6 @@ export default function CargaMasiva() {
        responsable: r["Responsable"] || undefined,
        fecha_requerida: parseDateToISO(r["Fecha requerida"]) || undefined,
        complejidad: r["Complejidad"] || undefined,
-       riesgo: r["Riesgo"] || undefined,
        horasEstimadas: hrsEst && !isNaN(Number(hrsEst)) ? Number(hrsEst) : undefined,
        horasReales: hrsReal && !isNaN(Number(hrsReal)) ? Number(hrsReal) : undefined,
        fechaCompromiso: parseDateToISO(r["Fecha compromiso"]) || undefined,
@@ -317,7 +316,6 @@ export default function CargaMasiva() {
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Prioridad</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Resp.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Complej.</th>
-                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Riesgo</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Est.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Real</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">F. req.</th>
@@ -341,7 +339,6 @@ export default function CargaMasiva() {
                             <td className={`px-2 py-2 whitespace-nowrap ${errClass("Prioridad") || "text-muted-foreground"}`}>{row["Prioridad"]}</td>
                             <td className={`px-2 py-2 max-w-[90px] truncate ${errClass("Responsable") || "text-muted-foreground"}`} title={row["Responsable"]}>{row["Responsable"] || "—"}</td>
                             <td className={`px-2 py-2 whitespace-nowrap ${errClass("Complejidad") || "text-muted-foreground"}`}>{row["Complejidad"] || "—"}</td>
-                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Riesgo") || "text-muted-foreground"}`}>{row["Riesgo"] || "—"}</td>
                             <td className={`px-2 py-2 whitespace-nowrap ${errClass("Horas estimadas") || "text-muted-foreground"}`}>{row["Horas estimadas"] || "—"}</td>
                             <td className={`px-2 py-2 whitespace-nowrap ${errClass("Horas reales") || "text-muted-foreground"}`}>{row["Horas reales"] || "—"}</td>
                             <td className={`px-2 py-2 whitespace-nowrap ${errClass("Fecha requerida") || "text-muted-foreground"}`}>{row["Fecha requerida"] || "—"}</td>

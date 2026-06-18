@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Trash2, Archive, Lock, LockOpen, GripVertical, AlertCircle, Clock, CopyPlus, History } from "lucide-react";
 
 import PriorityBadge from "./PriorityBadge";
-import RiesgoBadge from "./RiesgoBadge";
+
 import ConfidencialBadge from "./ConfidencialBadge";
 
 function formatFecha(fechaStr) {
@@ -131,7 +131,7 @@ export default function KanbanCard({ pedido, provided, isDragging, onDelete, onA
         <div className="flex items-center justify-between gap-2 mt-1">
           <div className="flex items-center gap-1">
             <PriorityBadge priority={pedido.prioridad} size="xs" />
-            {pedido.riesgo && <RiesgoBadge riesgo={pedido.riesgo} size="xs" />}
+
           </div>
           {fechaInfo && (
             <span className={`flex items-center gap-1 text-[11px] font-medium ${

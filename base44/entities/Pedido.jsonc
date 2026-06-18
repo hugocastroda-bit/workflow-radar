@@ -36,15 +36,6 @@
         "Alta"
       ]
     },
-    "riesgo": {
-      "type": "string",
-      "title": "Riesgo",
-      "enum": [
-        "Bajo",
-        "Medio",
-        "Alto"
-      ]
-    },
     "fecha_requerida": {
       "type": "string",
       "format": "date",

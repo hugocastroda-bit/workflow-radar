@@ -5,11 +5,9 @@ export const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqu
 
 export const PRIORIDADES = ["Alta", "Media", "Baja"];
 export const COMPLEJIDADES = ["Simple", "Media", "Alta"];
-export const RIESGOS = ["Bajo", "Medio", "Alto"];
 
 export const ENUMS = {
   "Complejidad": COMPLEJIDADES,
-  "Riesgo": RIESGOS,
   "Prioridad": PRIORIDADES,
   "Estado": ESTADOS,
 };
@@ -20,7 +18,7 @@ export const BOOLEAN_FIELDS = ["Confidencial"];
 // Columnas para carga masiva (Excel)
 export const CARGA_MASIVA_COLS = [
   "Título", "Solicitante", "Proceso", "Prioridad", "Responsable",
-  "Fecha requerida", "Complejidad", "Riesgo", "Horas estimadas",
+  "Fecha requerida", "Complejidad", "Horas estimadas",
   "Horas reales", "Fecha compromiso", "Descripción", "Estado",
   "Confidencial", "Próxima acción", "Motivo bloqueo",
   "Comentarios avance", "Link evidencia"

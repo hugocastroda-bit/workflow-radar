@@ -7,7 +7,7 @@ import * as XLSX from "xlsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import RiesgoBadge from "../components/RiesgoBadge";
+
 import PedidoForm from "../components/PedidoForm";
 import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox, Eye, Download } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
@@ -259,7 +259,7 @@ export default function Bandeja() {
     "Proceso": p.proceso,
     "Prioridad": p.prioridad,
     "Complejidad": p.complejidad || "—",
-    "Riesgo": p.riesgo || "—",
+  
     "Fecha requerida": p.fecha_requerida || "—",
     "Fecha compromiso": p.fechaCompromiso || "—",
     "Responsable": p.responsable || "—",
@@ -489,7 +489,6 @@ export default function Bandeja() {
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <StatusBadge status={p.estado} />
                       <PriorityBadge priority={p.prioridad} />
-                      {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
                       {p.solicitante && <span title={p.solicitante}>{p.solicitante}</span>}
@@ -639,7 +638,7 @@ export default function Bandeja() {
                     <td className="px-3 py-3.5">
                       <div className="flex items-center gap-1.5">
                         <PriorityBadge priority={p.prioridad} />
-                        {p.riesgo && <RiesgoBadge riesgo={p.riesgo} size="xs" />}
+
                       </div>
                     </td>
                     <td className="px-3 py-3.5">

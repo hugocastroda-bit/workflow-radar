@@ -49,7 +49,7 @@ async function loadCatalogs(forceRefresh = false) {
 
 const emptyForm = {
   titulo: "", descripcion: "", solicitante: "", proceso: "",
-  prioridad: "", complejidad: "", riesgo: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
+  prioridad: "", complejidad: "", fecha_requerida: "", responsable: "", estado: "Nuevo",
   proxima_accion: "", motivo_bloqueo: "", comentarios_avance: "",
   link_evidencia: "", resultado_final: "", comentario_cierre: "", fecha_cierre_real: "",
   confidencial: false,
@@ -128,7 +128,6 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     if (!data.fecha_requerida) delete data.fecha_requerida;
     if (!data.descripcion) delete data.descripcion;
     if (!data.complejidad) delete data.complejidad;
-    if (!data.riesgo) delete data.riesgo;
     if (data.horasEstimadas == null) delete data.horasEstimadas;
     if (data.horasReales == null) delete data.horasReales;
     if (!data.fechaCompromiso) delete data.fechaCompromiso;
@@ -243,11 +242,7 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 value={form.complejidad || ""} onChange={v => handleChange("complejidad", v)}
                 options={["Simple", "Media", "Alta"]} placeholder="Sin definir"
               />
-              <AdaptiveSelect
-                label="Riesgo (opcional)"
-                value={form.riesgo || ""} onChange={v => handleChange("riesgo", v || null)}
-                options={["Bajo", "Medio", "Alto"]} placeholder="Sin definir"
-              />
+
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Minutos estimados</Label>

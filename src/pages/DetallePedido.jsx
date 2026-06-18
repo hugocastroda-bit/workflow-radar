@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
-import RiesgoBadge from "../components/RiesgoBadge";
+
 import { ArrowLeft, Pencil, Check, X, ExternalLink, Loader2, AlertTriangle, Trash2, Archive, ArchiveRestore, Lock, LockOpen, History, User, Clock } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
@@ -213,7 +213,7 @@ export default function DetallePedido() {
       if (editSection === "seguimiento") {
         await logCambiosSeccion(["comentarios_avance", "proxima_accion", "motivo_bloqueo"], "seguimiento", prevPedido);
       } else if (editSection === "general") {
-        await logCambiosSeccion(["titulo", "descripcion", "solicitante", "responsable", "proceso", "prioridad", "riesgo", "fecha_requerida", "estado"], "informacion_general", prevPedido);
+        await logCambiosSeccion(["titulo", "descripcion", "solicitante", "responsable", "proceso", "prioridad", "fecha_requerida", "estado"], "informacion_general", prevPedido);
       } else if (editSection === "evidencias") {
         await logCambiosSeccion(["link_evidencia"], "evidencias", prevPedido);
       } else if (editSection === "cierre") {
@@ -375,7 +375,6 @@ export default function DetallePedido() {
             <div className="flex items-center gap-1.5 flex-wrap">
               <StatusBadge status={pedido.estado} />
               <PriorityBadge priority={pedido.prioridad} />
-              <RiesgoBadge riesgo={pedido.riesgo} />
             </div>
           </div>
         </div>
@@ -488,7 +487,7 @@ export default function DetallePedido() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div>
               <AdaptiveSelect
                 label="Estado *"
                 value={draft.estado || ""}
@@ -496,13 +495,6 @@ export default function DetallePedido() {
                 options={ESTADOS}
                 placeholder="Seleccionar"
                 required
-              />
-              <AdaptiveSelect
-                label="Riesgo"
-                value={draft.riesgo || ""}
-                onChange={v => set("riesgo", v || null)}
-                options={["Bajo", "Medio", "Alto"]}
-                placeholder="Sin riesgo"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -519,7 +511,6 @@ export default function DetallePedido() {
               <Field label="Responsable" value={pedido.responsable} />
               <Field label="Proceso" value={pedido.proceso} />
               <Field label="Fecha requerida" value={pedido.fecha_requerida} highlight={isOverdue} />
-              <Field label="Riesgo" value={pedido.riesgo ? <RiesgoBadge riesgo={pedido.riesgo} /> : null} />
               <Field label="Fecha de creación" value={pedido.created_date?.split("T")[0]} />
             </div>
             {pedido.descripcion && (
