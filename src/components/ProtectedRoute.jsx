@@ -35,7 +35,8 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
   }
 
   if (!isAuthenticated) {
-    window.location.href = "/?expired=true";
+    // Never authenticated — generic "log in to access" message
+    window.location.href = "/?auth=true";
     return null;
   }
 

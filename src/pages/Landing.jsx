@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -237,7 +238,9 @@ export default function Landing() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
 
-  // ── Session expired: show message when bounced from ProtectedRoute ──
+  const { isAuthenticated } = useAuth();
+
+  // ── Redirect messages: show when bounced from ProtectedRoute ──
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("expired") === "true") {
@@ -245,7 +248,12 @@ export default function Landing() {
         duration: 6000,
         position: "top-center",
       });
-      // Clean URL so the message doesn't reappear on refresh
+      window.history.replaceState(null, "", "/");
+    } else if (params.get("auth") === "true") {
+      toast.info("Para acceder a Workflow Radar, inicia sesión.", {
+        duration: 5000,
+        position: "top-center",
+      });
       window.history.replaceState(null, "", "/");
     }
   }, []);
@@ -307,19 +315,33 @@ export default function Landing() {
             <button onClick={() => scrollTo("demo")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Contactar demo
             </button>
-            <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Login
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/bandeja" className="text-xs text-primary hover:underline font-medium transition-colors">
+                Ir a mi bandeja
+              </Link>
+            ) : (
+              <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Iniciar sesión
+              </Link>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             <Button size="sm" className="h-8 text-xs" onClick={() => scrollTo("demo")}>
               Solicitar demo
             </Button>
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="h-8 text-xs">
-                Login
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/bandeja">
+                <Button variant="default" size="sm" className="h-8 text-xs">
+                  Ir a mi bandeja
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="h-8 text-xs">
+                  Iniciar sesión
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>
