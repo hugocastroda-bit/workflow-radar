@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { Inbox, Columns3, BarChart3, Settings, Plus, LogOut, Upload, Archive, Bug, Building2, ChevronDown } from "lucide-react";
+import WhatsAppFloating from "@/components/WhatsAppFloating";
 import { base44 } from "@/api/base44Client";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageTransition from "@/components/PageTransition";
@@ -177,6 +178,8 @@ export default function Layout() {
           );
         })()}
       </main>
+
+      <WhatsAppFloating />
 
       {/* ── Mobile Bottom Navigation Bar ──────────────── */}
       <nav

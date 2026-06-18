@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import WhatsAppFloating from "@/components/WhatsAppFloating";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -623,6 +624,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <WhatsAppFloating />
 
       {/* ── FOOTER ──────────────────────────── */}
       <footer className="bg-secondary/40 border-t border-border px-4 md:px-6 py-12">
