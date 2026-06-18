@@ -316,6 +316,12 @@ export default function Landing() {
             <button onClick={() => scrollTo("demo")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Contactar demo
             </button>
+            <Link to="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Acerca de
+            </Link>
+            <Link to="/contact" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Contacto
+            </Link>
             {isAuthenticated ? (
               <Link to="/bandeja" className="text-xs text-primary hover:underline font-medium transition-colors">
                 Ir a mi bandeja
@@ -648,9 +654,9 @@ export default function Landing() {
                 <Link to="/login" className="block text-xs text-muted-foreground hover:text-foreground transition-colors">Login</Link>
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-foreground">Contacto</p>
-                <a href="mailto:contacto@radardesignlab.com" className="block text-xs text-muted-foreground hover:text-foreground transition-colors">contacto@radardesignlab.com</a>
-                <span className="block text-xs text-muted-foreground">radardesignlab.com</span>
+                <p className="text-xs font-semibold text-foreground">Empresa</p>
+                <Link to="/about" className="block text-xs text-muted-foreground hover:text-foreground transition-colors">Acerca de</Link>
+                <Link to="/contact" className="block text-xs text-muted-foreground hover:text-foreground transition-colors">Contacto</Link>
               </div>
             </div>
           </div>
