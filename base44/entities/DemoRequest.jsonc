@@ -1,0 +1,42 @@
+{
+  "name": "DemoRequest",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "empresa": {
+      "type": "string"
+    },
+    "cargo": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "usuarios": {
+      "type": "string"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "Basic",
+        "Team",
+        "Pro",
+        "Business",
+        ""
+      ],
+      "default": ""
+    }
+  },
+  "required": [
+    "nombre",
+    "email"
+  ]
+}
