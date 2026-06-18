@@ -2,6 +2,10 @@
   "name": "Sede",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "nombre": {
       "type": "string",
       "title": "Nombre de sede"
@@ -13,26 +17,21 @@
     }
   },
   "required": [
-    "nombre"
+    "nombre",
+    "empresaId"
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "data.activo": true
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
   }
 }
