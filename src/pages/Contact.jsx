@@ -85,8 +85,8 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Correo electrónico</p>
-                <a href="mailto:contacto@radardesignlab.com" className="text-sm text-primary hover:underline">
-                  contacto@radardesignlab.com
+                <a href="mailto:admin@careerdesignlab.org" className="text-sm text-primary hover:underline">
+                  admin@careerdesignlab.org
                 </a>
               </div>
             </div>
@@ -106,12 +106,12 @@ export default function Contact() {
               <div>
                 <p className="text-sm font-medium text-foreground">WhatsApp</p>
                 <a
-                  href="https://wa.me/51900000000?text=Hola%2C%20quisiera%20información%20sobre%20Workflow%20Radar"
+                  href="https://wa.me/51998196026?text=Hola%2C%20quisiera%20información%20sobre%20Workflow%20Radar"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline"
                 >
-                  +51 900 000 000
+                  +51 998 196 026
                 </a>
               </div>
             </div>
