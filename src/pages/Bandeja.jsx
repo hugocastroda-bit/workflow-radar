@@ -58,7 +58,7 @@ export default function Bandeja() {
     if (urlParams.get("crear") === "true") setFormOpen(true);
     if (urlParams.get("filtro_estado") === "Bloqueado") setFilters(f => ({ ...f, estado: "Bloqueado" }));
     base44.entities.Pedido.filter({ archivado: false }, "-created_date")
-      .then(d => setPedidos(filtrarConfidenciales(d, user)))
+      .then(d => setPedidos(filtrarConfidenciales(d, user, empresaActiva?.rol)))
       .catch(err => { console.error("[Bandeja] Error cargando pedidos:", err); toast.error("No se pudieron cargar los pedidos."); })
       .finally(() => setLoading(false));
   }, [user, location.search]);
@@ -66,13 +66,13 @@ export default function Bandeja() {
   // Escuchar eventos de cambios (se registran una sola vez)
   useEffect(() => {
     const u1 = eventBus.on('pedidoCreado', pedido => {
-      const f = filtrarConfidenciales([pedido], user);
+      const f = filtrarConfidenciales([pedido], user, empresaActiva?.rol);
       if (f.length) setPedidos(prev => [pedido, ...prev]);
     });
     const u2 = eventBus.on('pedidoActualizado', pedido => setPedidos(prev => prev.map(p => p.id === pedido.id ? pedido : p)));
     const u3 = eventBus.on('pedidoArchivado', id => setPedidos(prev => prev.filter(p => p.id !== id)));
     const u4 = eventBus.on('pedidoRestaurado', pedido => {
-      const f = filtrarConfidenciales([pedido], user);
+      const f = filtrarConfidenciales([pedido], user, empresaActiva?.rol);
       if (f.length) setPedidos(prev => [pedido, ...prev]);
     });
     const u5 = eventBus.on('pedidoEliminado', id => setPedidos(prev => prev.filter(p => p.id !== id)));
@@ -293,7 +293,7 @@ export default function Bandeja() {
     setExportingAll(true);
     try {
       const all = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
-      const allVisible = filtrarConfidenciales(all, user);
+      const allVisible = filtrarConfidenciales(all, user, empresaActiva?.rol);
       const data = allVisible.map(buildRow);
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -315,7 +315,7 @@ export default function Bandeja() {
 
   const handleRefresh = async () => {
     const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
-    setPedidos(filtrarConfidenciales(d, user));
+    setPedidos(filtrarConfidenciales(d, user, empresaActiva?.rol));
   };
 
   return (
@@ -755,11 +755,11 @@ export default function Bandeja() {
         pedido={null}
         onSaved={(saved) => {
           if (saved) {
-            const filtrado = filtrarConfidenciales([saved], user);
+            const filtrado = filtrarConfidenciales([saved], user, empresaActiva?.rol);
             if (filtrado.length > 0) setPedidos(prev => [saved, ...prev]);
           } else {
             base44.entities.Pedido.filter({ archivado: false }, "-created_date")
-              .then(d => setPedidos(filtrarConfidenciales(d, user)));
+              .then(d => setPedidos(filtrarConfidenciales(d, user, empresaActiva?.rol)));
           }
         }}
       />

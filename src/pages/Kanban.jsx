@@ -74,7 +74,7 @@ export default function Kanban() {
     queryFn: () => base44.entities.Pedido.filter({ archivado: false }, "-created_date"),
   });
 
-  const pedidos = filtrarConfidenciales(pedidosRaw, user);
+  const pedidos = filtrarConfidenciales(pedidosRaw, user, empresaActiva?.rol);
 
   // ── Sincronizar eventBus → caché React Query ─────────────────────
   useEffect(() => {

@@ -78,7 +78,7 @@ export default function Dashboard() {
   const [responsablesMap, setResponsablesMap] = useState({});
   const [responsables, setResponsables] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, empresaActiva } = useAuth();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -96,7 +96,7 @@ export default function Dashboard() {
       base44.entities.Pedido.filter({ archivado: false }).catch(() => []),
       base44.entities.Responsable.list().catch(() => []),
     ]).then(([pedidosData, responsablesData]) => {
-      setPedidos(filtrarConfidenciales(pedidosData, user));
+      setPedidos(filtrarConfidenciales(pedidosData, user, empresaActiva?.rol));
       setResponsables(responsablesData);
       const map = {};
       responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo, capacidad: r.capacidadSemanalHoras ?? 40 }; });
@@ -109,7 +109,7 @@ export default function Dashboard() {
       base44.entities.Pedido.filter({ archivado: false }).catch(() => []),
       base44.entities.Responsable.list().catch(() => []),
     ]);
-    setPedidos(filtrarConfidenciales(pedidosData, user));
+    setPedidos(filtrarConfidenciales(pedidosData, user, empresaActiva?.rol));
     setResponsables(responsablesData);
     const map = {};
     responsablesData.forEach(r => { map[r.nombre] = { activo: r.activo, capacidad: r.capacidadSemanalHoras ?? 40 }; });

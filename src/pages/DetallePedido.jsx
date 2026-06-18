@@ -17,6 +17,7 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import ConfirmConfidencialModal from "../components/ConfirmConfidencialModal";
 import ConfidencialBadge from "../components/ConfidencialBadge";
 import { canVerConfidencial } from "@/lib/confidencial";
+import { sanitizeUrl, sanitizeText, truncateText } from "@/lib/security";
 import { toast } from "sonner";
 import AdaptiveSelect from "@/components/AdaptiveSelect";
 import { obtenerResponsablesActivos } from "@/lib/sync-utils";
@@ -186,11 +187,11 @@ export default function DetallePedido() {
 
       if (editSection === "seguimiento") {
         data = {
-          comentarios_avance: draft.comentarios_avance ?? "",
-          proxima_accion: draft.proxima_accion ?? "",
+          comentarios_avance: truncateText(draft.comentarios_avance ?? "", 5000),
+          proxima_accion: truncateText(draft.proxima_accion ?? "", 500),
         };
         if (isAdmin) {
-          data.motivo_bloqueo = draft.motivo_bloqueo ?? "";
+          data.motivo_bloqueo = truncateText(draft.motivo_bloqueo ?? "", 2000);
         }
         console.log("[saveEdit] Payload seguimiento:", JSON.stringify(data));
       } else {
@@ -201,6 +202,10 @@ export default function DetallePedido() {
         if (!draft.prioridad?.trim()) { toast.error("La prioridad es obligatoria."); setSaving(false); return; }
         if (!draft.estado?.trim()) { toast.error("El estado es obligatorio."); setSaving(false); return; }
         data = { ...draft };
+        // Security: truncate long text fields
+        if (data.descripcion) data.descripcion = truncateText(data.descripcion, 5000);
+        if (data.resultado_final) data.resultado_final = truncateText(data.resultado_final, 5000);
+        if (data.comentario_cierre) data.comentario_cierre = truncateText(data.comentario_cierre, 5000);
         if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
           data.fecha_cierre_real = new Date().toISOString().split("T")[0];
         }
@@ -216,6 +221,10 @@ export default function DetallePedido() {
       } else if (editSection === "general") {
         await logCambiosSeccion(["titulo", "descripcion", "solicitante", "responsable", "proceso", "prioridad", "fecha_requerida", "estado"], "informacion_general", prevPedido);
       } else if (editSection === "evidencias") {
+        // Sanitize link — only allow http/https
+        if (data.link_evidencia) {
+          data.link_evidencia = sanitizeUrl(data.link_evidencia);
+        }
         await logCambiosSeccion(["link_evidencia"], "evidencias", prevPedido);
       } else if (editSection === "cierre") {
         await logCambiosSeccion(["resultado_final", "comentario_cierre", "fecha_cierre_real"], "cierre", prevPedido);
@@ -301,7 +310,7 @@ export default function DetallePedido() {
   if (loading) return <div className="flex items-center justify-center h-96"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!pedido) return <div className="p-8 text-sm text-muted-foreground">Pedido no encontrado</div>;
 
-  if (!canVerConfidencial(pedido, user)) {
+  if (!canVerConfidencial(pedido, user, empresaActiva?.rol)) {
     return (
       <div className="p-8 max-w-xl mx-auto flex flex-col items-center justify-center h-64 gap-3 text-center">
         <Lock className="h-8 w-8 text-muted-foreground/30" />
@@ -697,11 +706,18 @@ export default function DetallePedido() {
             {pedido.link_evidencia ? (
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Link relacionado</p>
-                <a href={pedido.link_evidencia} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
-                  <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                  {pedido.link_evidencia}
-                </a>
+                {(() => {
+                  const safeUrl = sanitizeUrl(pedido.link_evidencia);
+                  return safeUrl ? (
+                    <a href={safeUrl} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                      {safeUrl}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-amber-600 dark:text-amber-400">Link no válido — solo se permiten URLs https://</p>
+                  );
+                })()}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground/50">Sin evidencias registradas</p>

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { sanitizeText } from "@/lib/security";
 
 export default function ComentariosHilo({ pedidoId }) {
   const { user, empresaActiva } = useAuth();
@@ -31,10 +32,15 @@ export default function ComentariosHilo({ pedidoId }) {
   const handleEnviar = async () => {
     if (!texto.trim() || enviando) return;
     setEnviando(true);
+    const contenidoSanitizado = sanitizeText(texto.trim(), 2000);
+    if (!contenidoSanitizado) {
+      setEnviando(false);
+      return;
+    }
     const nuevo = {
       empresaId: empresaActiva?.empresaId,
       pedido_id: pedidoId,
-      contenido: texto.trim(),
+      contenido: contenidoSanitizado,
       nombre_usuario: user?.full_name || user?.email || "Usuario",
       rol_usuario: user?.role === "admin" ? "admin" : "user",
     };
@@ -102,6 +108,7 @@ export default function ComentariosHilo({ pedidoId }) {
           onChange={e => setTexto(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleEnviar()}
           placeholder="Escribe un comentario…"
+          maxLength={2000}
           disabled={enviando}
           className="flex-1 text-sm bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground disabled:opacity-50"
         />

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
 import { eventBus } from "@/lib/eventBus";
 import { ESTADOS, COMPLEJIDAD_MINUTOS, formatMinutos } from "@/lib/pedidoConstants";
+import { sanitizeUrl, truncateText } from "@/lib/security";
 
 // Module-level cache
 const catalogCache = {};
@@ -131,6 +132,17 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
     if (data.horasEstimadas == null) delete data.horasEstimadas;
     if (data.horasReales == null) delete data.horasReales;
     if (!data.fechaCompromiso) delete data.fechaCompromiso;
+
+    // ── Security: sanitize user-provided URL ──────────────────
+    if (data.link_evidencia) {
+      data.link_evidencia = sanitizeUrl(data.link_evidencia);
+    }
+    // ── Security: truncate long text fields ───────────────────
+    if (data.descripcion) data.descripcion = truncateText(data.descripcion, 5000);
+    if (data.comentarios_avance) data.comentarios_avance = truncateText(data.comentarios_avance, 5000);
+    if (data.resultado_final) data.resultado_final = truncateText(data.resultado_final, 5000);
+    if (data.comentario_cierre) data.comentario_cierre = truncateText(data.comentario_cierre, 5000);
+    if (data.motivo_bloqueo) data.motivo_bloqueo = truncateText(data.motivo_bloqueo, 2000);
 
     const timeout = setTimeout(() => {
       setSaving(false);
