@@ -38,14 +38,11 @@ export const AuthProvider = ({ children }) => {
         const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
         setAppPublicSettings(publicSettings);
         
-        // If we got the app public settings successfully, check if user is authenticated
-        if (appParams.token) {
-          await checkUserAuth();
-        } else {
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-          setAuthChecked(true);
-        }
+        // Never auto-check auth here — base44.auth.me() may internally redirect
+        // to login before we can catch it, skipping the landing. Defer to ProtectedRoute.
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(false); // ProtectedRoute will call checkUserAuth() when needed
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         console.error('App state check failed:', appError);
