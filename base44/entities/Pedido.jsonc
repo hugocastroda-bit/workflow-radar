@@ -2,6 +2,10 @@
   "name": "Pedido",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "titulo": {
       "type": "string",
       "title": "T\u00edtulo del pedido"
@@ -147,110 +151,21 @@
     "titulo",
     "solicitante",
     "proceso",
-    "prioridad"
+    "prioridad",
+    "empresaId"
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.espacioId": "{{user.active_space_id}}"
-        }
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "$and": [
-            {
-              "data.espacioId": "{{user.active_space_id}}"
-            },
-            {
-              "$or": [
-                {
-                  "data.confidencial": false
-                },
-                {
-                  "created_by": "{{user.email}}"
-                },
-                {
-                  "data.solicitante": "{{user.full_name}}"
-                },
-                {
-                  "data.responsable": "{{user.full_name}}"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "update": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "$and": [
-            {
-              "data.espacioId": "{{user.active_space_id}}"
-            },
-            {
-              "$or": [
-                {
-                  "created_by": "{{user.email}}"
-                },
-                {
-                  "data.solicitante": "{{user.full_name}}"
-                },
-                {
-                  "data.responsable": "{{user.full_name}}"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "$and": [
-            {
-              "data.espacioId": "{{user.active_space_id}}"
-            },
-            {
-              "$or": [
-                {
-                  "created_by": "{{user.email}}"
-                },
-                {
-                  "data.solicitante": "{{user.full_name}}"
-                },
-                {
-                  "data.responsable": "{{user.full_name}}"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
   }
 }
