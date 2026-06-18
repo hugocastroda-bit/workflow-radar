@@ -2,6 +2,10 @@
   "name": "ConfigNotificaciones",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "notif_asignado": {
       "type": "boolean",
       "title": "Nuevo pedido asignado",
@@ -23,27 +27,21 @@
       "default": false
     }
   },
+  "required": [
+    "empresaId"
+  ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
-  },
-  "required": []
+  }
 }
