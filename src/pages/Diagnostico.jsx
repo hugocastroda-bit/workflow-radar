@@ -33,8 +33,8 @@ function Section({ title, children }) {
 }
 
 export default function Diagnostico() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { user, empresaActiva } = useAuth();
+  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
