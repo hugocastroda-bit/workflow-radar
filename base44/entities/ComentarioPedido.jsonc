@@ -2,6 +2,10 @@
   "name": "ComentarioPedido",
   "type": "object",
   "properties": {
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
     "pedido_id": {
       "type": "string",
       "title": "ID del pedido"
@@ -27,20 +31,21 @@
     "pedido_id",
     "contenido",
     "nombre_usuario",
-    "rol_usuario"
+    "rol_usuario",
+    "empresaId"
   ],
   "rls": {
-    "create": {},
-    "read": {},
+    "create": {
+      "data.empresaId": "{{user.active_empresa_id}}"
+    },
+    "read": {
+      "data.empresaId": "{{user.active_empresa_id}}"
+    },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "data.empresaId": "{{user.active_empresa_id}}"
     }
   }
 }
