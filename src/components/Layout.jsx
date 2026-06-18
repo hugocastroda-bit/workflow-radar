@@ -9,7 +9,6 @@ import Kanban from "@/pages/Kanban";
 import Dashboard from "@/pages/Dashboard";
 
 const PAGE_TITLES = {
-  "/":             "Bandeja",
   "/bandeja":      "Bandeja",
   "/kanban":       "Kanban",
   "/dashboard":    "Dashboard",
@@ -21,7 +20,7 @@ const PAGE_TITLES = {
 
 
 const NAV_ITEMS = [
-  { path: "/",              label: "Bandeja",       icon: Inbox },
+  { path: "/bandeja",      label: "Bandeja",       icon: Inbox },
   { path: "/kanban",        label: "Kanban",         icon: Columns3 },
   { path: "/dashboard",     label: "Dashboard",      icon: BarChart3 },
   { path: "/carga-masiva",  label: "Carga masiva",   icon: Upload },
@@ -31,7 +30,7 @@ const NAV_ITEMS = [
 ];
 
 const BOTTOM_NAV = [
-  { path: "/",          label: "Bandeja",   icon: Inbox },
+  { path: "/bandeja",   label: "Bandeja",   icon: Inbox },
   { path: "/kanban",    label: "Kanban",    icon: Columns3 },
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
 ];
@@ -43,8 +42,7 @@ export default function Layout() {
   const isAdmin  = user?.role === "admin";
   const visible  = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
-  const isActive = (path) =>
-    location.pathname === path || (path === "/" && location.pathname === "/bandeja");
+  const isActive = (path) => location.pathname === path;
 
   const currentPageTitle = PAGE_TITLES[location.pathname] ||
     (location.pathname.startsWith("/pedido/") ? "Detalle de pedido" : "Workflow Radar");
@@ -84,7 +82,7 @@ export default function Layout() {
         </nav>
         <div className="p-3 border-t border-border space-y-2">
           <Link
-            to="/?crear=true"
+            to="/bandeja?crear=true"
             className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full"
           >
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
@@ -118,7 +116,7 @@ export default function Layout() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link
-              to="/?crear=true"
+              to="/bandeja?crear=true"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all"
             >
               <Plus className="h-3 w-3" /> Nuevo
@@ -136,11 +134,11 @@ export default function Layout() {
         }}
       >
         {(() => {
-          const isMainPage = ["/", "/bandeja", "/kanban", "/dashboard"].includes(location.pathname);
+          const isMainPage = ["/bandeja", "/kanban", "/dashboard"].includes(location.pathname);
           if (isMainPage) {
             return (
               <>
-                <div style={{ display: (isActive("/") || isActive("/bandeja")) ? 'block' : 'none' }}>
+                <div style={{ display: isActive("/bandeja") ? 'block' : 'none' }}>
                   <Bandeja />
                 </div>
                 <div style={{ display: isActive("/kanban") ? 'block' : 'none' }}>

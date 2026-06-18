@@ -46,14 +46,13 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route path="/landing" element={<Landing />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Landing />} />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Bandeja />} />
           <Route path="/bandeja" element={<Bandeja />} />
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/dashboard" element={<Dashboard />} />
