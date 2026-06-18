@@ -119,8 +119,8 @@ const CREDIT_TABLE = [
 
 const FAQ_ITEMS = [
   {
-    q: "¿Workflow Radar reemplaza a Trello o ClickUp?",
-    a: "No necesariamente. Está diseñado como una herramienta más simple y enfocada en pedidos internos, responsables, carga y trazabilidad.",
+    q: "¿Qué tipo de equipos usan Workflow Radar?",
+    a: "Equipos de operaciones, recursos humanos, TI y áreas de servicio interno que necesitan ordenar pedidos, asignar responsables y medir carga de trabajo con trazabilidad.",
   },
   {
     q: "¿Necesito instalar algo?",
