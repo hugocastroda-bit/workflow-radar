@@ -35,13 +35,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    }
-    // Other auth errors (including auth_required) are handled by ProtectedRoute
-  }
+  // All auth errors are delegated to ProtectedRoute
+  // Public routes (/, /login, etc.) always render regardless of auth state
 
   // Render the main app
   return (
