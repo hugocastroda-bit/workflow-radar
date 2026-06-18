@@ -21,7 +21,7 @@ import { uniqNorm } from "@/lib/uniq-utils";
 import PullToRefresh from "@/components/PullToRefresh";
 import SmartTabs from "@/components/SmartTabs";
 
-const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+import { ESTADOS } from "@/lib/pedidoConstants";
 
 const STAGE_COLORS = {
   "Nuevo":        { accent: "#0066CC",  background: "#EAF3FF", dark: "#002244" },

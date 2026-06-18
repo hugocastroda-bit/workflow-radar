@@ -23,7 +23,7 @@ import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 import { eventBus } from "@/lib/eventBus";
 import ComentariosHilo from "@/components/ComentariosHilo";
 
-const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+import { ESTADOS } from "@/lib/pedidoConstants";
 
 function Field({ label, value, highlight, mono }) {
   return (

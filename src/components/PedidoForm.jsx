@@ -13,6 +13,7 @@ import SearchableSelect from "@/components/SearchableSelect";
 import { toast } from "sonner";
 import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
 import { eventBus } from "@/lib/eventBus";
+import { ESTADOS, COMPLEJIDAD_MINUTOS, formatMinutos } from "@/lib/pedidoConstants";
 
 // Module-level cache
 const catalogCache = {};
@@ -45,14 +46,6 @@ async function loadCatalogs(forceRefresh = false) {
   }
   return cache;
 }
-
-const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
-
-const COMPLEJIDAD_MINUTOS = {
-  "Alta|Simple": 30, "Alta|Media": 60, "Alta|Alta": 120,
-  "Media|Simple": 15, "Media|Media": 45, "Media|Alta": 90,
-  "Baja|Simple": 10, "Baja|Media": 30, "Baja|Alta": 60,
-};
 
 const emptyForm = {
   titulo: "", descripcion: "", solicitante: "", proceso: "",
@@ -259,18 +252,31 @@ export default function PedidoForm({ open, onClose, pedido, onSaved }) {
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground">Minutos estimados</Label>
                   {isAdmin ? (
-                    <Input
-                      type="number" step="5" min="0"
-                      value={form.horasEstimadas != null ? form.horasEstimadas : ""}
-                      onChange={e => handleChange("horasEstimadas", e.target.value === "" ? null : parseFloat(e.target.value))}
-                      className="mt-1"
-                      placeholder={form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min` : "Sin estimación"}
-                    />
+                    <div className="relative mt-1">
+                      <Input
+                        type="number" step="5" min="0"
+                        value={form.horasEstimadas != null ? form.horasEstimadas : ""}
+                        onChange={e => handleChange("horasEstimadas", e.target.value === "" ? null : parseFloat(e.target.value))}
+                        placeholder={form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min` : "Sin estimación"}
+                      />
+                      {form.horasEstimadas != null && form.horasEstimadas > 0 && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border pointer-events-none">
+                          {formatMinutos(form.horasEstimadas)}
+                        </span>
+                      )}
+                    </div>
                   ) : (
-                    <div className="mt-1 h-9 px-3 flex items-center rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
-                      {form.horasEstimadas != null ? `${form.horasEstimadas} min` :
-                       form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min (sugerido)` :
-                       "Sin estimación"}
+                    <div className="mt-1 h-9 px-3 flex items-center justify-between rounded-lg border border-input bg-muted/40 text-sm text-muted-foreground">
+                      <span>
+                        {form.horasEstimadas != null ? `${form.horasEstimadas} min` :
+                         form.prioridad && form.complejidad ? `${COMPLEJIDAD_MINUTOS[form.prioridad + "|" + form.complejidad] || "—"} min (sugerido)` :
+                         "Sin estimación"}
+                      </span>
+                      {form.horasEstimadas != null && form.horasEstimadas > 0 && (
+                        <span className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">
+                          {formatMinutos(form.horasEstimadas)}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

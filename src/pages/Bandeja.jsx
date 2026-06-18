@@ -23,7 +23,7 @@ import { uniqNorm } from "@/lib/uniq-utils";
 import PullToRefresh from "@/components/PullToRefresh";
 import SmartTabs from "@/components/SmartTabs";
 
-const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+import { ESTADOS } from "@/lib/pedidoConstants";
 
 // Estado persistido a nivel de módulo: sobrevive desmontaje al cambiar de pestaña.
 // Al regresar a Bandeja, los filtros y búsqueda se rehidratan sin parpadeos.

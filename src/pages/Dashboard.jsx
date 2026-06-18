@@ -30,7 +30,7 @@ const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShad
 const CAPACIDAD_MENSUAL_MINUTOS = 240 * 5 * 4; // 240 min/día × 5 días/sem × 4 sem = 4800 min/mes
 
 const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
-const ESTADOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"];
+import { ESTADOS } from "@/lib/pedidoConstants";
 
 function calcAvgClose(cerrados) {
   const times = cerrados

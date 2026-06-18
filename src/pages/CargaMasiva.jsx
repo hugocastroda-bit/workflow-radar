@@ -1,24 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, CheckCircle, AlertCircle, AlertTriangle, Loader2, X } from "lucide-react";
+import { Download, Upload, CheckCircle, AlertCircle, AlertTriangle, Loader2, X, RefreshCw } from "lucide-react";
 import * as XLSX from "xlsx";
-
-const COLS = [
-  "Título", "Solicitante", "Proceso", "Prioridad", "Responsable",
-  "Fecha requerida", "Complejidad", "Riesgo", "Horas estimadas",
-  "Horas reales", "Fecha compromiso", "Descripción", "Estado",
-  "Confidencial", "Próxima acción", "Motivo bloqueo",
-  "Comentarios avance", "Link evidencia"
-];
-const REQUIRED = ["Título", "Solicitante", "Proceso", "Prioridad"];
-const ENUMS = {
-  "Complejidad": ["Simple", "Media", "Alta"],
-  "Riesgo": ["Bajo", "Medio", "Alto"],
-  "Prioridad": ["Alta", "Media", "Baja"],
-  "Estado": ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"],
-};
-const BOOLEAN_FIELDS = ["Confidencial"];
+import { parse, isValid } from "date-fns";
+import {
+  CARGA_MASIVA_COLS as COLS,
+  REQUIRED_FIELDS as REQUIRED,
+  ENUMS,
+  BOOLEAN_FIELDS,
+} from "@/lib/pedidoConstants";
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
@@ -28,6 +19,32 @@ function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
   XLSX.writeFile(wb, "plantilla_carga_masiva.xlsx");
+}
+
+// Intenta parsear una fecha desde múltiples formatos comunes en Excel
+function parseDateToISO(raw) {
+  if (!raw) return null;
+  // Si ya es un número (fecha serial de Excel), intentar convertir
+  if (typeof raw === "number") {
+    // Excel date serial: días desde 1900-01-01 (con el bug de 1900)
+    const excelEpoch = new Date(1899, 11, 30);
+    const d = new Date(excelEpoch.getTime() + raw * 86400000);
+    if (isValid(d) && d.getFullYear() >= 2000 && d.getFullYear() <= 2100) {
+      return d.toISOString().split("T")[0];
+    }
+    return null;
+  }
+  const str = raw.toString().trim();
+  if (!str) return null;
+  // Formatos comunes
+  const formats = ["yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy", "dd-MM-yyyy", "yyyy/MM/dd", "d/M/yyyy", "M/d/yyyy"];
+  for (const fmt of formats) {
+    const parsed = parse(str, fmt, new Date());
+    if (isValid(parsed) && parsed.getFullYear() >= 2000 && parsed.getFullYear() <= 2100) {
+      return parsed.toISOString().split("T")[0];
+    }
+  }
+  return null;
 }
 
 export default function CargaMasiva() {
@@ -60,41 +77,51 @@ export default function CargaMasiva() {
   const validateRow = (row, idx, cats, existing) => {
     const errors = [];
     const warnings = [];
+    const errorFields = new Set(); // campos con error para resaltado visual
 
     for (const col of REQUIRED) {
-      if (!row[col]?.toString().trim()) errors.push(`Falta campo obligatorio: ${col}`);
+      if (!row[col]?.toString().trim()) { errors.push(`Falta campo obligatorio: ${col}`); errorFields.add(col); }
     }
 
     if (cats) {
       if (row["Solicitante"] && !cats.solicitantes.includes(row["Solicitante"].toLowerCase()))
-        errors.push("El solicitante no existe en el catálogo.");
+        { errors.push("El solicitante no existe en el catálogo."); errorFields.add("Solicitante"); }
       if (row["Proceso"] && !cats.procesos.includes(row["Proceso"].toLowerCase()))
-        errors.push("El proceso no existe en el catálogo.");
+        { errors.push("El proceso no existe en el catálogo."); errorFields.add("Proceso"); }
       if (row["Prioridad"] && !cats.prioridades.includes(row["Prioridad"].toLowerCase()))
-        errors.push("La prioridad no existe en el catálogo.");
+        { errors.push("La prioridad no existe en el catálogo."); errorFields.add("Prioridad"); }
       if (row["Responsable"]?.trim() && !cats.responsables.includes(row["Responsable"].toLowerCase()))
-        errors.push("El responsable no existe en el catálogo.");
+        { errors.push("El responsable no existe en el catálogo."); errorFields.add("Responsable"); }
     }
 
     // Validar valores de enum
     for (const [col, valores] of Object.entries(ENUMS)) {
       const val = row[col]?.toString().trim();
       if (val && !valores.map(v => v.toLowerCase()).includes(val.toLowerCase()))
-        errors.push(`${col} debe ser: ${valores.join(", ")}.`);
+        { errors.push(`${col} debe ser: ${valores.join(", ")}.`); errorFields.add(col); }
+    }
+
+    // Validar fechas (parseo robusto)
+    for (const dateCol of ["Fecha requerida", "Fecha compromiso"]) {
+      const raw = row[dateCol]?.toString().trim();
+      if (raw) {
+        const parsed = parseDateToISO(raw);
+        if (!parsed) { errors.push(`${dateCol} no es una fecha válida (use YYYY-MM-DD).`); errorFields.add(dateCol); }
+      }
     }
 
     // Validar horas estimadas y horas reales como números
     const hrsEst = row["Horas estimadas"]?.toString().trim();
     if (hrsEst && (isNaN(Number(hrsEst)) || Number(hrsEst) < 0))
-      errors.push("Horas estimadas debe ser un número positivo (en minutos).");
+      { errors.push("Horas estimadas debe ser un número positivo (en minutos)."); errorFields.add("Horas estimadas"); }
     const hrsReal = row["Horas reales"]?.toString().trim();
     if (hrsReal && (isNaN(Number(hrsReal)) || Number(hrsReal) < 0))
-      errors.push("Horas reales debe ser un número positivo (en minutos).");
+      { errors.push("Horas reales debe ser un número positivo (en minutos)."); errorFields.add("Horas reales"); }
 
     // Validar campo booleano (Confidencial)
     const confVal = row["Confidencial"]?.toString().trim().toLowerCase();
     if (confVal && confVal !== "sí" && confVal !== "si" && confVal !== "no" && confVal !== "true" && confVal !== "false" && confVal !== "1" && confVal !== "0")
-      errors.push("Confidencial debe ser: Sí o No.");
+      { errors.push("Confidencial debe ser: Sí o No."); errorFields.add("Confidencial"); }
 
     const isDuplicate = existing.some(p =>
       p.titulo?.toLowerCase() === row["Título"]?.toLowerCase() &&
@@ -103,7 +130,7 @@ export default function CargaMasiva() {
     );
     if (isDuplicate) warnings.push("Posible duplicado: ya existe un pedido abierto con el mismo título, solicitante y proceso.");
 
-    return { errors, warnings };
+    return { errors, warnings, errorFields };
   };
 
   const handleFile = (file) => {
@@ -121,8 +148,8 @@ export default function CargaMasiva() {
         for (const col of COLS) {
           row[col] = (rawRow[col] || "").toString().trim();
         }
-        const { errors, warnings } = validateRow(row, idx, catalogs, existingPedidos);
-        return { ...row, _idx: idx + 2, _errors: errors, _warnings: warnings, _skip: false };
+        const { errors, warnings, errorFields } = validateRow(row, idx, catalogs, existingPedidos);
+        return { ...row, _idx: idx + 2, _errors: errors, _warnings: warnings, _errorFields: errorFields, _skip: false };
       });
       setRows(parsed);
     };
@@ -135,6 +162,7 @@ export default function CargaMasiva() {
 
   const hasBlockingErrors = rows.some(r => !r._skip && r._errors.length > 0);
   const readyRows = rows.filter(r => !r._skip && r._errors.length === 0);
+  const cellHasError = (row, col) => row._errorFields?.has(col);
 
   const parseBool = (val) => {
     const v = val?.toString().trim().toLowerCase();
@@ -154,12 +182,12 @@ export default function CargaMasiva() {
        proceso: r["Proceso"],
        prioridad: r["Prioridad"],
        responsable: r["Responsable"] || undefined,
-       fecha_requerida: r["Fecha requerida"] || undefined,
+       fecha_requerida: parseDateToISO(r["Fecha requerida"]) || undefined,
        complejidad: r["Complejidad"] || undefined,
        riesgo: r["Riesgo"] || undefined,
        horasEstimadas: hrsEst && !isNaN(Number(hrsEst)) ? Number(hrsEst) : undefined,
        horasReales: hrsReal && !isNaN(Number(hrsReal)) ? Number(hrsReal) : undefined,
-       fechaCompromiso: r["Fecha compromiso"] || undefined,
+       fechaCompromiso: parseDateToISO(r["Fecha compromiso"]) || undefined,
        descripcion: r["Descripción"] || undefined,
        estado: estadoRaw || "Nuevo",
        confidencial: parseBool(r["Confidencial"]),
@@ -197,9 +225,30 @@ export default function CargaMasiva() {
           <h1 className="text-xl font-semibold text-foreground">Carga masiva</h1>
           <p className="text-xs text-muted-foreground mt-1">Importa varios pedidos a la vez desde un archivo Excel o CSV.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-1.5">
-          <Download className="h-3.5 w-3.5" /> Descargar plantilla
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => {
+            Promise.all([
+              base44.entities.Solicitante.filter({ activo: true }, "nombre"),
+              base44.entities.Proceso.filter({ activo: true }, "nombre"),
+              base44.entities.Prioridad.filter({ activo: true }, "nombre"),
+              base44.entities.Responsable.filter({ activo: true }, "nombre"),
+              base44.entities.Pedido.filter({ estado: "Nuevo" }, "-created_date", 500),
+            ]).then(([sol, proc, prio, resp, pedidos]) => {
+              setCatalogs({
+                solicitantes: sol.map(s => s.nombre.toLowerCase()),
+                procesos: proc.map(p => p.nombre.toLowerCase()),
+                prioridades: prio.map(p => p.nombre.toLowerCase()),
+                responsables: resp.map(r => r.nombre.toLowerCase()),
+              });
+              setExistingPedidos(pedidos);
+            });
+          }} className="gap-1.5" title="Refrescar catálogos">
+            <RefreshCw className="h-3.5 w-3.5" /> Refrescar catálogos
+          </Button>
+          <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-1.5">
+            <Download className="h-3.5 w-3.5" /> Descargar plantilla
+          </Button>
+        </div>
       </div>
 
       {/* Result */}
@@ -282,20 +331,21 @@ export default function CargaMasiva() {
                       {rows.map((row, i) => {
                         const hasError = row._errors.length > 0;
                         const hasWarning = row._warnings.length > 0;
+                        const errClass = (col) => cellHasError(row, col) ? "bg-alert/15 border-l-2 border-l-alert text-alert font-medium" : "";
                         return (
                           <tr key={i} className={`border-b border-border last:border-0 ${row._skip ? "opacity-40" : hasError ? "bg-alert/5" : hasWarning ? "bg-warning/10" : ""}`}>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row._idx}</td>
-                            <td className="px-2 py-2 text-foreground max-w-[140px] truncate" title={row["Título"]}>{row["Título"]}</td>
-                            <td className="px-2 py-2 text-muted-foreground max-w-[100px] truncate" title={row["Solicitante"]}>{row["Solicitante"]}</td>
-                            <td className="px-2 py-2 text-muted-foreground max-w-[100px] truncate" title={row["Proceso"]}>{row["Proceso"]}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Prioridad"]}</td>
-                            <td className="px-2 py-2 text-muted-foreground max-w-[90px] truncate" title={row["Responsable"]}>{row["Responsable"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Complejidad"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Riesgo"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Horas estimadas"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Horas reales"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha requerida"] || "—"}</td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha compromiso"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${row._skip ? "text-muted-foreground" : ""}`}>{row._idx}</td>
+                            <td className={`px-2 py-2 max-w-[140px] truncate ${errClass("Título") || "text-foreground"}`} title={row["Título"]}>{row["Título"]}</td>
+                            <td className={`px-2 py-2 max-w-[100px] truncate ${errClass("Solicitante") || "text-muted-foreground"}`} title={row["Solicitante"]}>{row["Solicitante"]}</td>
+                            <td className={`px-2 py-2 max-w-[100px] truncate ${errClass("Proceso") || "text-muted-foreground"}`} title={row["Proceso"]}>{row["Proceso"]}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Prioridad") || "text-muted-foreground"}`}>{row["Prioridad"]}</td>
+                            <td className={`px-2 py-2 max-w-[90px] truncate ${errClass("Responsable") || "text-muted-foreground"}`} title={row["Responsable"]}>{row["Responsable"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Complejidad") || "text-muted-foreground"}`}>{row["Complejidad"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Riesgo") || "text-muted-foreground"}`}>{row["Riesgo"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Horas estimadas") || "text-muted-foreground"}`}>{row["Horas estimadas"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Horas reales") || "text-muted-foreground"}`}>{row["Horas reales"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Fecha requerida") || "text-muted-foreground"}`}>{row["Fecha requerida"] || "—"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Fecha compromiso") || "text-muted-foreground"}`}>{row["Fecha compromiso"] || "—"}</td>
                             <td className="px-2 py-2">
                               {row._skip ? (
                                 <span className="text-muted-foreground whitespace-nowrap">Omitido</span>
@@ -313,7 +363,7 @@ export default function CargaMasiva() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Confidencial"] || "No"}</td>
+                            <td className={`px-2 py-2 whitespace-nowrap ${errClass("Confidencial") || "text-muted-foreground"}`}>{row["Confidencial"] || "No"}</td>
                             <td className="px-2 py-2">
                               <button
                                 onClick={() => toggleSkip(i)}
