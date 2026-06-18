@@ -159,7 +159,26 @@
       "data.empresaId": "{{user.active_empresa_id}}"
     },
     "read": {
-      "data.empresaId": "{{user.active_empresa_id}}"
+      "data.empresaId": "{{user.active_empresa_id}}",
+      "$or": [
+        {
+          "data.confidencial": false
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.solicitante": "{{user.full_name}}"
+        },
+        {
+          "data.responsable": "{{user.full_name}}"
+        }
+      ]
     },
     "update": {
       "data.empresaId": "{{user.active_empresa_id}}"
