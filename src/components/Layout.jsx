@@ -24,7 +24,7 @@ const NAV_ITEMS = [
   { path: "/",              label: "Bandeja",       icon: Inbox },
   { path: "/kanban",        label: "Kanban",         icon: Columns3 },
   { path: "/dashboard",     label: "Dashboard",      icon: BarChart3 },
-  { path: "/carga-masiva",  label: "Carga masiva",   icon: Upload,   adminOnly: true },
+  { path: "/carga-masiva",  label: "Carga masiva",   icon: Upload },
   { path: "/configuracion", label: "Configuración",  icon: Settings, adminOnly: true },
   { path: "/archivados",    label: "Archivados",     icon: Archive,  adminOnly: true },
   { path: "/diagnostico",   label: "Diagnóstico",    icon: Bug,      adminOnly: true },

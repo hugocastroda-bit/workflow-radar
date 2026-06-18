@@ -199,7 +199,7 @@ export default function Kanban() {
   };
 
   const handleArchive = async (motivo) => {
-    if (!archiveTarget) return;
+    if (!isAdmin || !archiveTarget) return;
     setArchiving(true);
     try {
       await base44.entities.Pedido.update(archiveTarget.id, {
@@ -220,6 +220,7 @@ export default function Kanban() {
   };
 
   const handleDelete = async () => {
+    if (!isAdmin) return;
     setDeleting(true);
     try {
       await base44.entities.Pedido.delete(deleteTarget.id);
