@@ -1,4 +1,4 @@
-# ✅ CHECKLIST PRE-PRODUCTIVO - Radar Gestión Humana
+# ✅ CHECKLIST PRE-PRODUCTIVO - Workflow Radar
 
 **Última actualización**: 2025-05-11  
 **Estado**: 🟢 **LISTO PARA REVISIÓN DE QA**

@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
         <!-- Header -->
         <tr><td style="background:linear-gradient(135deg,#0052D4 0%,#4364F7 100%);border-radius:12px 12px 0 0;padding:28px 32px;text-align:center;">
-          <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;font-weight:600;">Radar Gestión Humana</p>
+          <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;font-weight:600;">Workflow Radar</p>
           <h1 style="margin:8px 0 0;font-size:22px;font-weight:700;color:#ffffff;">Nuevo pedido asignado</h1>
         </td></tr>
 
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
 
         <!-- Footer -->
         <tr><td style="background:#F9FAFB;border:1px solid #E5E7EB;border-top:none;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;">
-          <p style="margin:0;font-size:13px;color:#9CA3AF;">Este mensaje fue generado automáticamente por <strong style="color:#6B7280;">Radar Gestión Humana</strong>. Por favor no respondas a este correo.</p>
+          <p style="margin:0;font-size:13px;color:#9CA3AF;">Este mensaje fue generado automáticamente por <strong style="color:#6B7280;">Workflow Radar</strong>. Por favor no respondas a este correo.</p>
         </td></tr>
 
       </table>

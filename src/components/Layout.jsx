@@ -47,7 +47,7 @@ export default function Layout() {
     location.pathname === path || (path === "/" && location.pathname === "/bandeja");
 
   const currentPageTitle = PAGE_TITLES[location.pathname] ||
-    (location.pathname.startsWith("/pedido/") ? "Detalle de pedido" : "Radar");
+    (location.pathname.startsWith("/pedido/") ? "Detalle de pedido" : "Workflow Radar");
 
   const go = (path) => {
     if (isActive(path)) {
@@ -63,8 +63,8 @@ export default function Layout() {
       {/* ── Desktop Sidebar ───────────────────────────── */}
       <aside className="hidden md:flex w-52 flex-col border-r border-border bg-card fixed inset-y-0 left-0 z-30 no-select">
         <div className="px-5 py-4 border-b border-border">
-          <p className="text-xs font-semibold text-muted-foreground">RADAR CT</p>
-          <h1 className="text-sm font-semibold text-foreground">Gestión Humana</h1>
+          <p className="text-xs font-semibold text-muted-foreground">WORKFLOW</p>
+          <h1 className="text-sm font-semibold text-foreground">RADAR</h1>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           {visible.map((item) => (
@@ -112,7 +112,7 @@ export default function Layout() {
       >
         <div className="flex items-center justify-between px-4 pb-2">
           <div>
-            <p className="text-xs text-muted-foreground leading-none">Radar CT</p>
+            <p className="text-xs text-muted-foreground leading-none">Workflow Radar</p>
             <p className="text-sm font-semibold text-foreground leading-tight">{currentPageTitle}</p>
           </div>
           <div className="flex items-center gap-2">

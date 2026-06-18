@@ -1,4 +1,4 @@
-# 📊 MÉTRICAS DE AUDITORÍA - Radar Gestión Humana
+# 📊 MÉTRICAS DE AUDITORÍA - Workflow Radar
 
 **Fecha**: 2025-05-11  
 **Duración de auditoría**: ~2 horas (análisis + fixes)  
@@ -268,7 +268,7 @@ Post-Audit: 98%
 
 ## ✅ CONCLUSIÓN
 
-**Radar Gestión Humana ha mejorado significativamente:**
+**Workflow Radar ha mejorado significativamente:**
 
 - 🔴 **7 bugs críticos eliminados** (100% fix rate)
 - 📈 **Error handling mejorado 58%**

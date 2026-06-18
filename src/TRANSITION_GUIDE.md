@@ -1,6 +1,6 @@
 # 🚀 GUÍA DE TRANSICIÓN A PRODUCTIVO
 
-**Objetivo**: Pasar Radar Gestión Humana a producción de forma segura y controlada  
+**Objetivo**: Pasar Workflow Radar a producción de forma segura y controlada  
 **Duración estimada**: 3-5 días (incluyendo QA)  
 **Responsables**: DevOps, QA, Product, Security
 

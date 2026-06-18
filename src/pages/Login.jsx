@@ -29,8 +29,8 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{"Radar C&T"}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Cultura y Talento</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workflow Radar</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestión de pedidos</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
