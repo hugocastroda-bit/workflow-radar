@@ -637,7 +637,7 @@ export default function DetallePedido() {
       </Section>
 
       {/* 3. Auditoría de cambios — siempre visible */}
-      <div className="bg-card border border-border rounded-lg p-6 space-y-4 dark:bg-[#121420] dark:border-[#22263F]">
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
         <div className="flex items-center gap-2">
           <History className="h-3.5 w-3.5 text-muted-foreground" />
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Auditoría de cambios</p>
