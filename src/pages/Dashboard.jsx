@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { base44 } from "@/api/base44Client";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
@@ -25,9 +26,13 @@ const DONUT_COLORS = {
   "Cerrado": "#6ee7b7",
 };
 
-const TT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShadow: "none" };
+const TT_LIGHT = { fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 4, boxShadow: "none", backgroundColor: "#fff", color: "#1e293b" };
+const TT_DARK = { fontSize: 12, border: "1px solid #2C3154", borderRadius: 4, boxShadow: "none", backgroundColor: "#16192B", color: "#fff" };
 
 const CAPACIDAD_MENSUAL_MINUTOS = 240 * 5 * 4; // 240 min/día × 5 días/sem × 4 sem = 4800 min/mes
+
+const CHART_COLORS_LIGHT = { grid: "#f1f5f9", cursor: "#f8fafc", xTick: "#94a3b8", yTick: "#475569" };
+const CHART_COLORS_DARK = { grid: "#1E2030", cursor: "#0F1120", xTick: "#7E84A3", yTick: "#7E84A3" };
 
 const ESTADOS_ACTIVOS = ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión"];
 import { ESTADOS } from "@/lib/pedidoConstants";
@@ -74,6 +79,8 @@ export default function Dashboard() {
   const [responsables, setResponsables] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   // Dashboard filters
   const [fResponsable, setFResponsable] = useState("");
@@ -449,7 +456,7 @@ export default function Dashboard() {
                   <Pie data={byEstado} cx="50%" cy="50%" innerRadius={52} outerRadius={80} paddingAngle={2} dataKey="value">
                     {byEstado.map((e, i) => <Cell key={i} fill={e.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={TT} formatter={(v, n) => [v, n]} />
+                  <Tooltip contentStyle={isDark ? TT_DARK : TT_LIGHT} formatter={(v, n) => [v, n]} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-1.5 flex-1">
@@ -472,10 +479,10 @@ export default function Dashboard() {
           {horasPorProceso.length > 0 ? (
             <ResponsiveContainer width="100%" height={barH(horasPorProceso.length)}>
               <BarChart data={horasPorProceso} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TT} cursor={{ fill: "#f8fafc" }} formatter={(value) => [`${value} min`, "Minutos estimados"]} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? CHART_COLORS_DARK.grid : CHART_COLORS_LIGHT.grid} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: isDark ? CHART_COLORS_DARK.xTick : CHART_COLORS_LIGHT.xTick }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: isDark ? CHART_COLORS_DARK.yTick : CHART_COLORS_LIGHT.yTick }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={isDark ? TT_DARK : TT_LIGHT} cursor={{ fill: isDark ? CHART_COLORS_DARK.cursor : CHART_COLORS_LIGHT.cursor }} formatter={(value) => [`${value} min`, "Minutos estimados"]} />
                 <Bar dataKey="horas" name="Minutos" fill="hsl(217 91% 55%)" radius={[0, 3, 3, 0]} barSize={18} />
               </BarChart>
             </ResponsiveContainer>
@@ -491,12 +498,12 @@ export default function Dashboard() {
           {desviacionPorResponsable.length > 0 ? (
             <ResponsiveContainer width="100%" height={barH(desviacionPorResponsable.length)}>
               <BarChart data={desviacionPorResponsable} layout="vertical" margin={{ left: 4, right: 24, top: 4, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis dataKey="responsable" type="category" width={120} tick={{ fontSize: 11, fill: "#475569" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? CHART_COLORS_DARK.grid : CHART_COLORS_LIGHT.grid} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: isDark ? CHART_COLORS_DARK.xTick : CHART_COLORS_LIGHT.xTick }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="responsable" type="category" width={120} tick={{ fontSize: 11, fill: isDark ? CHART_COLORS_DARK.yTick : CHART_COLORS_LIGHT.yTick }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={TT}
-                  cursor={{ fill: "#f8fafc" }}
+                  contentStyle={isDark ? TT_DARK : TT_LIGHT}
+                  cursor={{ fill: isDark ? CHART_COLORS_DARK.cursor : CHART_COLORS_LIGHT.cursor }}
                   formatter={(value, name) => {
                     if (name === "horasEstimadas") return [`${value} min`, "Minutos estimados"];
                     if (name === "horasReales") return [`${value} min`, "Minutos reales"];

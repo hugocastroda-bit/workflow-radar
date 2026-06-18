@@ -12,9 +12,6 @@ import { Loader2, Search, X, ArchiveRestore, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { eventBus } from "@/lib/eventBus";
 
-const PROCESOS = ["Selección","Bienestar","SST","Clima","Liderazgo","ACI","Onboarding","Comunicaciones internas","Legal laboral","Compensaciones","Gestión de talento","Otros"];
-const PRIORIDADES = ["Alta","Media","Baja"];
-
 export default function Archivados() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -26,12 +23,23 @@ export default function Archivados() {
   const [filters, setFilters] = useState({ proceso: "", prioridad: "", responsable: "" });
   const [restoreTarget, setRestoreTarget] = useState(null);
   const [restoring, setRestoring] = useState(false);
+  const [procesosCatalogo, setProcesosCatalogo] = useState([]);
+  const [prioridadesCatalogo, setPrioridadesCatalogo] = useState([]);
 
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
     setLoading(true);
-    base44.entities.Pedido.filter({ archivado: true }, "-fecha_archivado")
-      .then(d => { setPedidos(d); setLoading(false); })
+    Promise.all([
+      base44.entities.Pedido.filter({ archivado: true }, "-fecha_archivado"),
+      base44.entities.Proceso.filter({ activo: true }, "nombre"),
+      base44.entities.Prioridad.filter({ activo: true }, "nombre"),
+    ])
+      .then(([d, procs, prios]) => {
+        setPedidos(d);
+        setProcesosCatalogo(procs.map(p => p.nombre));
+        setPrioridadesCatalogo(prios.map(p => p.nombre));
+        setLoading(false);
+      })
       .catch(() => { toast.error("No se pudieron cargar los archivados."); setLoading(false); });
   }, [isAdmin]);
 
@@ -104,14 +112,14 @@ export default function Archivados() {
           <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue placeholder="Proceso" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todos</SelectItem>
-            {PROCESOS.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+            {procesosCatalogo.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.prioridad || "__placeholder__"} onValueChange={v => setFilters(f => ({ ...f, prioridad: v === "__placeholder__" ? "" : v }))}>
           <SelectTrigger className="h-8 text-xs w-[100px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="__placeholder__" className="text-xs text-muted-foreground">Todas</SelectItem>
-            {PRIORIDADES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
+            {prioridadesCatalogo.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
           </SelectContent>
         </Select>
         {responsables.length > 0 && (

@@ -121,7 +121,6 @@ export default function Bandeja() {
     if (activeTab === "asignar")         return !p.responsable;
     if (activeTab === "vencidos")        return p.fecha_requerida < today && p.estado !== "Cerrado";
     if (activeTab === "bloqueados")      return p.estado === "Bloqueado";
-    if (activeTab === "sin_responsable") return !p.responsable;
     return true;
   });
 
@@ -131,7 +130,6 @@ export default function Bandeja() {
     asignar:         pedidos.filter(p => !p.responsable).length,
     vencidos:        pedidos.filter(p => p.fecha_requerida < today && p.estado !== "Cerrado").length,
     bloqueados:      pedidos.filter(p => p.estado === "Bloqueado").length,
-    sin_responsable: pedidos.filter(p => !p.responsable).length,
   };
 
   const filtered = tabFiltered.filter(p => {
