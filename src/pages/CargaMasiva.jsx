@@ -7,7 +7,9 @@ import * as XLSX from "xlsx";
 const COLS = [
   "Título", "Solicitante", "Proceso", "Prioridad", "Responsable",
   "Fecha requerida", "Complejidad", "Riesgo", "Horas estimadas",
-  "Fecha compromiso", "Descripción", "Estado"
+  "Horas reales", "Fecha compromiso", "Descripción", "Estado",
+  "Confidencial", "Próxima acción", "Motivo bloqueo",
+  "Comentarios avance", "Link evidencia"
 ];
 const REQUIRED = ["Título", "Solicitante", "Proceso", "Prioridad"];
 const ENUMS = {
@@ -16,11 +18,12 @@ const ENUMS = {
   "Prioridad": ["Alta", "Media", "Baja"],
   "Estado": ["Nuevo", "Por priorizar", "Asignado", "En curso", "Bloqueado", "En revisión", "Cerrado"],
 };
+const BOOLEAN_FIELDS = ["Confidencial"];
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
     COLS,
-    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "", "2026-06-23", "Media", "Bajo", "45", "2026-06-20", "Pedido cargado como ejemplo", "Nuevo"]
+    ["Regularización de pendiente ACI", "Paola Montenegro", "Acompañamiento", "Alta", "Ana López", "2026-06-23", "Media", "Bajo", "45", "30", "2026-06-20", "Pedido cargado como ejemplo", "Nuevo", "No", "Coordinar con legal", "", "Avance al 50%", "https://drive.google.com/..."]
   ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
@@ -80,10 +83,18 @@ export default function CargaMasiva() {
         errors.push(`${col} debe ser: ${valores.join(", ")}.`);
     }
 
-    // Validar horas estimadas como número
-    const hrs = row["Horas estimadas"]?.toString().trim();
-    if (hrs && (isNaN(Number(hrs)) || Number(hrs) < 0))
+    // Validar horas estimadas y horas reales como números
+    const hrsEst = row["Horas estimadas"]?.toString().trim();
+    if (hrsEst && (isNaN(Number(hrsEst)) || Number(hrsEst) < 0))
       errors.push("Horas estimadas debe ser un número positivo (en minutos).");
+    const hrsReal = row["Horas reales"]?.toString().trim();
+    if (hrsReal && (isNaN(Number(hrsReal)) || Number(hrsReal) < 0))
+      errors.push("Horas reales debe ser un número positivo (en minutos).");
+
+    // Validar campo booleano (Confidencial)
+    const confVal = row["Confidencial"]?.toString().trim().toLowerCase();
+    if (confVal && confVal !== "sí" && confVal !== "si" && confVal !== "no" && confVal !== "true" && confVal !== "false" && confVal !== "1" && confVal !== "0")
+      errors.push("Confidencial debe ser: Sí o No.");
 
     const isDuplicate = existing.some(p =>
       p.titulo?.toLowerCase() === row["Título"]?.toLowerCase() &&
@@ -125,10 +136,17 @@ export default function CargaMasiva() {
   const hasBlockingErrors = rows.some(r => !r._skip && r._errors.length > 0);
   const readyRows = rows.filter(r => !r._skip && r._errors.length === 0);
 
+  const parseBool = (val) => {
+    const v = val?.toString().trim().toLowerCase();
+    if (!v) return undefined;
+    return v === "sí" || v === "si" || v === "true" || v === "1";
+  };
+
   const handleImport = async () => {
    setImporting(true);
    const toImport = readyRows.map(r => {
      const hrsEst = r["Horas estimadas"]?.toString().trim();
+     const hrsReal = r["Horas reales"]?.toString().trim();
      const estadoRaw = r["Estado"]?.toString().trim();
      const data = {
        titulo: r["Título"],
@@ -140,9 +158,15 @@ export default function CargaMasiva() {
        complejidad: r["Complejidad"] || undefined,
        riesgo: r["Riesgo"] || undefined,
        horasEstimadas: hrsEst && !isNaN(Number(hrsEst)) ? Number(hrsEst) : undefined,
+       horasReales: hrsReal && !isNaN(Number(hrsReal)) ? Number(hrsReal) : undefined,
        fechaCompromiso: r["Fecha compromiso"] || undefined,
        descripcion: r["Descripción"] || undefined,
        estado: estadoRaw || "Nuevo",
+       confidencial: parseBool(r["Confidencial"]),
+       proxima_accion: r["Próxima acción"] || undefined,
+       motivo_bloqueo: r["Motivo bloqueo"] || undefined,
+       comentarios_avance: r["Comentarios avance"] || undefined,
+       link_evidencia: r["Link evidencia"] || undefined,
      };
      // Remove undefined keys
      Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
@@ -245,10 +269,12 @@ export default function CargaMasiva() {
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Resp.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Complej.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Riesgo</th>
-                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Hrs est.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Est.</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Real</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">F. req.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">F. comp.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Estado</th>
+                        <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Conf.</th>
                         <th className="px-2 py-2.5 text-left text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Acción</th>
                       </tr>
                     </thead>
@@ -267,6 +293,7 @@ export default function CargaMasiva() {
                             <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Complejidad"] || "—"}</td>
                             <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Riesgo"] || "—"}</td>
                             <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Horas estimadas"] || "—"}</td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Horas reales"] || "—"}</td>
                             <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha requerida"] || "—"}</td>
                             <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Fecha compromiso"] || "—"}</td>
                             <td className="px-2 py-2">
@@ -286,6 +313,7 @@ export default function CargaMasiva() {
                                 </span>
                               )}
                             </td>
+                            <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{row["Confidencial"] || "No"}</td>
                             <td className="px-2 py-2">
                               <button
                                 onClick={() => toggleSkip(i)}
