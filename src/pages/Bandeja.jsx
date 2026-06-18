@@ -9,7 +9,7 @@ import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import RiesgoBadge from "../components/RiesgoBadge";
 import PedidoForm from "../components/PedidoForm";
-import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox, Eye } from "lucide-react";
+import { Plus, Search, AlertTriangle, Loader2, X, Trash2, Archive, Lock, LockOpen, FileSpreadsheet, ChevronRight, Inbox, Eye, Download } from "lucide-react";
 import ConfirmArchivarModal from "../components/ConfirmArchivarModal";
 import { useAuth } from "@/lib/AuthContext";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -250,30 +250,63 @@ export default function Bandeja() {
   };
 
   const [exporting, setExporting] = useState(false);
+  const [exportingAll, setExportingAll] = useState(false);
+
+  const buildRow = (p) => ({
+    "Título": p.titulo,
+    "Descripción": p.descripcion || "—",
+    "Solicitante": p.solicitante,
+    "Proceso": p.proceso,
+    "Prioridad": p.prioridad,
+    "Complejidad": p.complejidad || "—",
+    "Riesgo": p.riesgo || "—",
+    "Fecha requerida": p.fecha_requerida || "—",
+    "Fecha compromiso": p.fechaCompromiso || "—",
+    "Responsable": p.responsable || "—",
+    "Estado": p.estado,
+    "Próxima acción": p.proxima_accion || "—",
+    "Motivo bloqueo": p.motivo_bloqueo || "—",
+    "Comentarios de avance": p.comentarios_avance || "—",
+    "Link evidencia": p.link_evidencia || "—",
+    "Horas estimadas (min)": p.horasEstimadas != null ? p.horasEstimadas : "—",
+    "Horas reales (min)": p.horasReales != null ? p.horasReales : "—",
+    "Fuera de Time Box": p.fueraDeTimeBox ? "Sí" : "No",
+    "Resultado final": p.resultado_final || "—",
+    "Comentario de cierre": p.comentario_cierre || "—",
+    "Fecha cierre real": p.fecha_cierre_real || "—",
+    "Confidencial": p.confidencial ? "Sí" : "No",
+    "Archivado": p.archivado ? "Sí" : "No",
+    "Creado": p.created_date?.split("T")[0] || "—",
+    "Actualizado": p.updated_date?.split("T")[0] || "—",
+  });
 
   const exportToExcel = async () => {
     setExporting(true);
-    const data = filtered.map(p => ({
-      "Título": p.titulo,
-      "Solicitante": p.solicitante,
-      "Responsable": p.responsable || "—",
-      "Proceso": p.proceso,
-      "Prioridad": p.prioridad,
-      "Estado": p.estado,
-      "Fecha Requerida": p.fecha_requerida || "—",
-      "Comentarios de Avance": p.comentarios_avance || "—",
-      "Próxima Acción": p.proxima_accion || "—",
-      "Confidencial": p.confidencial ? "Sí" : "No",
-      "Creado": p.created_date?.split("T")[0] || "—",
-      "Actualizado": p.updated_date?.split("T")[0] || "—",
-    }));
-
+    const data = filtered.map(buildRow);
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
-    XLSX.writeFile(wb, `pedidos_${new Date().toISOString().split("T")[0]}.xlsx`);
-    toast.success(`Exportados ${data.length} pedidos`);
+    XLSX.utils.book_append_sheet(wb, ws, "Pedidos (filtrados)");
+    XLSX.writeFile(wb, `pedidos_filtrados_${new Date().toISOString().split("T")[0]}.xlsx`);
+    toast.success(`Exportados ${data.length} pedidos (vista filtrada)`);
     setExporting(false);
+  };
+
+  const exportAllToExcel = async () => {
+    setExportingAll(true);
+    try {
+      const all = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
+      const allVisible = filtrarConfidenciales(all, user);
+      const data = allVisible.map(buildRow);
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pedidos (completo)");
+      XLSX.writeFile(wb, `pedidos_completo_${new Date().toISOString().split("T")[0]}.xlsx`);
+      toast.success(`Exportados ${data.length} pedidos (lista completa)`);
+    } catch (err) {
+      console.error("[Bandeja] Error exportando todo:", err);
+      toast.error("No se pudo exportar la lista completa.");
+    }
+    setExportingAll(false);
   };
 
   if (loading) return (
@@ -298,7 +331,11 @@ export default function Bandeja() {
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={exportToExcel} disabled={filtered.length === 0 || exporting} className="gap-1.5">
             {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">{exporting ? "Exportando…" : "Exportar a Excel"}</span>
+            <span className="hidden sm:inline">{exporting ? "Exportando…" : "Exportar vista"}</span>
+          </Button>
+          <Button size="sm" variant="outline" onClick={exportAllToExcel} disabled={exportingAll} className="gap-1.5">
+            {exportingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{exportingAll ? "Exportando…" : "Exportar completo"}</span>
           </Button>
           <Button size="sm" onClick={() => setFormOpen(true)} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
