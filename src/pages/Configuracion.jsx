@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle, UserX, UserPlus, Mail, Users, Send } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle, UserX, UserPlus, Mail, Users, Send, Building2, Link2, Unlink } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
@@ -141,25 +141,39 @@ const CAMPO_PEDIDO = { Solicitante: "solicitante", Responsable: "responsable", P
 
 function UsuariosTab({ empresaActiva }) {
   const [usuarios, setUsuarios] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
-  const [rol, setRol] = useState("User");
+  const [rolInvitacion, setRolInvitacion] = useState("User");
   const [invitando, setInvitando] = useState(false);
+  const [asignando, setAsignando] = useState({});
+  const [asignarOpen, setAsignarOpen] = useState(null);
+  const [rolAsignar, setRolAsignar] = useState("User");
 
   const load = async () => {
     setLoading(true);
     try {
-      const membresias = await base44.entities.UsuarioEmpresa.filter({ empresaId: empresaActiva?.empresaId });
-      const usuariosList = await base44.entities.User.list();
-      const merged = membresias.map(m => {
-        const u = usuariosList.find(u => u.id === m.usuarioId);
+      const [todosUsuarios, membresias, todasEmpresas] = await Promise.all([
+        base44.entities.User.list(),
+        base44.entities.UsuarioEmpresa.filter({ empresaId: empresaActiva?.empresaId }),
+        base44.entities.Empresa.list(),
+      ]);
+
+      setEmpresas(todasEmpresas);
+
+      const membresiaIds = new Set(membresias.map(m => m.usuarioId));
+
+      const merged = todosUsuarios.map(u => {
+        const mem = membresias.find(m => m.usuarioId === u.id);
         return {
-          ...m,
-          nombre: u?.full_name || m.correoUsuario || "—",
-          email: u?.email || m.correoUsuario || "—",
-          rolSistema: u?.role || "user",
+          ...u,
+          membresiaEmpresa: mem || null,
+          asignado: membresiaIds.has(u.id),
+          rolEnEmpresa: mem?.rol || null,
+          estadoEnEmpresa: mem?.estado || null,
         };
       });
+
       setUsuarios(merged);
     } catch (e) {
       console.warn("Error loading users:", e);
@@ -174,38 +188,81 @@ function UsuariosTab({ empresaActiva }) {
     if (!email.trim()) { toast.error("Ingresa un correo electrónico."); return; }
     setInvitando(true);
     try {
-      await base44.users.inviteUser(email.trim(), rol === "Admin" ? "admin" : "user");
-      toast.success(`Invitación enviada a ${email.trim()}`);
+      await base44.users.inviteUser(email.trim(), rolInvitacion === "Admin" ? "admin" : "user");
+      toast.success(`Invitación enviada a ${email.trim()}. Asígnale una empresa cuando acepte.`);
       setEmail("");
-      load();
     } catch (err) {
       toast.error("No se pudo enviar la invitación. Verifica el correo.");
     }
     setInvitando(false);
   };
 
+  const handleAsignar = async (usuarioId) => {
+    setAsignando(prev => ({ ...prev, [usuarioId]: true }));
+    try {
+      await base44.entities.UsuarioEmpresa.create({
+        usuarioId,
+        empresaId: empresaActiva?.empresaId,
+        rol: rolAsignar,
+        estado: "Activo",
+        fechaAsignacion: new Date().toISOString().split("T")[0],
+      });
+      toast.success("Usuario asignado a la empresa.");
+      setAsignarOpen(null);
+      load();
+    } catch (err) {
+      toast.error("No se pudo asignar. Verifica que el usuario no esté ya asignado.");
+    }
+    setAsignando(prev => ({ ...prev, [usuarioId]: false }));
+  };
+
+  const handleDesasignar = async (usuarioId) => {
+    const usuario = usuarios.find(u => u.id === usuarioId);
+    if (!usuario?.membresiaEmpresa) return;
+    setAsignando(prev => ({ ...prev, [usuarioId]: true }));
+    try {
+      await base44.entities.UsuarioEmpresa.delete(usuario.membresiaEmpresa.id);
+      toast.success("Usuario removido de la empresa.");
+      load();
+    } catch (err) {
+      toast.error("No se pudo remover al usuario.");
+    }
+    setAsignando(prev => ({ ...prev, [usuarioId]: false }));
+  };
+
+  const handleToggleEstado = async (usuarioId) => {
+    const usuario = usuarios.find(u => u.id === usuarioId);
+    if (!usuario?.membresiaEmpresa) return;
+    const nuevoEstado = usuario.estadoEnEmpresa === "Activo" ? "Inactivo" : "Activo";
+    try {
+      await base44.entities.UsuarioEmpresa.update(usuario.membresiaEmpresa.id, { estado: nuevoEstado });
+      toast.success(`Usuario ${nuevoEstado === "Activo" ? "activado" : "desactivado"}.`);
+      load();
+    } catch (err) {
+      toast.error("No se pudo actualizar el estado.");
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
+
+  const asignados = usuarios.filter(u => u.asignado);
+  const noAsignados = usuarios.filter(u => !u.asignado);
 
   return (
     <div className="space-y-5">
+      {/* Invite */}
       <div className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2">
           <UserPlus className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium text-foreground">Invitar usuario</p>
+          <p className="text-sm font-medium text-foreground">Invitar nuevo usuario</p>
         </div>
         <p className="text-xs text-muted-foreground">
-          El usuario recibirá un correo para crear su cuenta y acceder a la plataforma.
+          El usuario recibirá un correo para crear su cuenta. Luego deberás asignarlo a esta empresa desde la lista de abajo.
         </p>
         <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
-          <Input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="correo@empresa.com"
-            className="h-9 text-sm flex-1"
-            required
-          />
-          <Select value={rol} onValueChange={setRol}>
+          <Input type="email" value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="correo@empresa.com" className="h-9 text-sm flex-1" required />
+          <Select value={rolInvitacion} onValueChange={setRolInvitacion}>
             <SelectTrigger className="h-9 w-[120px] text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="User" className="text-sm">Usuario</SelectItem>
@@ -219,17 +276,18 @@ function UsuariosTab({ empresaActiva }) {
         </form>
       </div>
 
+      {/* Asignados a esta empresa */}
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 bg-secondary border-b border-border">
+        <div className="px-5 py-3 bg-secondary border-b border-border flex items-center justify-between">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Miembros ({usuarios.length})
+            Miembros de esta empresa ({asignados.length})
           </span>
         </div>
-        {usuarios.length === 0 ? (
+        {asignados.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+            <Building2 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No hay miembros en esta empresa</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Invita a tu primer usuario desde el formulario de arriba</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Asigna usuarios desde la lista de abajo</p>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -239,28 +297,122 @@ function UsuariosTab({ empresaActiva }) {
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Correo</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Rol en empresa</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Estado</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map(u => (
+              {asignados.map(u => (
                 <tr key={u.id} className="border-b border-border/50 last:border-0">
-                  <td className="px-5 py-3 font-medium text-foreground">{u.nombre}</td>
+                  <td className="px-5 py-3 font-medium text-foreground">{u.full_name || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{u.email}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      u.rol === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
-                    }`}>{u.rol}</span>
+                      u.rolEnEmpresa === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                    }`}>{u.rolEnEmpresa}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      u.estado === "Activo" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"
-                    }`}>{u.estado || "—"}</span>
+                    <button onClick={() => handleToggleEstado(u.id)}
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition ${
+                        u.estadoEnEmpresa === "Activo"
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                          : "bg-muted text-muted-foreground"
+                      }`}>{u.estadoEnEmpresa || "—"}</button>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button onClick={() => handleDesasignar(u.id)}
+                      disabled={asignando[u.id]}
+                      className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors"
+                      title="Remover de la empresa">
+                      {asignando[u.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlink className="h-3.5 w-3.5" />}
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* Todos los usuarios del sistema */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="px-5 py-3 bg-secondary border-b border-border flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Todos los usuarios ({usuarios.length})
+          </span>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-secondary/50">
+              <th className="text-left px-5 py-2.5 text-xs font-medium text-muted-foreground">Nombre</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Correo</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Rol sistema</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Esta empresa</th>
+              <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usuarios.map(u => (
+              <tr key={u.id} className={`border-b border-border/50 last:border-0 ${u.asignado ? "bg-primary/[0.02]" : ""}`}>
+                <td className="px-5 py-3 font-medium text-foreground">{u.full_name || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground text-xs">{u.email}</td>
+                <td className="px-4 py-3">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{u.role || "user"}</span>
+                </td>
+                <td className="px-4 py-3">
+                  {u.asignado ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-emerald-700 dark:text-emerald-400">{u.rolEnEmpresa}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/50">No asignado</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {u.asignado ? (
+                    <button onClick={() => handleDesasignar(u.id)}
+                      disabled={asignando[u.id]}
+                      className="p-1.5 rounded hover:bg-alert/10 text-muted-foreground hover:text-alert transition-colors"
+                      title="Remover de la empresa">
+                      {asignando[u.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlink className="h-3.5 w-3.5" />}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1 justify-end">
+                      {asignarOpen === u.id ? (
+                        <>
+                          <Select value={rolAsignar} onValueChange={setRolAsignar}>
+                            <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="User" className="text-xs">Usuario</SelectItem>
+                              <SelectItem value="Admin" className="text-xs">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <button onClick={() => handleAsignar(u.id)}
+                            disabled={asignando[u.id]}
+                            className="p-1.5 rounded hover:bg-success/10 text-success transition-colors"
+                            title="Confirmar">
+                            {asignando[u.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          </button>
+                          <button onClick={() => setAsignarOpen(null)}
+                            className="p-1.5 rounded hover:bg-secondary text-muted-foreground transition-colors"
+                            title="Cancelar">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      ) : (
+                        <button onClick={() => { setAsignarOpen(u.id); setRolAsignar("User"); }}
+                          className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                          title="Asignar a esta empresa">
+                          <Link2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
