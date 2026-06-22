@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Check, X, Link2, Unlink, Search } from "lucide-react";
+import { Loader2, Check, X, Link2, Unlink, Search, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function EmpresaMembersDialog({ empresa, open, onClose }) {
@@ -13,6 +14,9 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
   const [search, setSearch] = useState("");
   const [asignando, setAsignando] = useState({});
   const [rolSeleccionado, setRolSeleccionado] = useState({});
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRol, setInviteRol] = useState("User");
+  const [inviting, setInviting] = useState(false);
 
   const load = async () => {
     if (!empresa) return;
@@ -101,6 +105,46 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     }
   };
 
+  const handleInvite = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Ingresa un correo válido.");
+      return;
+    }
+    const yaExiste = usuarios.find(u => (u.email || "").toLowerCase() === email);
+    if (yaExiste?.asignado) {
+      toast.info("Este usuario ya está asignado a la empresa.");
+      return;
+    }
+    setInviting(true);
+    try {
+      let usuarioId = yaExiste?.id;
+      if (!usuarioId) {
+        const role = inviteRol === "Admin" ? "user" : "user";
+        await base44.users.inviteUser(email, role);
+        const todos = await base44.entities.User.list();
+        const nuevo = todos.find(u => (u.email || "").toLowerCase() === email);
+        usuarioId = nuevo?.id;
+      }
+      if (usuarioId) {
+        await base44.entities.UsuarioEmpresa.create({
+          usuarioId,
+          empresaId: empresa.id,
+          rol: inviteRol,
+          estado: "Activo",
+          fechaAsignacion: new Date().toISOString().split("T")[0],
+        });
+      }
+      toast.success(yaExiste ? "Usuario asignado a la empresa." : "Invitación enviada y usuario asignado.");
+      setInviteEmail("");
+      setInviteRol("User");
+      load();
+    } catch (err) {
+      toast.error("No se pudo invitar/asignar el usuario.");
+    }
+    setInviting(false);
+  };
+
   const filtrados = usuarios.filter(u => {
     const q = search.toLowerCase().trim();
     if (!q) return true;
@@ -123,6 +167,28 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : (
           <div className="space-y-3">
+            <div className="bg-secondary/40 border border-border rounded-lg p-3 space-y-2">
+              <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <UserPlus className="h-3.5 w-3.5 text-primary" /> Invitar nuevo usuario a esta empresa
+              </p>
+              <div className="flex gap-2">
+                <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="correo@empresa.com"
+                  className="h-9 text-sm flex-1" type="email" />
+                <Select value={inviteRol} onValueChange={setInviteRol}>
+                  <SelectTrigger className="h-9 w-[100px] text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="User" className="text-sm">Usuario</SelectItem>
+                    <SelectItem value="Admin" className="text-sm">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button size="sm" onClick={handleInvite} disabled={inviting} className="gap-1.5 shrink-0">
+                  {inviting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />}
+                  Invitar
+                </Button>
+              </div>
+            </div>
+
             <div className="relative">
               <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
               <Input value={search} onChange={e => setSearch(e.target.value)}
