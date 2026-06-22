@@ -14,6 +14,7 @@ const PAGE_TITLES = {
   "/kanban":       "Kanban",
   "/dashboard":    "Dashboard",
   "/configuracion":"Configuración",
+  "/empresas":     "Empresas",
   "/carga-masiva": "Carga masiva",
   "/archivados":   "Archivados",
   "/diagnostico":  "Diagnóstico",
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { path: "/kanban",        label: "Kanban",         icon: Columns3 },
   { path: "/dashboard",     label: "Dashboard",      icon: BarChart3 },
   { path: "/carga-masiva",  label: "Carga masiva",   icon: Upload },
+  { path: "/empresas",      label: "Empresas",       icon: Building2, platformAdminOnly: true },
   { path: "/configuracion", label: "Configuración",  icon: Settings, adminOnly: true },
   { path: "/archivados",    label: "Archivados",     icon: Archive,  adminOnly: true },
   { path: "/diagnostico",   label: "Diagnóstico",    icon: Bug,      adminOnly: true },
@@ -41,7 +43,10 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user, empresaActiva } = useAuth();
   const isAdmin  = empresaActiva?.rol === "Admin";
-  const visible  = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  const isPlatformAdmin = user?.role === "admin";
+  const visible  = NAV_ITEMS.filter((item) =>
+    (!item.adminOnly || isAdmin) && (!item.platformAdminOnly || isPlatformAdmin)
+  );
 
   const isActive = (path) => location.pathname === path;
 

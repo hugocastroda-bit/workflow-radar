@@ -14,6 +14,7 @@ import Kanban from './pages/Kanban';
 import Dashboard from './pages/Dashboard';
 import DetallePedido from './pages/DetallePedido';
 import Configuracion from './pages/Configuracion';
+import Empresas from './pages/Empresas';
 import CargaMasiva from './pages/CargaMasiva';
 import Archivados from './pages/Archivados';
 import Diagnostico from './pages/Diagnostico';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pedido/:id" element={<DetallePedido />} />
           <Route path="/configuracion" element={<Configuracion />} />
+          <Route path="/empresas" element={<Empresas />} />
           <Route path="/carga-masiva" element={<CargaMasiva />} />
           <Route path="/archivados" element={<Archivados />} />
           <Route path="/diagnostico" element={<Diagnostico />} />
