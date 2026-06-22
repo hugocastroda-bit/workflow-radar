@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Plus, Building2, Pencil, Check, X } from "lucide-react";
+import { Loader2, Plus, Building2, Pencil, Check, X, Users } from "lucide-react";
 import { toast } from "sonner";
+import EmpresaMembersDialog from "@/components/EmpresaMembersDialog";
 
 const PLANES = ["Basic", "Team", "Pro", "Business"];
 const ESTADOS = ["Activa", "Suspendida", "Prueba"];
@@ -42,6 +43,7 @@ export default function EmpresasTab() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [membersEmpresa, setMembersEmpresa] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -164,11 +166,18 @@ export default function EmpresasTab() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{emp.limiteUsuarios ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => openEdit(emp)}
-                      className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                      title="Editar">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={() => setMembersEmpresa(emp)}
+                        className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                        title="Asignar usuarios">
+                        <Users className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openEdit(emp)}
+                        className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                        title="Editar">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -260,6 +269,12 @@ export default function EmpresasTab() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <EmpresaMembersDialog
+        empresa={membersEmpresa}
+        open={!!membersEmpresa}
+        onClose={() => setMembersEmpresa(null)}
+      />
     </div>
   );
 }
