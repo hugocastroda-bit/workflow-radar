@@ -10,7 +10,7 @@ const MESSAGES = [
 
 export default function LandingComparison() {
   return (
-    <section className="px-4 md:px-6 py-20 md:py-28 max-w-5xl mx-auto text-center">
+    <section id="caracteristicas" className="px-4 md:px-6 py-20 md:py-28 max-w-5xl mx-auto text-center scroll-mt-16">
       <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
         Más simple que herramientas complejas.
       </h2>

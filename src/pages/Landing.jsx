@@ -102,7 +102,6 @@ export default function Landing() {
 
       {/* ── SECTIONS ── */}
       <LandingHero onScrollTo={scrollTo} />
-      <div id="caracteristicas" />
       <LandingComparison />
       <LandingFeatures />
       <LandingProcesses />
