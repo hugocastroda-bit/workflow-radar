@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ResponsableEditModal from "@/components/ResponsableEditModal";
+import EmpresasTab from "@/components/EmpresasTab";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +72,7 @@ const TABS = [
   { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "prioridades" },
   { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
   { key: "usuarios", label: "Usuarios", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
+  { key: "empresas", label: "Empresas", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null, platformAdminOnly: true },
 ];
 
 function NotificacionesTab({ empresaActiva }) {
@@ -1198,12 +1200,12 @@ export default function Configuracion() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
-        {TABS.map(t => (
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
+        {TABS.filter(t => !t.platformAdminOnly || user?.role === "admin").map(t => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === t.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -1218,6 +1220,8 @@ export default function Configuracion() {
         <NotificacionesTab empresaActiva={empresaActiva} />
       ) : activeTab === "usuarios" ? (
         <UsuariosTab empresaActiva={empresaActiva} />
+      ) : activeTab === "empresas" ? (
+        <EmpresasTab />
       ) : (
         <CatalogoTab
           key={activeTab}
