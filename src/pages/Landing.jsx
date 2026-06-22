@@ -35,19 +35,21 @@ import {
 
 const PLANS = [
   {
-    name: "Basic",
+    name: "Essential",
     usuarios: "Hasta 5 usuarios",
-    implementacion: "S/ 100",
-    suscripcion: "S/ 50 al mes",
-    equivalente: "S/ 10 por usuario/mes",
-    creditos: "5 créditos mensuales",
+    precio: "S/ 39",
+    precioPeriodo: "al mes",
+    porUsuario: "S/ 7.80 por usuario/mes",
+    implementacion: "S/ 150",
+    creditos: "5 créditos de cambios mensuales",
+    cta: "Solicitar demo",
     incluye: [
       "Bandeja de pedidos",
       "Kanban",
       "Dashboard básico",
       "Configuración de catálogos",
       "Archivados",
-      "Soporte básico",
+      "5 créditos de cambios mensuales",
     ],
     destacado: false,
     color: "border-border",
@@ -55,17 +57,19 @@ const PLANS = [
   {
     name: "Team",
     usuarios: "Hasta 10 usuarios",
-    implementacion: "S/ 200",
-    suscripcion: "S/ 100 al mes",
-    equivalente: "S/ 10 por usuario/mes",
-    creditos: "10 créditos mensuales",
+    precio: "S/ 74",
+    precioPeriodo: "al mes",
+    porUsuario: "S/ 7.40 por usuario/mes",
+    implementacion: "S/ 250",
+    creditos: "10 créditos de cambios mensuales",
+    cta: "Solicitar demo",
     incluye: [
-      "Todo Basic",
+      "Todo Essential",
       "Time Box en minutos",
       "Riesgos y SLA",
-      "Filtros avanzados",
-      "Carga masiva básica",
-      "Exportación a Excel",
+      "Exportación Excel",
+      "Carga masiva",
+      "10 créditos de cambios mensuales",
     ],
     destacado: false,
     color: "border-border",
@@ -73,17 +77,20 @@ const PLANS = [
   {
     name: "Pro",
     usuarios: "Hasta 20 usuarios",
-    implementacion: "S/ 400",
-    suscripcion: "S/ 200 al mes",
-    equivalente: "S/ 10 por usuario/mes",
-    creditos: "20 créditos mensuales",
+    precio: "S/ 124",
+    precioPeriodo: "al mes",
+    porUsuario: "S/ 6.20 por usuario/mes",
+    implementacion: "S/ 450",
+    creditos: "20 créditos de cambios mensuales",
+    cta: "Solicitar demo",
+    etiqueta: "Más popular",
     incluye: [
       "Todo Team",
-      "Dashboard de capacidad",
+      "Dashboard ejecutivo",
       "Medición de carga por responsable",
-      "Carga masiva completa",
       "Reportes ejecutivos",
       "Soporte prioritario",
+      "20 créditos de cambios mensuales",
     ],
     destacado: true,
     color: "border-[#8B5CF6] ring-2 ring-[#8B5CF6]/30",
@@ -91,18 +98,19 @@ const PLANS = [
   {
     name: "Business",
     usuarios: "Más de 20 usuarios",
+    precio: "S/ 199",
+    precioPeriodo: "al mes",
+    porUsuario: "Precio según cantidad de usuarios",
     implementacion: "Desde S/ 700",
-    suscripcion: "Desde S/ 300 al mes",
-    equivalente: "Cotización según alcance",
-    creditos: "40 créditos mensuales",
+    creditos: "40 créditos de cambios mensuales",
+    cta: "Contactar ventas",
     incluye: [
       "Todo Pro",
-      "Configuración avanzada",
       "Branding de empresa",
+      "Configuración avanzada",
       "Reportes personalizados",
       "Acompañamiento mensual",
-      "Soporte prioritario",
-      "Ajustes funcionales priorizados",
+      "40 créditos de cambios mensuales",
     ],
     destacado: false,
     color: "border-border",
@@ -451,7 +459,10 @@ export default function Landing() {
       {/* ── PLANES ──────────────────────────── */}
       <section id="planes" className="bg-secondary/30 px-4 md:px-6 py-16 md:py-20 scroll-mt-16">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 space-y-3">
+          <div className="text-center mb-8 space-y-3">
+            <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm">
+              🎉 Precio Fundador · 50% OFF por lanzamiento
+            </span>
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
               Planes simples para equipos que necesitan orden y trazabilidad.
             </h2>
@@ -463,28 +474,29 @@ export default function Landing() {
                 className={`bg-card border rounded-2xl p-6 flex flex-col relative shadow-sm ${plan.color}`}
               >
                 {plan.destacado && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full shadow-sm">
-                    Recomendado
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                    {plan.etiqueta || "Recomendado"}
                   </span>
                 )}
                 <div className="mb-4">
-                  <h3 className="text-lg font-bold text-foreground">Plan {plan.name}</h3>
+                  <h3 className="text-lg font-bold text-foreground flex items-center gap-1.5">
+                    {plan.name}
+                    {plan.destacado && <span className="text-amber-400">⭐</span>}
+                  </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">{plan.usuarios}</p>
                 </div>
-                <div className="space-y-1.5 mb-5">
+                <div className="space-y-1 mb-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs text-muted-foreground">Desde</span>
+                    <span className="text-2xl font-bold text-foreground">{plan.precio}</span>
+                    <span className="text-xs text-muted-foreground">{plan.precioPeriodo}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{plan.porUsuario}</p>
+                </div>
+                <div className="space-y-1.5 mb-4 pb-4 border-b border-border">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Implementación</span>
+                    <span className="text-muted-foreground">Implementación única</span>
                     <span className="font-semibold text-foreground">{plan.implementacion}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Suscripción</span>
-                    <span className="font-semibold text-foreground">{plan.suscripcion}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{plan.equivalente}</div>
-                  <div className="pt-2">
-                    <span className="inline-block bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
-                      {plan.creditos}
-                    </span>
                   </div>
                 </div>
                 <ul className="space-y-2 mb-6 flex-1">
@@ -499,12 +511,26 @@ export default function Landing() {
                   variant={plan.destacado ? "default" : "outline"}
                   size="sm"
                   className="w-full text-xs rounded-[12px]"
-                  onClick={() => plan.name === "Business" ? selectPlan("Business") : selectPlan(plan.name)}
+                  onClick={() => selectPlan(plan.name)}
                 >
-                  {plan.name === "Business" ? "Contactar ventas" : `Solicitar ${plan.name}`}
+                  {plan.cta}
                 </Button>
               </div>
             ))}
+          </div>
+
+          {/* ── Precio Fundador banner ── */}
+          <div className="mt-10 bg-gradient-to-br from-[#4F46E5]/5 to-[#8B5CF6]/5 border border-[#8B5CF6]/20 rounded-2xl p-6 md:p-8 text-center max-w-2xl mx-auto space-y-3">
+            <p className="text-lg font-bold text-foreground">🎉 Precio Fundador</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              50% OFF por lanzamiento para los primeros clientes.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Prueba Workflow Radar, compáralo y descubre una forma más simple de gestionar el trabajo de tu equipo.
+            </p>
+            <Button onClick={() => scrollTo("demo")} className="rounded-[14px] mt-2">
+              Solicita una demo y compara <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+            </Button>
           </div>
         </div>
       </section>
