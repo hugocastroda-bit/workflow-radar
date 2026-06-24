@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { obtenerResponsablesActivos } from "@/lib/sync-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { ChevronDown, ChevronUp, Info } from "lucide-react";
 import AdaptiveSelect from "@/components/AdaptiveSelect";
 import { toast } from "sonner";
-import { subscribeToCacheChanges, getCachedData, setCachedData } from "@/lib/catalog-cache";
+import { subscribeToCacheChanges } from "@/lib/catalog-cache";
 import { eventBus } from "@/lib/eventBus";
 import { ESTADOS, COMPLEJIDAD_MINUTOS, formatMinutos } from "@/lib/pedidoConstants";
 import { sanitizeUrl, truncateText } from "@/lib/security";

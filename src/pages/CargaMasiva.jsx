@@ -9,7 +9,6 @@ import {
   CARGA_MASIVA_COLS as COLS,
   REQUIRED_FIELDS as REQUIRED,
   ENUMS,
-  BOOLEAN_FIELDS,
 } from "@/lib/pedidoConstants";
 
 function downloadTemplate() {

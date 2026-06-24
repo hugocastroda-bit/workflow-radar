@@ -62,7 +62,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="h-[100dvh] w-screen overflow-hidden bg-background flex">
+    <div className="h-[100dvh] w-full overflow-hidden bg-background flex">
 
       {/* ── Desktop Sidebar ───────────────────────────── */}
       <aside className="hidden md:flex w-52 flex-col border-r border-border bg-white fixed inset-y-0 left-0 z-30 no-select">
@@ -153,7 +153,7 @@ export default function Layout() {
 
       {/* ── Main Content ──────────────────────────────── */}
       <main
-        className="flex-1 md:ml-52 overflow-y-auto overflow-x-hidden ios-scroll"
+        className="min-w-0 flex-1 md:ml-52 overflow-y-auto overflow-x-hidden ios-scroll"
         style={{
           marginTop:     "calc(56px + max(12px, env(safe-area-inset-top)))",
           paddingBottom: "calc(64px + max(12px, env(safe-area-inset-bottom)))",

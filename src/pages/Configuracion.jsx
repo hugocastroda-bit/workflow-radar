@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle, UserX, UserPlus, Mail, Users, Send, Building2, Link2, Unlink } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, PowerOff, Power, ShieldOff, Trash2, AlertTriangle, Upload, Download, AlertCircle, CheckCircle, UserX, UserPlus, Send, Building2, Link2, Unlink } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
