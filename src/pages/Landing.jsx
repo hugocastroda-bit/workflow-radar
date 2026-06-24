@@ -85,8 +85,8 @@ export default function Landing() {
           </nav>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
-              <Link to="/bandeja">
-                <Button variant="ghost" size="sm" className="h-8 text-xs">Ir a mi bandeja</Button>
+              <Link to="/seleccionar-empresa">
+                <Button variant="ghost" size="sm" className="h-8 text-xs">Elegir empresa</Button>
               </Link>
             ) : (
               <Link to="/login">

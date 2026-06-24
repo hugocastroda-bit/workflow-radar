@@ -44,7 +44,7 @@ export default function Login() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Redirigiendo a tu bandeja...</p>
+          <p className="text-sm text-muted-foreground">Redirigiendo a selección de empresa...</p>
         </div>
       </div>
     );
