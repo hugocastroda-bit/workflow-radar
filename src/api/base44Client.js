@@ -1,15 +1,15 @@
 import { createClient } from '@base44/sdk';
 import { appParams, hasBase44Config } from '@/lib/app-params';
 
-const { appId, token, functionsVersion, appBaseUrl } = appParams;
+const { appId, token, functionsVersion, appBaseUrl, serverUrl } = appParams;
 
 const createUnavailableClient = () => {
   const handler = {
     get: () => new Proxy(async () => {
-      throw new Error('Base44 no está configurado. Crea .env.local con VITE_BASE44_APP_ID y VITE_BASE44_APP_BASE_URL.');
+      throw new Error('Base44 no está configurado. Verifica las variables de entorno VITE_BASE44_APP_ID y VITE_BASE44_BACKEND_URL.');
     }, handler),
     apply: async () => {
-      throw new Error('Base44 no está configurado. Crea .env.local con VITE_BASE44_APP_ID y VITE_BASE44_APP_BASE_URL.');
+      throw new Error('Base44 no está configurado. Verifica las variables de entorno VITE_BASE44_APP_ID y VITE_BASE44_BACKEND_URL.');
     }
   };
 
@@ -21,7 +21,7 @@ export const base44 = hasBase44Config ? createClient({
   appId,
   token,
   functionsVersion,
-  serverUrl: '',
+  serverUrl,
   requiresAuth: false,
-  appBaseUrl
+  appBaseUrl: appBaseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
 }) : createUnavailableClient();
