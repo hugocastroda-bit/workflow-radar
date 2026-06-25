@@ -33,12 +33,12 @@ export default function SeleccionarEmpresa() {
       navigate(loginUrl, { replace: true });
       return;
     }
+    if (!user?.id) return;
     loadEmpresas();
-  }, [isAuthenticated, requestedEmpresaId]);
+  }, [isAuthenticated, requestedEmpresaId, user?.id]);
 
   const loadEmpresas = async () => {
     try {
-      if (!user?.id) return;
       const membresias = await base44.entities.UsuarioEmpresa.filter({
         usuarioId: user.id,
         estado: "Activo",
