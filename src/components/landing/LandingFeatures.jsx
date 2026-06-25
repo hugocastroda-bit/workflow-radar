@@ -14,8 +14,8 @@ const FEATURES = [
 export default function LandingFeatures() {
   return (
     <section className="px-4 md:px-6 py-20 md:py-28 max-w-5xl mx-auto text-center">
-      <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
-        Un solo lugar para todo.
+      <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
+        Todo lo que tu equipo necesita.
       </h2>
       <div className="mt-12 md:mt-16 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
         {FEATURES.map((f) => (
