@@ -24,6 +24,7 @@ const PLANS = [
     usuarios: "Hasta 10 usuarios",
     precio: "S/ 7.99",
     implementacion: "S/ 199",
+    subheader: "Incluye todo Essential, además de:",
     incluye: [
       "Carga masiva",
       "Dashboard ejecutivo",
@@ -39,6 +40,7 @@ const PLANS = [
     usuarios: "Hasta 20 usuarios",
     precio: "S/ 9.99",
     implementacion: "S/ 399",
+    subheader: "Incluye todo Team, además de:",
     incluye: [
       "Multiempresa",
       "Dashboard de capacidad",
@@ -134,6 +136,9 @@ export default function LandingPlans({ onSelectPlan }) {
               )}
             </div>
 
+            {plan.subheader && (
+              <p className="text-xs font-medium text-foreground mb-2">{plan.subheader}</p>
+            )}
             <ul className="space-y-2 mb-6 flex-1">
               {plan.incluye.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
