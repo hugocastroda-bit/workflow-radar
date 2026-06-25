@@ -11,23 +11,19 @@ export default function Register() {
   const safeNextUrl = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "";
   const nextUrl = safeNextUrl || "/seleccionar-empresa";
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
 
+  const DEFAULT_PASSWORD = "prueba1234";
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-    if (password !== confirmPassword) {
-      setError("Las contrasenas no coinciden");
-      return;
-    }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      await base44.auth.register({ email, password: DEFAULT_PASSWORD });
       setShowOtp(true);
     } catch (err) {
       setError(err.message || "Error al registrarse");
@@ -66,13 +62,10 @@ export default function Register() {
                   <Label className="text-xs font-medium text-muted-foreground">Email</Label>
                   <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" className="mt-1" required />
                 </div>
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Contrasena</Label>
-                  <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="********" className="mt-1" required />
-                </div>
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground">Confirmar contrasena</Label>
-                  <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="********" className="mt-1" required />
+                <div className="bg-secondary/40 border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">
+                    Tu contraseña por defecto será <span className="font-semibold text-foreground">prueba1234</span>. Podrás cambiarla después de iniciar sesión.
+                  </p>
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
