@@ -47,6 +47,17 @@ async function canManageCompany(base44, user, empresaId) {
   return memberships.length > 0;
 }
 
+async function canCreateCompany(base44, user) {
+  if (user?.role === 'admin') return true;
+
+  const [empresas, ownerMemberships] = await Promise.all([
+    base44.asServiceRole.entities.Empresa.list(),
+    getOwnerMemberships(base44, user),
+  ]);
+
+  return empresas.length === 0 || ownerMemberships.length > 0;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -64,9 +75,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'list') {
+      const allEmpresas = await base44.asServiceRole.entities.Empresa.list();
       if (user.role === 'admin') {
-        const empresas = await base44.asServiceRole.entities.Empresa.list();
-        return Response.json({ empresas });
+        return Response.json({ empresas: allEmpresas, canCreateInitial: allEmpresas.length === 0 });
+      }
+
+      if (allEmpresas.length === 0) {
+        return Response.json({ empresas: [], canCreateInitial: true });
       }
 
       const memberships = await getOwnerMemberships(base44, user);
@@ -77,13 +92,26 @@ Deno.serve(async (req) => {
       const empresas = await Promise.all(
         memberships.map((membership) => base44.asServiceRole.entities.Empresa.get(membership.empresaId))
       );
-      return Response.json({ empresas: empresas.filter(Boolean) });
+      return Response.json({ empresas: empresas.filter(Boolean), canCreateInitial: false });
     }
 
     if (action === 'create') {
+      const allowed = await canCreateCompany(base44, user);
+      if (!allowed) {
+        return Response.json({ error: 'Forbidden: Owner access required' }, { status: 403 });
+      }
+
       const payload = normalizeCompanyPayload(body);
+      const empresas = await base44.asServiceRole.entities.Empresa.list();
+      const duplicate = empresas.find(
+        (empresa) => cleanString(empresa.nombreEmpresa).toLowerCase() === payload.nombreEmpresa.toLowerCase()
+      );
+      if (duplicate) {
+        return Response.json({ error: 'Company already exists', empresa: duplicate }, { status: 409 });
+      }
+
       const empresa = await base44.asServiceRole.entities.Empresa.create(payload);
-      await base44.asServiceRole.entities.UsuarioEmpresa.create({
+      const membresia = await base44.asServiceRole.entities.UsuarioEmpresa.create({
         usuarioId: user.id,
         empresaId: empresa.id,
         rol: 'Owner',
@@ -91,7 +119,10 @@ Deno.serve(async (req) => {
         fechaAsignacion: new Date().toISOString().split('T')[0],
         asignadoPor: user.email || user.id,
       });
-      return Response.json({ empresa });
+      await base44.asServiceRole.entities.User.update(user.id, {
+        active_empresa_id: empresa.id,
+      });
+      return Response.json({ empresa, membresia });
     }
 
     if (action === 'update') {

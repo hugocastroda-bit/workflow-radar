@@ -15,10 +15,10 @@ const PLANES = ["Basic", "Team", "Pro", "Business"];
 const ESTADOS = ["Activa", "Suspendida", "Prueba"];
 
 const EMPTY_FORM = {
-  nombreEmpresa: "",
+  nombreEmpresa: "DesignLab1",
   ruc: "",
   plan: "Basic",
-  estado: "Prueba",
+  estado: "Activa",
   limiteUsuarios: 5,
   creditosMensuales: 5,
   fechaInicio: "",
@@ -26,10 +26,12 @@ const EMPTY_FORM = {
 };
 
 export default function OwnerAdmin() {
-  const { user, empresaActiva } = useAuth();
+  const { user, empresaActiva, setEmpresaActiva } = useAuth();
   const allowed = isCompanyOwner(empresaActiva) || isGlobalAdmin(user);
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [canCreateInitial, setCanCreateInitial] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -37,18 +39,23 @@ export default function OwnerAdmin() {
   const [membersEmpresa, setMembersEmpresa] = useState(null);
 
   const load = async () => {
-    if (!allowed) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     try {
       const result = await base44.functions.invoke("ownerCompanyAdmin", { action: "list" });
-      setEmpresas(result?.data?.empresas || result?.empresas || []);
+      const data = result?.data || result || {};
+      const loadedEmpresas = data.empresas || [];
+      setEmpresas(loadedEmpresas);
+      setCanCreateInitial(!!data.canCreateInitial);
+      setAccessDenied(false);
+      if (data.canCreateInitial && loadedEmpresas.length === 0) {
+        setForm(EMPTY_FORM);
+        setEditingId(null);
+        setShowForm(true);
+      }
     } catch (err) {
       console.error(err);
-      toast.error("No se pudieron cargar las empresas.");
+      setAccessDenied(true);
+      toast.error("No tienes permisos para administrar empresas.");
     } finally {
       setLoading(false);
     }
@@ -88,11 +95,15 @@ export default function OwnerAdmin() {
 
     setSaving(true);
     try {
-      await base44.functions.invoke("ownerCompanyAdmin", {
+      const result = await base44.functions.invoke("ownerCompanyAdmin", {
         action: editingId ? "update" : "create",
         empresaId: editingId || undefined,
         ...form,
       });
+      const data = result?.data || result || {};
+      if (!editingId && data.empresa?.id) {
+        await setEmpresaActiva(data.empresa.id, "Owner");
+      }
       toast.success(editingId ? "Empresa actualizada." : "Empresa creada.");
       setShowForm(false);
       load();
@@ -104,7 +115,7 @@ export default function OwnerAdmin() {
     }
   };
 
-  if (!allowed) {
+  if (accessDenied && !allowed && !canCreateInitial) {
     return (
       <div className="p-8 max-w-xl mx-auto">
         <div className="border border-border rounded-xl p-6 text-center bg-card">
@@ -125,7 +136,9 @@ export default function OwnerAdmin() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Panel Owner</h1>
-          <p className="text-xs text-muted-foreground mt-1">Administra empresas, usuarios y roles.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {canCreateInitial ? "Crea DesignLab1 como primera empresa Owner." : "Administra empresas, usuarios y roles."}
+          </p>
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5 shrink-0">
           <Plus className="h-3.5 w-3.5" /> Nueva empresa

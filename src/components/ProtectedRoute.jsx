@@ -44,7 +44,8 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
   // If authenticated but no empresa activa and not on /seleccionar-empresa,
   // redirect to company selection
   const pathname = window.location.pathname;
-  if (pathname !== "/seleccionar-empresa" && !empresaActiva && !isLoadingEmpresa) {
+  const companyOptionalRoutes = new Set(["/seleccionar-empresa", "/owner"]);
+  if (!companyOptionalRoutes.has(pathname) && !empresaActiva && !isLoadingEmpresa) {
     // Redirect to company selection
     window.location.href = "/seleccionar-empresa";
     return null;
