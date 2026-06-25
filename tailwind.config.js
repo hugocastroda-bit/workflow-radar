@@ -81,12 +81,27 @@ module.exports = {
   				DEFAULT: '#10B981',
   				light: '#ECFDF5'
   			},
-  			/* Brand gradient stops — blue + magenta + mint */
+  			/* Brand gradient stops — Electric Blue → Violet → Modern Magenta */
   			brand: {
   			  blue: '#2563EB',
+  			  violet: '#7C3AED',
   			  magenta: '#D946EF',
   			  mint: '#2DD4BF',
   			  dark: '#0F172A',
+  			  hover: {
+  			    blue: '#1D4ED8',
+  			    violet: '#6D28D9',
+  			    magenta: '#C026D3',
+  			  },
+  			},
+  			/* Kanban pastel colors */
+  			kanban: {
+  			  nuevo: '#DBEAFE',
+  			  asignado: '#BFDBFE',
+  			  encurso: '#CCFBF1',
+  			  revision: '#F5D0FE',
+  			  bloqueado: '#FDE68A',
+  			  cerrado: '#BBF7D0',
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',

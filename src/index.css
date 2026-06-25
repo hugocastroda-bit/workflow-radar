@@ -16,26 +16,26 @@ html, body {
   :root {
     --font-inter: 'Inter', sans-serif;
 
-    /* ── Nueva paleta unificada ────────── */
+    /* ── Apple + Linear + Stripe + n8n palette ────────── */
     --background: 215 25% 97%;            /* #F8FAFC — Soft White */
-    --foreground: 222 47% 11%;            /* #0F172A — Midnight Blue */
+    --foreground: 222 47% 11%;            /* #0F172A — Midnight Blue (texto principal) */
     --card: 0 0% 100%;                    /* #FFFFFF — Pure White */
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary — Electric Blue */
-    --primary: 217 91% 53%;               /* #2563EB */
+    /* Primary — Electric Blue (#2563EB) */
+    --primary: 217 91% 53%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary / muted */
-    --secondary: 215 16% 92%;
-    --secondary-foreground: 215 16% 45%;
-    --muted: 215 16% 92%;
+    --secondary: 215 16% 96%;
+    --secondary-foreground: 215 14% 46%;  /* #64748B — Slate */
+    --muted: 215 16% 96%;
     --muted-foreground: 215 14% 46%;      /* #64748B — Slate */
 
-    /* Accent — Fresh Mint */
-    --accent: 173 80% 50%;                /* #2DD4BF */
+    /* Accent — Fresh Mint (#2DD4BF) */
+    --accent: 173 80% 50%;
     --accent-foreground: 222 47% 11%;
 
     /* Destructive */
@@ -47,7 +47,7 @@ html, body {
     --input: 214 32% 91%;
     --ring: 217 91% 53%;
 
-    /* Radius — Apple uses generous rounding */
+    /* Radius */
     --radius: 0.75rem;
 
     /* Sidebar */
@@ -55,21 +55,21 @@ html, body {
     --sidebar-foreground: 215 14% 46%;
     --sidebar-primary: 217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 16% 92%;
+    --sidebar-accent: 215 16% 96%;
     --sidebar-accent-foreground: 217 91% 53%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217 91% 53%;
 
-    /* Chart colors — blue + magenta + mint + complementary */
-    --chart-1: 217 91% 53%;   /* electric blue */
-    --chart-2: 301 76% 60%;   /* modern magenta */
-    --chart-3: 173 80% 50%;   /* fresh mint */
+    /* Chart colors — blue, magenta, mint for KPIs */
+    --chart-1: 217 91% 53%;   /* #2563EB — Electric Blue (KPIs) */
+    --chart-2: 301 76% 60%;   /* #D946EF — Modern Magenta (críticos) */
+    --chart-3: 173 80% 50%;   /* #2DD4BF — Fresh Mint (positivos) */
     --chart-4: 38 92% 50%;    /* orange */
     --chart-5: 271 81% 66%;   /* purple */
   }
 
   .dark {
-    /* ── Dark palette ────────── */
+    /* ── Dark palette (n8n-inspired) ────────── */
     --background:         222 47% 11%;   /* #0F172A — Midnight Blue */
     --foreground:         215 25% 97%;   /* #F8FAFC — Soft White */
 
@@ -165,13 +165,13 @@ html, body {
 }
 
 @layer utilities {
-  /* ── Brand gradient: blue → magenta → mint ── */
+  /* ── Brand gradient (sello visual Workflow Radar) ── */
   .brand-gradient {
-    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
   }
 
   .brand-gradient-text {
-    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -187,46 +187,46 @@ html, body {
     background: linear-gradient(135deg, #2DD4BF, #5EEAD4);
   }
 
-  /* ── Premium mesh gradient background ──── */
+  /* ── Premium mesh gradient background (extremadamente sutil) ──── */
   .gradient-mesh {
     background-color: hsl(var(--background));
     background-image:
-      radial-gradient(at 0% 0%, hsl(217 91% 53% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(173 80% 50% / 0.06) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsl(301 76% 60% / 0.05) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, rgba(217, 70, 239, 0.06) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, rgba(45, 212, 191, 0.06) 0px, transparent 50%);
   }
 
   .dark .gradient-mesh {
     background-image:
-      radial-gradient(at 0% 0%, hsl(217 91% 53% / 0.12) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(173 80% 50% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsl(301 76% 60% / 0.08) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, rgba(217, 70, 239, 0.1) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, rgba(45, 212, 191, 0.08) 0px, transparent 50%);
   }
 
   /* ── Gradient heading text ─────────────── */
   .gradient-heading {
-    background: linear-gradient(135deg, #2563EB 0%, #D946EF 50%, #2DD4BF 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* ── Premium gradient text ─────────────── */
+  /* ── Premium gradient text (brand gradient) ─────────────── */
   .gradient-premium-text {
-    background: linear-gradient(135deg, #2563EB 0%, #D946EF 50%, #2DD4BF 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* ── Premium gradient button ───────────── */
+  /* ── Premium gradient button (brand gradient) ───────────── */
   .gradient-premium {
-    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     background-size: 200% 200%;
     animation: gradientShift 3s ease infinite;
   }
   .gradient-premium:hover {
-    background: linear-gradient(135deg, #3B82F6, #E879F9, #5EEAD4);
+    background: linear-gradient(135deg, #1D4ED8 0%, #6D28D9 45%, #C026D3 100%);
   }
 
   /* ── Gradient border (Apple card style) ── */
@@ -240,7 +240,7 @@ html, body {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -252,17 +252,19 @@ html, body {
     background-image: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.5) 100%);
   }
 
-  /* ── Apple-style frosted glass ─────────── */
+  /* ── Apple-style frosted glass (Navbar) ─────────── */
   .glass {
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid #E2E8F0;
   }
 
   .dark .glass {
-    background: rgba(26, 26, 26, 0.72);
+    background: rgba(15, 23, 42, 0.72);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid #334155;
   }
 
   /* ── Apple-style soft shadow ───────────── */
@@ -434,41 +436,29 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* ── Premium gradients ────────────────── */
-  .gradient-premium {
-    background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #3DDC97 100%);
-  }
-
-  .gradient-premium-text {
-    background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #3DDC97 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── Glow effects ─────────────────────── */
+  /* ── Glow effects (brand colors) ─────────────────────── */
   .glow-subtle {
-    box-shadow: 0 0 40px rgba(79, 70, 229, 0.1);
+    box-shadow: 0 0 40px rgba(37, 99, 235, 0.12);
   }
 
   .glow-subtle:hover {
-    box-shadow: 0 0 60px rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 60px rgba(37, 99, 235, 0.18), 0 0 30px rgba(217, 70, 239, 0.1);
   }
 
-  /* ── Mesh gradient background ─────────── */
+  /* ── Mesh gradient background (extremadamente sutil) ─────────── */
   .mesh-bg {
     background-color: hsl(var(--background));
     background-image:
-      radial-gradient(at 67% 27%, hsl(217 91% 53% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 15% 35%, hsl(301 76% 60% / 0.06) 0px, transparent 50%),
-      radial-gradient(at 85% 75%, hsl(173 80% 50% / 0.06) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, rgba(37, 99, 235, 0.06) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, rgba(217, 70, 239, 0.04) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, rgba(45, 212, 191, 0.04) 0px, transparent 50%);
   }
 
   .dark .mesh-bg {
     background-image:
-      radial-gradient(at 67% 27%, hsl(217 91% 53% / 0.12) 0px, transparent 50%),
-      radial-gradient(at 15% 35%, hsl(301 76% 60% / 0.1) 0px, transparent 50%),
-      radial-gradient(at 85% 75%, hsl(173 80% 50% / 0.08) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, rgba(217, 70, 239, 0.08) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, rgba(45, 212, 191, 0.06) 0px, transparent 50%);
   }
 
   /* ── Touch utilities ───────────────────── */
@@ -534,19 +524,27 @@ html, body {
     @apply bg-card border border-border rounded-2xl shadow-apple;
   }
 
-  /* ── Button primaries — blue→magenta→mint gradient ── */
+  /* ── Button primaries (brand gradient) ── */
   .btn-brand {
-    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 45%, #D946EF 100%);
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
     @apply text-white font-medium rounded-[14px] px-4 py-2 transition-all;
   }
   .btn-brand:hover {
-    filter: brightness(1.1);
+    background: linear-gradient(135deg, #1D4ED8 0%, #6D28D9 45%, #C026D3 100%);
     box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
     transform: translateY(-1px);
   }
   .btn-brand:active {
     transform: translateY(0);
+  }
+
+  /* ── Button secundario ────────────────── */
+  .btn-secondary {
+    @apply bg-white text-[#2563EB] font-medium rounded-[14px] px-4 py-2 border border-[#E2E8F0] transition-all;
+  }
+  .btn-secondary:hover {
+    @apply bg-[#EEF4FF];
   }
 
   .btn-secondary-light {
@@ -582,5 +580,47 @@ html, body {
 
   .table-apple tr:hover {
     @apply bg-muted/50;
+  }
+
+  /* ── Kanban status colors (pastel) ───────────────────── */
+  .kanban-nuevo {
+    @apply bg-[#DBEAFE] text-[#1E40AF];
+  }
+  .kanban-asignado {
+    @apply bg-[#BFDBFE] text-[#1E3A8A];
+  }
+  .kanban-encurso {
+    @apply bg-[#CCFBF1] text-[#115E59];
+  }
+  .kanban-revision {
+    @apply bg-[#F5D0FE] text-[#86198F];
+  }
+  .kanban-bloqueado {
+    @apply bg-[#FDE68A] text-[#92400E];
+  }
+  .kanban-cerrado {
+    @apply bg-[#BBF7D0] text-[#166534];
+  }
+
+  /* ── KPI colors ───────────────────── */
+  .kpi-azul {
+    @apply text-[#2563EB];
+  }
+  .kpi-mint {
+    @apply text-[#2DD4BF];
+  }
+  .kpi-magenta {
+    @apply text-[#D946EF];
+  }
+
+  /* ── Functional colors ───────────────────── */
+  .success {
+    @apply text-[#2DD4BF];
+  }
+  .warning {
+    @apply text-[#F59E0B];
+  }
+  .error {
+    @apply text-[#EF4444];
   }
 }
