@@ -114,9 +114,11 @@ export default function SeleccionarEmpresa() {
             No tienes ninguna empresa asignada. Puedes crear DesignLab1 como Owner o contactar a un administrador.
           </p>
           <div className="flex flex-col gap-2">
-            <Button className="mt-2" onClick={() => navigate("/owner")}>
-              Crear DesignLab1
-            </Button>
+            {user?.role === "admin" && (
+              <Button className="mt-2" onClick={() => navigate("/owner")}>
+                Crear DesignLab1
+              </Button>
+            )}
             <Link to="/">
               <Button variant="outline">
                 Volver al inicio
