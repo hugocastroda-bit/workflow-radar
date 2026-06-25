@@ -27,11 +27,11 @@ Deno.serve(async (req) => {
     }
 
     if (!empresa) {
-      return Response.json({ valid: false, reason: 'not_found' }, { status: 404 });
+      return Response.json({ valid: false, reason: 'not_found' });
     }
 
     if (!ENABLED_STATES.has(empresa.estado || '')) {
-      return Response.json({ valid: false, reason: 'disabled' }, { status: 403 });
+      return Response.json({ valid: false, reason: 'disabled' });
     }
 
     return Response.json({

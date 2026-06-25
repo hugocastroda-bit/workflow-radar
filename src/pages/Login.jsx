@@ -8,7 +8,11 @@ import { Label } from "@/components/ui/label";
 export default function Login() {
   const params = new URLSearchParams(window.location.search);
   const empresaId = params.get("empresaId")?.trim() || "";
-  const nextUrl = empresaId ? `/seleccionar-empresa?empresaId=${encodeURIComponent(empresaId)}` : "/seleccionar-empresa";
+  const requestedNext = params.get("next")?.trim() || "";
+  const safeNextUrl = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "";
+  const nextUrl = empresaId
+    ? `/seleccionar-empresa?empresaId=${encodeURIComponent(empresaId)}`
+    : safeNextUrl || "/seleccionar-empresa";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -59,7 +63,7 @@ export default function Login() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {empresaId ? "Acceso validado por empresa" : "by Design Lab"}
+            {empresaId || safeNextUrl ? "Acceso validado" : "by Design Lab"}
           </p>
         </div>
         <div className="text-center">
@@ -92,7 +96,7 @@ export default function Login() {
           <div className="text-center space-y-1">
             <Link to="/forgot-password" className="text-xs text-primary hover:underline block">{"Olvidaste tu contrasena?"}</Link>
             <p className="text-xs text-muted-foreground">
-              {"No tienes cuenta? "}<Link to="/register" className="text-primary hover:underline">{"Registrate"}</Link>
+              {"No tienes cuenta? "}<Link to={safeNextUrl ? `/register?next=${encodeURIComponent(safeNextUrl)}` : "/register"} className="text-primary hover:underline">{"Registrate"}</Link>
             </p>
           </div>
         </div>

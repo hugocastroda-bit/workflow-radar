@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function Register() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedNext = params.get("next")?.trim() || "";
+  const safeNextUrl = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "";
+  const nextUrl = safeNextUrl || "/seleccionar-empresa";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,7 +43,7 @@ export default function Register() {
     try {
       const res = await base44.auth.verifyOtp({ email, otpCode });
       base44.auth.setToken(res.access_token);
-      window.location.href = "/seleccionar-empresa";
+      window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Codigo incorrecto");
     } finally {
@@ -79,7 +83,7 @@ export default function Register() {
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">o</span></div>
               </div>
-              <Button variant="outline" className="w-full rounded-[14px]" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
+              <Button variant="outline" className="w-full rounded-[14px]" onClick={() => base44.auth.loginWithProvider("google", nextUrl)}>
                 Continuar con Google
               </Button>
             </>
@@ -100,7 +104,7 @@ export default function Register() {
             </form>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            {"Ya tienes cuenta? "}<Link to="/login" className="text-[#3B82F6] hover:underline">Inicia sesion</Link>
+            {"Ya tienes cuenta? "}<Link to={safeNextUrl ? `/login?next=${encodeURIComponent(safeNextUrl)}` : "/login"} className="text-[#3B82F6] hover:underline">Inicia sesion</Link>
           </p>
         </div>
       </div>

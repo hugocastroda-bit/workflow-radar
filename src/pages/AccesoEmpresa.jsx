@@ -9,15 +9,18 @@ import { Label } from "@/components/ui/label";
 export default function AccesoEmpresa() {
   const [empresaId, setEmpresaId] = useState("");
   const [empresa, setEmpresa] = useState(null);
+  const [setupRequested, setSetupRequested] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const loginUrl = empresa ? `/login?empresaId=${encodeURIComponent(empresa.empresaId)}` : "";
+  const setupUrl = "/login?next=/owner";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanEmpresaId = empresaId.trim();
     setEmpresa(null);
+    setSetupRequested(false);
     setError("");
 
     if (!cleanEmpresaId) {
@@ -33,7 +36,12 @@ export default function AccesoEmpresa() {
       const data = result?.data || result;
 
       if (!data?.valid) {
-        setError("No encontramos una empresa activa con ese ID.");
+        if (cleanEmpresaId.toLowerCase() === "designlab1") {
+          setSetupRequested(true);
+          setError("DesignLab1 todavía no existe. Ingresa para crearla como empresa Owner.");
+          return;
+        }
+        setError(data?.reason === "disabled" ? "La empresa existe pero no está activa." : "No encontramos una empresa activa con ese ID.");
         return;
       }
 
@@ -80,6 +88,12 @@ export default function AccesoEmpresa() {
               </div>
             )}
 
+            {setupRequested && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
+                Primero debes crear DesignLab1 desde el setup Owner.
+              </div>
+            )}
+
             <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
               {loading ? (
                 <>
@@ -97,6 +111,14 @@ export default function AccesoEmpresa() {
             <Button variant="outline" className="w-full rounded-[14px]" asChild>
               <a href={loginUrl} target="_blank" rel="noreferrer">
                 Abrir login
+              </a>
+            </Button>
+          )}
+
+          {setupRequested && (
+            <Button variant="outline" className="w-full rounded-[14px]" asChild>
+              <a href={setupUrl} target="_blank" rel="noreferrer">
+                Crear DesignLab1
               </a>
             </Button>
           )}
