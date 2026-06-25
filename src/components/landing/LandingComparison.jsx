@@ -9,13 +9,13 @@ const MESSAGES = [
 
 export default function LandingComparison() {
   return (
-    <section id="caracteristicas" className="px-4 md:px-6 py-16 md:py-20 max-w-5xl mx-auto text-center scroll-mt-16">
+    <section id="caracteristicas" className="px-4 md:px-6 py-16 md:py-20 max-w-5xl mx-auto text-center">
       <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
         Más simple que las herramientas complejas.
       </h2>
 
       <div className="mt-8 flex flex-col items-center gap-4">
-        <span className="px-8 py-3 rounded-xl brand-gradient text-white text-lg font-bold shadow-sm">
+        <span className="px-8 py-3 rounded-xl gradient-premium text-white text-lg font-bold shadow-sm hover:scale-[1.02] transition-transform">
           Workflow Radar
         </span>
       </div>

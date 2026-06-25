@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import WhatsAppFloating from "@/components/WhatsAppFloating";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 import LandingHero from "@/components/landing/LandingHero";
 import LandingComparison from "@/components/landing/LandingComparison";
@@ -12,6 +13,7 @@ import LandingFeatures from "@/components/landing/LandingFeatures";
 import LandingProcesses from "@/components/landing/LandingProcesses";
 import LandingPlans from "@/components/landing/LandingPlans";
 import LandingDemo from "@/components/landing/LandingDemo";
+import ScrollAnimations from "@/components/landing/ScrollAnimations";
 
 export default function Landing() {
   const [form, setForm] = useState({
@@ -44,6 +46,16 @@ export default function Landing() {
     scrollTo("demo");
   };
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -72,10 +84,16 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen gradient-mesh text-foreground">
+    <div className="min-h-screen mesh-bg text-foreground">
+      <ScrollAnimations />
 
       {/* ── HEADER ── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className={cn(
+        "sticky top-0 z-50 border-b transition-all duration-300",
+        scrolled
+          ? "glass-premium border-border shadow-sm"
+          : "bg-transparent border-transparent"
+      )}>
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 md:px-6 h-14">
           <span className="text-sm font-semibold tracking-tight text-foreground">Workflow Radar</span>
           <nav className="hidden md:flex items-center gap-7">
@@ -86,14 +104,14 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <Link to="/seleccionar-empresa">
-                <Button variant="ghost" size="sm" className="h-8 text-xs">Elegir empresa</Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs hover:scale-[1.02] transition-transform">Elegir empresa</Button>
               </Link>
             ) : (
               <Link to="/acceso">
-                <Button variant="ghost" size="sm" className="h-8 text-xs">Iniciar sesión</Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs hover:scale-[1.02] transition-transform">Iniciar sesión</Button>
               </Link>
             )}
-            <Button size="sm" className="h-8 text-xs rounded-[12px]" onClick={() => scrollTo("demo")}>
+            <Button size="sm" className="h-8 text-xs rounded-[12px] hover:scale-[1.02] transition-transform" onClick={() => scrollTo("demo")}>
               Solicitar demo
             </Button>
           </div>

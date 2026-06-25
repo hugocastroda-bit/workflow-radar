@@ -9,18 +9,18 @@ export default function LandingDemo({
   onFormChange, onSubmit,
 }) {
   return (
-    <section id="demo" className="px-4 md:px-6 py-20 md:py-32 max-w-3xl mx-auto text-center scroll-mt-16">
+    <section id="demo" className="px-4 md:px-6 py-20 md:py-32 max-w-3xl mx-auto text-center scroll-mt-16 reveal-up">
       <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
         Pruébalo.
         <br />
-        <span className="brand-gradient-text">Compáralo.</span>
+        <span className="gradient-premium-text">Compáralo.</span>
       </h2>
       <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-md mx-auto">
         La mejor forma de conocer Workflow Radar es utilizándolo.
       </p>
 
       {formSent ? (
-        <div className="mt-12 bg-card border border-border rounded-2xl p-8 max-w-md mx-auto">
+        <div className="mt-12 bg-card border border-border rounded-2xl p-8 max-w-md mx-auto animate-scale-in">
           <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
             <Check className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
           </div>
@@ -28,7 +28,7 @@ export default function LandingDemo({
           <p className="text-sm text-muted-foreground mt-1">Te contactaremos para coordinar tu demo.</p>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="mt-12 bg-card border border-border rounded-2xl p-6 md:p-8 max-w-md mx-auto text-left space-y-4">
+        <form onSubmit={onSubmit} className="mt-12 bg-card border border-border rounded-2xl p-6 md:p-8 max-w-md mx-auto text-left space-y-4 shadow-apple hover:shadow-lg transition-shadow">
           {form.plan && (
             <div className="bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-lg text-center">
               Plan seleccionado: {form.plan}
@@ -57,7 +57,7 @@ export default function LandingDemo({
             <Textarea value={form.mensaje} onChange={(e) => onFormChange("mensaje", e.target.value)} placeholder="Cuéntanos sobre tu equipo..." className="mt-1" rows={3} />
           </div>
           {formError && <p className="text-sm text-destructive">{formError}</p>}
-          <Button type="submit" disabled={formLoading} className="w-full rounded-[14px] gap-1.5">
+          <Button type="submit" disabled={formLoading} className="w-full rounded-[14px] gap-1.5 gradient-premium hover:opacity-90 transition-opacity">
             {formLoading ? "Enviando..." : (<>Solicitar demo <ArrowRight className="h-4 w-4" /></>)}
           </Button>
         </form>
