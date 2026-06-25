@@ -41,7 +41,7 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, empresaActiva } = useAuth();
-  const isAdmin  = ["Owner", "Admin"].includes(empresaActiva?.rol);
+  const isAdmin  = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
   const isPlatformAdmin = user?.role === "admin";
   const visible  = NAV_ITEMS.filter((item) =>
     (!item.adminOnly || isAdmin) && (!item.platformAdminOnly || isPlatformAdmin)

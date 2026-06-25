@@ -86,10 +86,12 @@ function NotificacionesTab({ empresaActiva }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    base44.entities.ConfigNotificaciones.list().then(d => {
-      if (d.length > 0) { setConfig(d[0]); setConfigId(d[0].id); }
-      else setConfig({ notif_asignado: true, notif_bloqueado: true, notif_vencido: false, notif_cerrado: false });
-    });
+    base44.entities.ConfigNotificaciones.list()
+      .then(d => {
+        if (d.length > 0) { setConfig(d[0]); setConfigId(d[0].id); }
+        else setConfig({ notif_asignado: true, notif_bloqueado: true, notif_vencido: false, notif_cerrado: false });
+      })
+      .catch(() => setConfig({ notif_asignado: true, notif_bloqueado: true, notif_vencido: false, notif_cerrado: false }));
   }, []);
 
   const toggle = async (key) => {

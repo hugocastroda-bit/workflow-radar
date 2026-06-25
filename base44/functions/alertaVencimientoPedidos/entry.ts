@@ -9,11 +9,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Verificar config de notificaciones
-    const configs = await base44.asServiceRole.entities.ConfigNotificaciones.list();
-    const config = configs[0];
-    if (config && config.notif_vencido === false) {
-      return Response.json({ skipped: true, reason: 'Notificación de vencimiento desactivada' });
+    // Cargar todas las configs de notificaciones, indexadas por empresaId
+    const allConfigs = await base44.asServiceRole.entities.ConfigNotificaciones.list();
+    const configByEmpresa = {};
+    for (const c of allConfigs) {
+      if (c.empresaId) configByEmpresa[c.empresaId] = c;
     }
 
     // Calcular ventana: pedidos con fecha_requerida en las próximas 24 horas (desde ahora hasta mañana)
@@ -34,6 +34,9 @@ Deno.serve(async (req) => {
       if (!p.fecha_requerida) return false;
       if (!estadosActivos.includes(p.estado)) return false;
       if (!p.responsable) return false;
+      // Respetar config por empresa: si la empresa tiene notif_vencido desactivado, excluir
+      const cfg = p.empresaId ? configByEmpresa[p.empresaId] : null;
+      if (cfg && cfg.notif_vencido === false) return false;
       return p.fecha_requerida === hoyStr || p.fecha_requerida === mananaStr;
     });
 
@@ -75,6 +78,7 @@ Deno.serve(async (req) => {
       const email = emailMap[nombreNorm];
       if (!email) {
         await base44.asServiceRole.entities.NotificacionLog.create({
+          empresaId: pedido.empresaId,
           pedido_id: pedido.id,
           tipo: 'vencido',
           destinatario: '',
@@ -185,6 +189,7 @@ Deno.serve(async (req) => {
         });
 
         await base44.asServiceRole.entities.NotificacionLog.create({
+          empresaId: pedido.empresaId,
           pedido_id: pedido.id,
           tipo: 'vencido',
           destinatario: email,
@@ -195,6 +200,7 @@ Deno.serve(async (req) => {
         notificados++;
       } catch (emailErr) {
         await base44.asServiceRole.entities.NotificacionLog.create({
+          empresaId: pedido.empresaId,
           pedido_id: pedido.id,
           tipo: 'vencido',
           destinatario: email,

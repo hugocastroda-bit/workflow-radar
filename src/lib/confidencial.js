@@ -12,7 +12,7 @@ export function canVerConfidencial(pedido, user, empresaRol) {
   if (user.role === "admin") return true;
   // Owner/Admin a nivel empresa también pueden ver todo
   if (["Owner", "Admin"].includes(empresaRol)) return true;
-  if (pedido.created_by === user.email) return true;
+  if (pedido.created_by_id === user.id) return true;
   if (pedido.solicitante === user.full_name) return true;
   if (pedido.responsable === user.full_name) return true;
   return false;

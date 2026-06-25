@@ -280,12 +280,17 @@ export default function Bandeja() {
 
   const exportToExcel = async () => {
     setExporting(true);
-    const data = filtered.map(buildRow);
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedidos (filtrados)");
-    XLSX.writeFile(wb, `pedidos_filtrados_${new Date().toISOString().split("T")[0]}.xlsx`);
-    toast.success(`Exportados ${data.length} pedidos (vista filtrada)`);
+    try {
+      const data = filtered.map(buildRow);
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pedidos (filtrados)");
+      XLSX.writeFile(wb, `pedidos_filtrados_${new Date().toISOString().split("T")[0]}.xlsx`);
+      toast.success(`Exportados ${data.length} pedidos (vista filtrada)`);
+    } catch (err) {
+      console.error("[Bandeja] Error exportando:", err);
+      toast.error("No se pudo exportar el archivo.");
+    }
     setExporting(false);
   };
 
@@ -314,8 +319,13 @@ export default function Bandeja() {
   );
 
   const handleRefresh = async () => {
-    const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
-    setPedidos(filtrarConfidenciales(d, user, empresaActiva?.rol));
+    try {
+      const d = await base44.entities.Pedido.filter({ archivado: false }, "-created_date");
+      setPedidos(filtrarConfidenciales(d, user, empresaActiva?.rol));
+    } catch (err) {
+      console.error("[Bandeja] Error refrescando:", err);
+      toast.error("No se pudieron cargar los pedidos.");
+    }
   };
 
   return (

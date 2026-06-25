@@ -141,19 +141,24 @@ export default function CargaMasiva() {
     setResult(null);
     const reader = new FileReader();
     reader.onload = (e) => {
-      const wb = XLSX.read(e.target.result, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      try {
+        const wb = XLSX.read(e.target.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-      const parsed = data.map((rawRow, idx) => {
-        const row = {};
-        for (const col of COLS) {
-          row[col] = (rawRow[col] || "").toString().trim();
-        }
-        const { errors, warnings, errorFields } = validateRow(row, idx, catalogs, existingPedidos);
-        return { ...row, _idx: idx + 2, _errors: errors, _warnings: warnings, _errorFields: errorFields, _skip: false };
-      });
-      setRows(parsed);
+        const parsed = data.map((rawRow, idx) => {
+          const row = {};
+          for (const col of COLS) {
+            row[col] = (rawRow[col] || "").toString().trim();
+          }
+          const { errors, warnings, errorFields } = validateRow(row, idx, catalogs, existingPedidos);
+          return { ...row, _idx: idx + 2, _errors: errors, _warnings: warnings, _errorFields: errorFields, _skip: false };
+        });
+        setRows(parsed);
+      } catch (err) {
+        console.error("[CargaMasiva] Error reading file:", err);
+        toast.error("No se pudo leer el archivo. Verifica que sea un Excel o CSV válido.");
+      }
     };
     reader.readAsArrayBuffer(file);
   };

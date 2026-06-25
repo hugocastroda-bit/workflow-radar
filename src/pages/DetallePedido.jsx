@@ -294,7 +294,7 @@ export default function DetallePedido() {
       await base44.entities.Pedido.delete(id);
       toast.success("Pedido borrado correctamente");
       eventBus.emit('pedidoEliminado', id);
-      navigate("/");
+      navigate("/bandeja");
     } catch {
       toast.error("No se pudo borrar el pedido. Inténtalo nuevamente.");
     }

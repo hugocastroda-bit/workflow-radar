@@ -238,12 +238,17 @@ export default function Kanban() {
 
   const handleDuplicate = async (pedido) => {
     if (!isAdmin) { toast.error("No tienes permisos para duplicar pedidos."); return; }
-    const { id, created_date, updated_date, archivado, fecha_archivado, archivado_por, motivo_archivo, ...datos } = pedido;
-    const nuevo = { ...datos, empresaId: empresaActiva?.empresaId, titulo: `${pedido.titulo} (copia)`, archivado: false };
-    const creado = await base44.entities.Pedido.create(nuevo);
-    queryClient.setQueryData(QUERY_KEY, (prev = []) => [creado, ...prev]);
-    eventBus.emit('pedidoCreado', creado);
-    toast.success("Tarjeta duplicada correctamente");
+    try {
+      const { id, created_date, updated_date, archivado, fecha_archivado, archivado_por, motivo_archivo, ...datos } = pedido;
+      const nuevo = { ...datos, empresaId: empresaActiva?.empresaId, titulo: `${pedido.titulo} (copia)`, archivado: false };
+      const creado = await base44.entities.Pedido.create(nuevo);
+      queryClient.setQueryData(QUERY_KEY, (prev = []) => [creado, ...prev]);
+      eventBus.emit('pedidoCreado', creado);
+      toast.success("Tarjeta duplicada correctamente");
+    } catch (err) {
+      console.error("[Kanban] Error duplicando:", err);
+      toast.error("No se pudo duplicar el pedido.");
+    }
   };
 
   const handleConfidencial = async (motivo) => {
