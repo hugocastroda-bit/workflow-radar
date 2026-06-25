@@ -151,9 +151,10 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
           empresaId: empresa.id,
           email,
           rol: inviteRol,
+          appUrl: window.location.origin,
         });
       }
-      toast.success(yaExiste ? "Usuario asignado a la empresa." : "Invitación enviada. Contraseña por defecto: prueba1234");
+      toast.success(yaExiste ? "Usuario asignado a la empresa." : "Invitación enviada por correo. El usuario debe registrarse con la contraseña por defecto prueba1234 y quedará asignado automáticamente.");
       setInviteEmail("");
       setInviteRol("User");
       load();

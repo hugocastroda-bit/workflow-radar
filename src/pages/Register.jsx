@@ -39,6 +39,12 @@ export default function Register() {
     try {
       const res = await base44.auth.verifyOtp({ email, otpCode });
       base44.auth.setToken(res.access_token);
+      // Process any pending company invitations for this email
+      try {
+        await base44.functions.invoke('procesarInvitacionesPendientes', {});
+      } catch (e) {
+        console.warn('Error procesando invitaciones pendientes:', e);
+      }
       window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Codigo incorrecto");

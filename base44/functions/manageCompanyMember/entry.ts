@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, empresaId, usuarioId, membresiaId, rol, estado, email } = await req.json();
+    const { action, empresaId, usuarioId, membresiaId, rol, estado, email, appUrl } = await req.json();
     if (!action || !empresaId) {
       return Response.json({ error: 'action and empresaId are required' }, { status: 400 });
     }
@@ -45,10 +45,11 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Valid email is required' }, { status: 400 });
       }
       const companyRole = ALLOWED_ROLES.has(rol) ? rol : 'User';
-      await base44.users.inviteUser(normalizedEmail, 'user');
       const users = await base44.asServiceRole.entities.User.list();
       const invitedUser = users.find((u) => String(u.email || '').toLowerCase() === normalizedEmail);
+
       if (invitedUser) {
+        // User already exists — assign directly to the company
         const existing = await base44.asServiceRole.entities.UsuarioEmpresa.filter({
           usuarioId: invitedUser.id,
           empresaId,
@@ -63,8 +64,60 @@ Deno.serve(async (req) => {
             asignadoPor: user.email || user.id,
           });
         }
+        return Response.json({ success: true, existed: true });
       }
-      return Response.json({ success: true });
+
+      // User doesn't exist — create a pending invitation and send a custom email
+      // so the invitee registers with the default password (prueba1234) and is
+      // auto-assigned to the company upon registration.
+      const existingPendiente = await base44.asServiceRole.entities.InvitacionPendiente.filter({
+        email: normalizedEmail,
+        empresaId,
+        estado: 'Pendiente',
+      });
+      if (existingPendiente.length === 0) {
+        await base44.asServiceRole.entities.InvitacionPendiente.create({
+          email: normalizedEmail,
+          empresaId,
+          rol: companyRole,
+          estado: 'Pendiente',
+          fechaInvitacion: new Date().toISOString().split('T')[0],
+          invitadoPor: user.email || user.id,
+        });
+      }
+
+      const empresa = await base44.asServiceRole.entities.Empresa.get(empresaId);
+      const nombreEmpresa = empresa?.nombreEmpresa || 'la empresa';
+      const origin = String(appUrl || '').trim().replace(/\/$/, '');
+      const registerUrl = origin
+        ? `${origin}/register?email=${encodeURIComponent(normalizedEmail)}`
+        : `/register?email=${encodeURIComponent(normalizedEmail)}`;
+
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: normalizedEmail,
+          subject: `Invitación a Workflow Radar — ${nombreEmpresa}`,
+          body: [
+            `Hola,`,
+            ``,
+            `${user.full_name || user.email} te ha invitado a unirte a ${nombreEmpresa} en Workflow Radar.`,
+            ``,
+            `Para activar tu cuenta:`,
+            `1. Ingresa a ${registerUrl}`,
+            `2. Regístrate con tu correo ${normalizedEmail}`,
+            `3. Usa la contraseña por defecto: prueba1234`,
+            ``,
+            `Una vez registrado, quedarás automáticamente asignado a la empresa.`,
+            ``,
+            `Saludos,`,
+            `Equipo Workflow Radar`,
+          ].join('\n'),
+        });
+      } catch (emailErr) {
+        console.error('[manageCompanyMember] SendEmail error:', emailErr);
+      }
+
+      return Response.json({ success: true, invited: true });
     }
 
     if (action === 'assign') {

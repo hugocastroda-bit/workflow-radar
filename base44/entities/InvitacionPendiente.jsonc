@@ -1,0 +1,69 @@
+{
+  "name": "InvitacionPendiente",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "title": "Email invitado"
+    },
+    "empresaId": {
+      "type": "string",
+      "title": "ID de la empresa"
+    },
+    "rol": {
+      "type": "string",
+      "title": "Rol asignado",
+      "enum": [
+        "Owner",
+        "Admin",
+        "User"
+      ],
+      "default": "User"
+    },
+    "estado": {
+      "type": "string",
+      "title": "Estado",
+      "enum": [
+        "Pendiente",
+        "Asignada"
+      ],
+      "default": "Pendiente"
+    },
+    "fechaInvitacion": {
+      "type": "string",
+      "format": "date",
+      "title": "Fecha de invitacion"
+    },
+    "invitadoPor": {
+      "type": "string",
+      "title": "Invitado por"
+    }
+  },
+  "required": [
+    "email",
+    "empresaId",
+    "rol"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
