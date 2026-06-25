@@ -14,8 +14,10 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await base44.auth.resetPasswordRequest(email);
-    } catch {}
+      await base44.auth.resetPasswordRequest(email.trim().toLowerCase());
+    } catch (err) {
+      console.error("[ForgotPassword] resetPasswordRequest error:", err);
+    }
     setSent(true);
     setLoading(false);
   };
