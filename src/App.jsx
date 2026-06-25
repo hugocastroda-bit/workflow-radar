@@ -14,7 +14,6 @@ import Kanban from './pages/Kanban';
 import Dashboard from './pages/Dashboard';
 import DetallePedido from './pages/DetallePedido';
 import Configuracion from './pages/Configuracion';
-import Empresas from './pages/Empresas';
 import CargaMasiva from './pages/CargaMasiva';
 import Archivados from './pages/Archivados';
 import Diagnostico from './pages/Diagnostico';
@@ -23,6 +22,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import AccesoEmpresa from './pages/AccesoEmpresa';
 import SeleccionarEmpresa from './pages/SeleccionarEmpresa';
+import OwnerAdmin from './pages/OwnerAdmin';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -63,7 +63,7 @@ const AuthenticatedApp = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pedido/:id" element={<DetallePedido />} />
           <Route path="/configuracion" element={<Configuracion />} />
-          <Route path="/empresas" element={<Empresas />} />
+          <Route path="/owner" element={<OwnerAdmin />} />
           <Route path="/carga-masiva" element={<CargaMasiva />} />
           <Route path="/archivados" element={<Archivados />} />
           <Route path="/diagnostico" element={<Diagnostico />} />

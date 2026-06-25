@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ResponsableEditModal from "@/components/ResponsableEditModal";
-import EmpresasTab from "@/components/EmpresasTab";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +78,6 @@ const TABS = [
   { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "prioridades" },
   { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
   { key: "usuarios", label: "Usuarios", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null, ownerOnly: true },
-  { key: "empresas", label: "Empresas", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null, platformAdminOnly: true },
 ];
 
 function NotificacionesTab({ empresaActiva }) {
@@ -1253,8 +1251,6 @@ export default function Configuracion() {
         <NotificacionesTab empresaActiva={empresaActiva} />
       ) : safeActiveTab === "usuarios" ? (
         <UsuariosTab empresaActiva={empresaActiva} />
-      ) : safeActiveTab === "empresas" ? (
-        <EmpresasTab />
       ) : (
         <CatalogoTab
           key={safeActiveTab}
