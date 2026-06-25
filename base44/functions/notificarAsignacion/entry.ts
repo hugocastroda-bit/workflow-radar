@@ -1,5 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -18,8 +27,12 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Sin responsable asignado' });
     }
 
+    if (!pedido?.empresaId) {
+      return Response.json({ skipped: true, reason: 'Sin empresa asociada' });
+    }
+
     // Verificar si notificaciones de asignación están activas
-    const configs = await base44.asServiceRole.entities.ConfigNotificaciones.list();
+    const configs = await base44.asServiceRole.entities.ConfigNotificaciones.filter({ empresaId: pedido.empresaId });
     const config = configs[0];
     if (config && config.notif_asignado === false) {
       return Response.json({ skipped: true, reason: 'Notificación de asignación desactivada' });
@@ -29,7 +42,7 @@ Deno.serve(async (req) => {
     const nombreResponsable = pedido.responsable?.split(' — ')[0]?.trim()?.toUpperCase();
 
     // Buscar el responsable con comparación insensible a mayúsculas
-    const todosResponsables = await base44.asServiceRole.entities.Responsable.list();
+    const todosResponsables = await base44.asServiceRole.entities.Responsable.filter({ empresaId: pedido.empresaId });
     const responsable = todosResponsables.find(r =>
       r.nombre?.trim()?.toUpperCase() === nombreResponsable
     );
@@ -48,7 +61,12 @@ Deno.serve(async (req) => {
       : 'No especificada';
 
     const prioridadColor = pedido.prioridad === 'Alta' ? '#FF3B30' : pedido.prioridad === 'Media' ? '#FF9500' : '#34C759';
-    const nombreCorto = pedido.responsable?.split(' ')[0] || pedido.responsable;
+    const nombreCorto = escapeHtml(pedido.responsable?.split(' ')[0] || pedido.responsable);
+    const titulo = escapeHtml(pedido.titulo);
+    const solicitante = escapeHtml(pedido.solicitante || '—');
+    const proceso = escapeHtml(pedido.proceso || '—');
+    const prioridad = escapeHtml(pedido.prioridad || '—');
+    const descripcion = escapeHtml(pedido.descripcion);
 
     const htmlBody = `<!DOCTYPE html>
 <html lang="es">
@@ -73,33 +91,33 @@ Deno.serve(async (req) => {
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;margin-bottom:24px;">
             <tr><td style="padding:20px 24px;border-bottom:1px solid #E5E7EB;">
               <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;">Pedido</p>
-              <p style="margin:0;font-size:17px;font-weight:700;color:#111827;">${pedido.titulo}</p>
+              <p style="margin:0;font-size:17px;font-weight:700;color:#111827;">${titulo}</p>
             </td></tr>
             <tr><td style="padding:16px 24px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td width="50%" style="padding:6px 0;vertical-align:top;">
                     <p style="margin:0 0 2px;font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;">Solicitante</p>
-                    <p style="margin:0;font-size:14px;color:#374151;font-weight:500;">${pedido.solicitante || '—'}</p>
+                    <p style="margin:0;font-size:14px;color:#374151;font-weight:500;">${solicitante}</p>
                   </td>
                   <td width="50%" style="padding:6px 0;vertical-align:top;">
                     <p style="margin:0 0 2px;font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;">Proceso</p>
-                    <p style="margin:0;font-size:14px;color:#374151;font-weight:500;">${pedido.proceso || '—'}</p>
+                    <p style="margin:0;font-size:14px;color:#374151;font-weight:500;">${proceso}</p>
                   </td>
                 </tr>
                 <tr>
                   <td width="50%" style="padding:10px 0 6px;vertical-align:top;">
                     <p style="margin:0 0 2px;font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;">Prioridad</p>
-                    <span style="display:inline-block;padding:3px 10px;border-radius:20px;background-color:${prioridadColor}18;color:${prioridadColor};font-size:13px;font-weight:600;">${pedido.prioridad || '—'}</span>
+                    <span style="display:inline-block;padding:3px 10px;border-radius:20px;background-color:${prioridadColor}18;color:${prioridadColor};font-size:13px;font-weight:600;">${prioridad}</span>
                   </td>
                   <td width="50%" style="padding:10px 0 6px;vertical-align:top;">
                     <p style="margin:0 0 2px;font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;">Fecha requerida</p>
                     <p style="margin:0;font-size:14px;color:#374151;font-weight:500;">${fechaRequerida}</p>
                   </td>
                 </tr>
-                ${pedido.descripcion ? `<tr><td colspan="2" style="padding:10px 0 6px;vertical-align:top;">
+                ${descripcion ? `<tr><td colspan="2" style="padding:10px 0 6px;vertical-align:top;">
                   <p style="margin:0 0 2px;font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;">Descripción</p>
-                  <p style="margin:0;font-size:14px;color:#374151;line-height:1.5;">${pedido.descripcion}</p>
+                  <p style="margin:0;font-size:14px;color:#374151;line-height:1.5;">${descripcion}</p>
                 </td></tr>` : ''}
               </table>
             </td></tr>
@@ -121,12 +139,13 @@ Deno.serve(async (req) => {
 
     await base44.integrations.Core.SendEmail({
       to: responsable.email,
-      subject: `Nuevo pedido asignado: ${pedido.titulo}`,
+      subject: `Nuevo pedido asignado: ${pedido.titulo || ''}`,
       body: htmlBody,
     });
 
     // Registrar log
     await base44.asServiceRole.entities.NotificacionLog.create({
+      empresaId: pedido.empresaId,
       pedido_id: pedidoId,
       tipo: 'asignado',
       destinatario: responsable.email,
@@ -142,8 +161,9 @@ Deno.serve(async (req) => {
     try {
       const base44 = createClientFromRequest(req);
       const body = await req.json().catch(() => ({}));
-      if (body?.event?.entity_id) {
+      if (body?.event?.entity_id && body?.data?.empresaId) {
         await base44.asServiceRole.entities.NotificacionLog.create({
+          empresaId: body.data.empresaId,
           pedido_id: body.event.entity_id,
           tipo: 'asignado',
           destinatario: '',

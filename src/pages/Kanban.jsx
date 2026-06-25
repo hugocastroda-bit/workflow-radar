@@ -48,7 +48,7 @@ export default function Kanban() {
   const [confidencialTarget, setConfidencialTarget] = useState(null);
   const [savingConf, setSavingConf] = useState(false);
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const scrollRef = useRef(null);

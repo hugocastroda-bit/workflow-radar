@@ -3,15 +3,15 @@
  * Si el pedido NO es confidencial, siempre retorna true.
  * @param {object} pedido
  * @param {object} user - objeto user de base44.auth.me()
- * @param {string} [empresaRol] - rol del usuario en la empresa activa ("Admin" | "User")
+ * @param {string} [empresaRol] - rol del usuario en la empresa activa ("Owner" | "Admin" | "User")
  */
 export function canVerConfidencial(pedido, user, empresaRol) {
   if (!pedido.confidencial) return true;
   if (!user) return false;
   // Admin global puede ver todo
   if (user.role === "admin") return true;
-  // Admin a nivel empresa también puede ver todo
-  if (empresaRol === "Admin") return true;
+  // Owner/Admin a nivel empresa también pueden ver todo
+  if (["Owner", "Admin"].includes(empresaRol)) return true;
   if (pedido.created_by === user.email) return true;
   if (pedido.solicitante === user.full_name) return true;
   if (pedido.responsable === user.full_name) return true;

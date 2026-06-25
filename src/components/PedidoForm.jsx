@@ -61,7 +61,7 @@ const emptyForm = {
 
 export default function PedidoForm({ open, onClose, pedido, onSaved }) {
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [catalogs, setCatalogs] = useState({});

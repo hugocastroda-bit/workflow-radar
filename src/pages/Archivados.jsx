@@ -15,7 +15,7 @@ import { eventBus } from "@/lib/eventBus";
 export default function Archivados() {
   const navigate = useNavigate();
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
 
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);

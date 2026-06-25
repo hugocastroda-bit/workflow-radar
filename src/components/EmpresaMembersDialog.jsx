@@ -7,6 +7,12 @@ import { Loader2, Link2, Unlink, Search, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
+const COMPANY_ROLE_OPTIONS = [
+  { value: "Owner", label: "Owner" },
+  { value: "Admin", label: "Admin" },
+  { value: "User", label: "Usuario" },
+];
+
 export default function EmpresaMembersDialog({ empresa, open, onClose }) {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,10 +27,12 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     if (!empresa) return;
     setLoading(true);
     try {
-      const [todosUsuarios, membresias] = await Promise.all([
-        base44.entities.User.list(),
-        base44.entities.UsuarioEmpresa.filter({ empresaId: empresa.id }),
-      ]);
+      const result = await base44.functions.invoke('manageCompanyMember', {
+        action: 'list',
+        empresaId: empresa.id,
+      });
+      const todosUsuarios = result?.data?.users || result?.users || [];
+      const membresias = result?.data?.membresias || result?.membresias || [];
 
       const map = {};
       membresias.forEach(m => { map[m.usuarioId] = m; });
@@ -50,12 +58,11 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     const rol = rolSeleccionado[usuarioId] || "User";
     setAsignando(prev => ({ ...prev, [usuarioId]: true }));
     try {
-      await base44.entities.UsuarioEmpresa.create({
-        usuarioId,
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'assign',
         empresaId: empresa.id,
+        usuarioId,
         rol,
-        estado: "Activo",
-        fechaAsignacion: new Date().toISOString().split("T")[0],
       });
       toast.success("Usuario asignado.");
       load();
@@ -70,7 +77,11 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     if (!u?.membresia) return;
     setAsignando(prev => ({ ...prev, [usuarioId]: true }));
     try {
-      await base44.entities.UsuarioEmpresa.delete(u.membresia.id);
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'remove',
+        empresaId: empresa.id,
+        membresiaId: u.membresia.id,
+      });
       toast.success("Usuario removido.");
       load();
     } catch (err) {
@@ -83,7 +94,12 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     const u = usuarios.find(x => x.id === usuarioId);
     if (!u?.membresia) return;
     try {
-      await base44.entities.UsuarioEmpresa.update(u.membresia.id, { rol: nuevoRol });
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'updateRole',
+        empresaId: empresa.id,
+        membresiaId: u.membresia.id,
+        rol: nuevoRol,
+      });
       toast.success("Rol actualizado.");
       load();
     } catch (err) {
@@ -96,7 +112,12 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     if (!u?.membresia) return;
     const nuevoEstado = u.membresia.estado === "Activo" ? "Inactivo" : "Activo";
     try {
-      await base44.entities.UsuarioEmpresa.update(u.membresia.id, { estado: nuevoEstado });
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'updateEstado',
+        empresaId: empresa.id,
+        membresiaId: u.membresia.id,
+        estado: nuevoEstado,
+      });
       toast.success(`Usuario ${nuevoEstado === "Activo" ? "activado" : "desactivado"}.`);
       load();
     } catch (err) {
@@ -117,21 +138,19 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
     }
     setInviting(true);
     try {
-      let usuarioId = yaExiste?.id;
-      if (!usuarioId) {
-        const role = inviteRol === "Admin" ? "user" : "user";
-        await base44.users.inviteUser(email, role);
-        const todos = await base44.entities.User.list();
-        const nuevo = todos.find(u => (u.email || "").toLowerCase() === email);
-        usuarioId = nuevo?.id;
-      }
-      if (usuarioId) {
-        await base44.entities.UsuarioEmpresa.create({
-          usuarioId,
+      if (yaExiste?.id) {
+        await base44.functions.invoke('manageCompanyMember', {
+          action: 'assign',
           empresaId: empresa.id,
+          usuarioId: yaExiste.id,
           rol: inviteRol,
-          estado: "Activo",
-          fechaAsignacion: new Date().toISOString().split("T")[0],
+        });
+      } else {
+        await base44.functions.invoke('manageCompanyMember', {
+          action: 'invite',
+          empresaId: empresa.id,
+          email,
+          rol: inviteRol,
         });
       }
       toast.success(yaExiste ? "Usuario asignado a la empresa." : "Invitación enviada y usuario asignado.");
@@ -177,8 +196,9 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
                 <Select value={inviteRol} onValueChange={setInviteRol}>
                   <SelectTrigger className="h-9 w-[100px] text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="User" className="text-sm">Usuario</SelectItem>
-                    <SelectItem value="Admin" className="text-sm">Admin</SelectItem>
+                    {COMPANY_ROLE_OPTIONS.map((role) => (
+                      <SelectItem key={role.value} value={role.value} className="text-sm">{role.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Button size="sm" onClick={handleInvite} disabled={inviting} className="gap-1.5 shrink-0">
@@ -217,16 +237,18 @@ export default function EmpresaMembersDialog({ empresa, open, onClose }) {
                           <Select value={u.membresia.rol} onValueChange={v => handleCambiarRol(u.id, v)}>
                             <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="User" className="text-xs">Usuario</SelectItem>
-                              <SelectItem value="Admin" className="text-xs">Admin</SelectItem>
+                              {COMPANY_ROLE_OPTIONS.map((role) => (
+                                <SelectItem key={role.value} value={role.value} className="text-xs">{role.label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         ) : (
                           <Select value={rolSeleccionado[u.id] || "User"} onValueChange={v => setRolSeleccionado(prev => ({ ...prev, [u.id]: v }))}>
                             <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="User" className="text-xs">Usuario</SelectItem>
-                              <SelectItem value="Admin" className="text-xs">Admin</SelectItem>
+                              {COMPANY_ROLE_OPTIONS.map((role) => (
+                                <SelectItem key={role.value} value={role.value} className="text-xs">{role.label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         )}

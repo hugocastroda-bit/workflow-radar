@@ -62,7 +62,7 @@ export default function DetallePedido() {
   const [showConfidencial, setShowConfidencial] = useState(false);
   const [savingConf, setSavingConf] = useState(false);
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
   const [catalogs, setCatalogs] = useState({});
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
   const [historial, setHistorial] = useState([]);

@@ -147,12 +147,12 @@ export const AuthProvider = ({ children }) => {
 
   const setEmpresaActiva = async (empresaId, rol) => {
     try {
-      await base44.auth.updateMe({ active_empresa_id: empresaId });
-      const empresa = await base44.entities.Empresa.get(empresaId);
-      setEmpresaActivaState({
+      const result = await base44.functions.invoke('setActiveEmpresa', { empresaId });
+      const activeEmpresa = result?.data || result;
+      setEmpresaActivaState(activeEmpresa || {
         empresaId,
-        nombre: empresa?.nombreEmpresa || "Empresa",
-        plan: empresa?.plan || "Basic",
+        nombre: "Empresa",
+        plan: "Basic",
         rol,
       });
       // Update user in state

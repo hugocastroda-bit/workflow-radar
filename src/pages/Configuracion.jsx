@@ -12,6 +12,13 @@ import { toast } from "sonner";
 import { invalidateCatalogCache } from "@/components/PedidoForm";
 import * as XLSX from "xlsx";
 import { invalidateAllCache } from "@/lib/catalog-cache";
+import { canManageCompanyUsers } from "@/lib/roles";
+
+const COMPANY_ROLE_OPTIONS = [
+  { value: "Owner", label: "Owner" },
+  { value: "Admin", label: "Admin" },
+  { value: "User", label: "Usuario" },
+];
 
 const BULK_CONFIG = {
   solicitantes: {
@@ -71,7 +78,7 @@ const TABS = [
   { key: "Proceso",      label: "Procesos",      extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "procesos" },
   { key: "Prioridad",    label: "Prioridades",   extra: null,          extraLabel: null,            extra2: null,    extraLabel2: null, bulkType: "prioridades" },
   { key: "notificaciones", label: "Notificaciones", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
-  { key: "usuarios", label: "Usuarios", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null },
+  { key: "usuarios", label: "Usuarios", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null, ownerOnly: true },
   { key: "empresas", label: "Empresas", extra: null, extraLabel: null, extra2: null, extraLabel2: null, bulkType: null, platformAdminOnly: true },
 ];
 
@@ -155,13 +162,17 @@ function UsuariosTab({ empresaActiva }) {
   const load = async () => {
     setLoading(true);
     try {
-      const [todosUsuarios, membresias, todasEmpresas] = await Promise.all([
-        base44.entities.User.list(),
-        base44.entities.UsuarioEmpresa.filter({ empresaId: empresaActiva?.empresaId }),
+      const [memberResult, todasEmpresas] = await Promise.all([
+        base44.functions.invoke('manageCompanyMember', {
+          action: 'list',
+          empresaId: empresaActiva?.empresaId,
+        }),
         base44.entities.Empresa.list(),
       ]);
 
       setEmpresas(todasEmpresas);
+      const todosUsuarios = memberResult?.data?.users || memberResult?.users || [];
+      const membresias = memberResult?.data?.membresias || memberResult?.membresias || [];
 
       const membresiaIds = new Set(membresias.map(m => m.usuarioId));
 
@@ -190,9 +201,15 @@ function UsuariosTab({ empresaActiva }) {
     if (!email.trim()) { toast.error("Ingresa un correo electrónico."); return; }
     setInvitando(true);
     try {
-      await base44.users.inviteUser(email.trim(), rolInvitacion === "Admin" ? "admin" : "user");
-      toast.success(`Invitación enviada a ${email.trim()}. Asígnale una empresa cuando acepte.`);
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'invite',
+        empresaId: empresaActiva?.empresaId,
+        email: email.trim(),
+        rol: rolInvitacion,
+      });
+      toast.success(`Invitación enviada a ${email.trim()}.`);
       setEmail("");
+      load();
     } catch (err) {
       toast.error("No se pudo enviar la invitación. Verifica el correo.");
     }
@@ -202,12 +219,11 @@ function UsuariosTab({ empresaActiva }) {
   const handleAsignar = async (usuarioId) => {
     setAsignando(prev => ({ ...prev, [usuarioId]: true }));
     try {
-      await base44.entities.UsuarioEmpresa.create({
-        usuarioId,
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'assign',
         empresaId: empresaActiva?.empresaId,
+        usuarioId,
         rol: rolAsignar,
-        estado: "Activo",
-        fechaAsignacion: new Date().toISOString().split("T")[0],
       });
       toast.success("Usuario asignado a la empresa.");
       setAsignarOpen(null);
@@ -223,7 +239,11 @@ function UsuariosTab({ empresaActiva }) {
     if (!usuario?.membresiaEmpresa) return;
     setAsignando(prev => ({ ...prev, [usuarioId]: true }));
     try {
-      await base44.entities.UsuarioEmpresa.delete(usuario.membresiaEmpresa.id);
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'remove',
+        empresaId: empresaActiva?.empresaId,
+        membresiaId: usuario.membresiaEmpresa.id,
+      });
       toast.success("Usuario removido de la empresa.");
       load();
     } catch (err) {
@@ -237,7 +257,12 @@ function UsuariosTab({ empresaActiva }) {
     if (!usuario?.membresiaEmpresa) return;
     const nuevoEstado = usuario.estadoEnEmpresa === "Activo" ? "Inactivo" : "Activo";
     try {
-      await base44.entities.UsuarioEmpresa.update(usuario.membresiaEmpresa.id, { estado: nuevoEstado });
+      await base44.functions.invoke('manageCompanyMember', {
+        action: 'updateEstado',
+        empresaId: empresaActiva?.empresaId,
+        membresiaId: usuario.membresiaEmpresa.id,
+        estado: nuevoEstado,
+      });
       toast.success(`Usuario ${nuevoEstado === "Activo" ? "activado" : "desactivado"}.`);
       load();
     } catch (err) {
@@ -267,8 +292,9 @@ function UsuariosTab({ empresaActiva }) {
           <Select value={rolInvitacion} onValueChange={setRolInvitacion}>
             <SelectTrigger className="h-9 w-[120px] text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="User" className="text-sm">Usuario</SelectItem>
-              <SelectItem value="Admin" className="text-sm">Admin</SelectItem>
+              {COMPANY_ROLE_OPTIONS.map((role) => (
+                <SelectItem key={role.value} value={role.value} className="text-sm">{role.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button type="submit" disabled={invitando || !email.trim()} className="gap-1.5 h-9">
@@ -309,7 +335,7 @@ function UsuariosTab({ empresaActiva }) {
                   <td className="px-4 py-3 text-muted-foreground text-xs">{u.email}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      u.rolEnEmpresa === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                      ["Owner", "Admin"].includes(u.rolEnEmpresa) ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
                     }`}>{u.rolEnEmpresa}</span>
                   </td>
                   <td className="px-4 py-3">
@@ -385,8 +411,9 @@ function UsuariosTab({ empresaActiva }) {
                           <Select value={rolAsignar} onValueChange={setRolAsignar}>
                             <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="User" className="text-xs">Usuario</SelectItem>
-                              <SelectItem value="Admin" className="text-xs">Admin</SelectItem>
+                              {COMPANY_ROLE_OPTIONS.map((role) => (
+                                <SelectItem key={role.value} value={role.value} className="text-xs">{role.label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <button onClick={() => handleAsignar(u.id)}
@@ -1176,8 +1203,14 @@ function DeleteAccountSection() {
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Solicitante");
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
-  const tab = TABS.find(t => t.key === activeTab);
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
+  const canManageUsers = canManageCompanyUsers(user, empresaActiva);
+  const visibleTabs = TABS.filter(t =>
+    (!t.platformAdminOnly || user?.role === "admin") &&
+    (!t.ownerOnly || canManageUsers)
+  );
+  const safeActiveTab = visibleTabs.some(t => t.key === activeTab) ? activeTab : visibleTabs[0]?.key;
+  const tab = TABS.find(t => t.key === safeActiveTab);
 
   if (!isAdmin) {
     return (
@@ -1185,7 +1218,7 @@ export default function Configuracion() {
         <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
           <ShieldOff className="h-8 w-8 text-muted-foreground/40" />
           <p className="text-sm font-medium text-foreground">No tienes permisos para ver la configuración.</p>
-          <p className="text-xs text-muted-foreground">Solo los usuarios Admin pueden gestionar la configuración.</p>
+          <p className="text-xs text-muted-foreground">Solo usuarios Owner o Admin pueden gestionar la configuración.</p>
         </div>
         <DeleteAccountSection />
       </div>
@@ -1201,12 +1234,12 @@ export default function Configuracion() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border overflow-x-auto">
-        {TABS.filter(t => !t.platformAdminOnly || user?.role === "admin").map(t => (
+        {visibleTabs.map(t => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
             className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === t.key
+              safeActiveTab === t.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
@@ -1216,15 +1249,15 @@ export default function Configuracion() {
         ))}
       </div>
 
-      {activeTab === "notificaciones" ? (
+      {safeActiveTab === "notificaciones" ? (
         <NotificacionesTab empresaActiva={empresaActiva} />
-      ) : activeTab === "usuarios" ? (
+      ) : safeActiveTab === "usuarios" ? (
         <UsuariosTab empresaActiva={empresaActiva} />
-      ) : activeTab === "empresas" ? (
+      ) : safeActiveTab === "empresas" ? (
         <EmpresasTab />
       ) : (
         <CatalogoTab
-          key={activeTab}
+          key={safeActiveTab}
           entityKey={tab.key}
           extraField={tab.extra}
           extraLabel={tab.extraLabel}

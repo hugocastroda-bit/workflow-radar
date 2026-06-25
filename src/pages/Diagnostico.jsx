@@ -34,7 +34,7 @@ function Section({ title, children }) {
 
 export default function Diagnostico() {
   const { user, empresaActiva } = useAuth();
-  const isAdmin = user?.role === "admin" || empresaActiva?.rol === "Admin";
+  const isAdmin = user?.role === "admin" || ["Owner", "Admin"].includes(empresaActiva?.rol);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
