@@ -23,7 +23,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
@@ -46,7 +46,7 @@ export default function ForgotPassword() {
             </p>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            <Link to="/login" className="text-[#3B82F6] hover:underline">Volver al inicio de sesion</Link>
+            <Link to="/login" className="text-primary hover:underline">Volver al inicio de sesion</Link>
           </p>
         </div>
       </div>

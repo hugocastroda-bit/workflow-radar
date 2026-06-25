@@ -42,7 +42,7 @@ export default function LandingPlans({ onSelectPlan }) {
       <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
         Planes simples.
       </h2>
-      <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
+      <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
         🎉 50% OFF lanzamiento · Precio fundador
       </div>
 
@@ -51,11 +51,11 @@ export default function LandingPlans({ onSelectPlan }) {
           <div
             key={plan.name}
             className={`bg-card border rounded-2xl p-6 flex flex-col relative ${
-              plan.destacado ? "border-[#8B5CF6] ring-2 ring-[#8B5CF6]/20" : "border-border"
+              plan.destacado ? "border-[#FF2D7E] ring-2 ring-[#FF2D7E]/20" : "border-border"
             }`}
           >
             {plan.destacado && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
                 Más popular
               </span>
             )}

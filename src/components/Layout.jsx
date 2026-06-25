@@ -64,7 +64,7 @@ export default function Layout() {
     <div className="h-[100dvh] w-full overflow-hidden bg-background flex">
 
       {/* ── Desktop Sidebar ───────────────────────────── */}
-      <aside className="hidden md:flex w-52 flex-col border-r border-border bg-white fixed inset-y-0 left-0 z-30 no-select">
+      <aside className="hidden md:flex w-52 flex-col border-r border-border bg-sidebar fixed inset-y-0 left-0 z-30 no-select">
         <div className="px-5 py-4 border-b border-border space-y-2">
           <div>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">WORKFLOW</p>
@@ -84,8 +84,8 @@ export default function Layout() {
               onClick={() => go(item.path)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 ${
                 isActive(item.path)
-                  ? "bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-medium shadow-sm shadow-[#4F46E5]/25"
-                  : "text-muted-foreground hover:bg-[#F1F5F9] hover:text-foreground"
+                  ? "bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white font-medium shadow-sm shadow-[#E91E63]/25"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -96,14 +96,14 @@ export default function Layout() {
         <div className="p-3 border-t border-border space-y-2">
           <Link
             to="/bandeja?crear=true"
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white shadow-sm shadow-[#4F46E5]/20 hover:shadow-md hover:shadow-[#4F46E5]/30 transition-all w-full"
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white shadow-sm shadow-[#E91E63]/20 hover:shadow-md hover:shadow-[#E91E63]/30 transition-all w-full"
           >
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
           </Link>
           <div className="space-y-1.5">
             <button
               onClick={() => base44.auth.logout(window.location.origin + "/")}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-[#F1F5F9] transition-colors w-full"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors w-full"
             >
               <LogOut className="h-3.5 w-3.5" /> Salir
             </button>

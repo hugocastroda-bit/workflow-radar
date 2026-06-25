@@ -81,10 +81,12 @@ module.exports = {
   				DEFAULT: '#10B981',
   				light: '#ECFDF5'
   			},
-  			/* Brand gradient stops */
+  			/* Brand gradient stops — magenta + mint */
   			brand: {
-  				start: '#4F46E5',
-  				end: '#8B5CF6',
+  				start: '#E91E63',
+  				end: '#3DDC97',
+  				magenta: '#FF2D7E',
+  				mint: '#00E5A0',
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',

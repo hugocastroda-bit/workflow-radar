@@ -32,7 +32,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>

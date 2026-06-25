@@ -52,7 +52,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FB] dark:bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
@@ -104,7 +104,7 @@ export default function Register() {
             </form>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            {"Ya tienes cuenta? "}<Link to={safeNextUrl ? `/login?next=${encodeURIComponent(safeNextUrl)}` : "/login"} className="text-[#3B82F6] hover:underline">Inicia sesion</Link>
+            {"Ya tienes cuenta? "}<Link to={safeNextUrl ? `/login?next=${encodeURIComponent(safeNextUrl)}` : "/login"} className="text-primary hover:underline">Inicia sesion</Link>
           </p>
         </div>
       </div>
