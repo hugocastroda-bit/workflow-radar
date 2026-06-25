@@ -3,34 +3,34 @@ import { Button } from "@/components/ui/button";
 
 const PLANS = [
   {
-    name: "Essential",
+    name: "Basic",
     usuarios: "Hasta 5 usuarios",
-    precio: "S/39",
-    porUsuario: "S/7.80 por usuario",
+    precio: "S/7.99",
+    porUsuario: "por usuario / mes",
     incluye: ["Bandeja de pedidos", "Kanban", "Dashboard básico", "Catálogos", "Archivados", "5 créditos mensuales"],
     destacado: false,
   },
   {
     name: "Team",
     usuarios: "Hasta 10 usuarios",
-    precio: "S/74",
-    porUsuario: "S/7.40 por usuario",
-    incluye: ["Todo Essential", "Time Box en minutos", "Riesgos y SLA", "Exportación Excel", "Carga masiva", "10 créditos mensuales"],
+    precio: "S/7.99",
+    porUsuario: "por usuario / mes",
+    incluye: ["Todo Basic", "Time Box en minutos", "Riesgos y SLA", "Exportación Excel", "Carga masiva", "10 créditos mensuales"],
     destacado: false,
   },
   {
     name: "Pro",
     usuarios: "Hasta 20 usuarios",
-    precio: "S/124",
-    porUsuario: "S/6.20 por usuario",
+    precio: "S/7.99",
+    porUsuario: "desde · por usuario / mes",
     incluye: ["Todo Team", "Dashboard ejecutivo", "Carga por responsable", "Reportes ejecutivos", "Soporte prioritario", "20 créditos mensuales"],
     destacado: true,
   },
   {
     name: "Business",
     usuarios: "Más de 20 usuarios",
-    precio: "S/199",
-    porUsuario: "Según cantidad de usuarios",
+    precio: null,
+    porUsuario: "Precio personalizado",
     incluye: ["Todo Pro", "Branding de empresa", "Configuración avanzada", "Reportes personalizados", "Acompañamiento mensual", "40 créditos mensuales"],
     destacado: false,
   },
@@ -65,11 +65,16 @@ export default function LandingPlans({ onSelectPlan }) {
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">{plan.usuarios}</p>
             <div className="mt-4 mb-4 pb-4 border-b border-border">
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs text-muted-foreground">Desde</span>
-                <span className="text-3xl font-bold text-foreground">{plan.precio}</span>
-                <span className="text-xs text-muted-foreground">/mes</span>
-              </div>
+              {plan.precio ? (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-foreground">{plan.precio}</span>
+                  <span className="text-xs text-muted-foreground">/mes</span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-foreground">Personalizado</span>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">{plan.porUsuario}</p>
             </div>
             <ul className="space-y-2.5 mb-6 flex-1">
