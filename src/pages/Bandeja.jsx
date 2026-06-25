@@ -614,24 +614,28 @@ export default function Bandeja() {
                       </TooltipProvider>
                     </td>
                     <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
-                      <Select
-                        value={p.estado}
-                        onValueChange={v => handleChangeEstado(p.id, v)}
-                        disabled={updatingEstado === p.id}
-                      >
-                        <SelectTrigger className="h-auto p-0 border-0 bg-transparent shadow-none focus:ring-0 w-auto gap-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground/50">
-                          <SelectValue>
-                            <StatusBadge status={p.estado} />
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ESTADOS.map(e => (
-                            <SelectItem key={e} value={e} className="text-xs">
-                              <StatusBadge status={e} />
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {isAdmin ? (
+                        <Select
+                          value={p.estado}
+                          onValueChange={v => handleChangeEstado(p.id, v)}
+                          disabled={updatingEstado === p.id}
+                        >
+                          <SelectTrigger className="h-auto p-0 border-0 bg-transparent shadow-none focus:ring-0 w-auto gap-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground/50">
+                            <SelectValue>
+                              <StatusBadge status={p.estado} />
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ESTADOS.map(e => (
+                              <SelectItem key={e} value={e} className="text-xs">
+                                <StatusBadge status={e} />
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <StatusBadge status={p.estado} />
+                      )}
                     </td>
                     <td className="px-3 py-3.5">
                       <div className="flex items-center gap-1.5">

@@ -6,6 +6,7 @@ import { Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { sanitizeText } from "@/lib/security";
+import { toast } from "sonner";
 
 export default function ComentariosHilo({ pedidoId }) {
   const { user, empresaActiva } = useAuth();
@@ -21,8 +22,11 @@ export default function ComentariosHilo({ pedidoId }) {
       .filter({ pedido_id: pedidoId }, "created_date")
       .then(data => {
         setComentarios(data);
-        setCargando(false);
-      });
+      })
+      .catch(err => {
+        console.error("[ComentariosHilo] Error cargando comentarios:", err);
+      })
+      .finally(() => setCargando(false));
   }, [pedidoId]);
 
   useEffect(() => {
@@ -44,10 +48,16 @@ export default function ComentariosHilo({ pedidoId }) {
       nombre_usuario: user?.full_name || user?.email || "Usuario",
       rol_usuario: user?.role === "admin" ? "admin" : "user",
     };
-    const guardado = await base44.entities.ComentarioPedido.create(nuevo);
-    setComentarios(prev => [...prev, guardado]);
-    setTexto("");
-    setEnviando(false);
+    try {
+      const guardado = await base44.entities.ComentarioPedido.create(nuevo);
+      setComentarios(prev => [...prev, guardado]);
+      setTexto("");
+    } catch (err) {
+      console.error("[ComentariosHilo] Error enviando comentario:", err);
+      toast.error("No se pudo enviar el comentario. Inténtalo nuevamente.");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const esPropio = (c) => c.created_by === user?.email;

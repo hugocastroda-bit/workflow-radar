@@ -12,7 +12,6 @@ export const eventBus = {
    * @param {any} data - Datos del evento
    */
   emit(eventName, data) {
-    console.log(`[EventBus] ${eventName}`, data);
     if (!listeners.has(eventName)) return;
     listeners.get(eventName).forEach(callback => {
       try {

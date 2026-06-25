@@ -80,19 +80,11 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
         recibe_notificaciones: form.recibe_notificaciones,
       };
 
-      console.log("[ResponsableEditModal] Updating responsable:", {
-        id: responsable.id,
-        data: updateData,
-      });
-
-      // UPDATE sobre el mismo ID, no crear nuevo
       const updated = await base44.entities.Responsable.update(
         responsable.id,
         updateData
       );
 
-      console.log("[ResponsableEditModal] Update success:", updated);
-      
       toast.success("Responsable actualizado correctamente.");
       invalidateCatalogCache();
       onSaved?.(updated);
@@ -102,6 +94,7 @@ export default function ResponsableEditModal({ open, onClose, responsable, onSav
       toast.error(
         err.message || "No se pudieron guardar los cambios. Inténtalo nuevamente."
       );
+    } finally {
       setSaving(false);
     }
   };

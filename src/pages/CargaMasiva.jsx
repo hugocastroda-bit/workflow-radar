@@ -10,6 +10,7 @@ import {
   REQUIRED_FIELDS as REQUIRED,
   ENUMS,
 } from "@/lib/pedidoConstants";
+import { toast } from "sonner";
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
@@ -205,18 +206,23 @@ export default function CargaMasiva() {
     const duplicateRows = rows.filter(r => !r._skip && r._errors.length === 0 && r._warnings.length > 0);
     const skipped = rows.filter(r => r._skip);
 
-    await base44.entities.Pedido.bulkCreate(toImport);
-
-    setResult({
-      total: rows.length,
-      imported: toImport.length,
-      errors: rows.filter(r => r._errors.length > 0).length,
-      duplicatesImported: duplicateRows.length,
-      skipped: skipped.length,
-    });
-    setImporting(false);
-    setRows([]);
-    setFileName("");
+    try {
+      await base44.entities.Pedido.bulkCreate(toImport);
+      setResult({
+        total: rows.length,
+        imported: toImport.length,
+        errors: rows.filter(r => r._errors.length > 0).length,
+        duplicatesImported: duplicateRows.length,
+        skipped: skipped.length,
+      });
+      setRows([]);
+      setFileName("");
+    } catch (err) {
+      console.error("[CargaMasiva] Error importing:", err);
+      toast.error("No se pudo completar la importación. Inténtalo nuevamente.");
+    } finally {
+      setImporting(false);
+    }
   };
 
   return (

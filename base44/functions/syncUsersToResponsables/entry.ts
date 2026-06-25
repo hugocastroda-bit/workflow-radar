@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 // Normaliza correo: minúsculas + sin espacios al inicio/final
 function normalizeEmail(email) {

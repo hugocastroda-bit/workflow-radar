@@ -232,7 +232,7 @@ export default function DetallePedido() {
       await load();
       setEditSection(null);
       setDraft({});
-      eventBus.emit('pedidoActualizado', pedido);
+      eventBus.emit('pedidoActualizado', { ...pedido, ...data });
     } catch (err) {
       if (err.response?.status === 403) {
         toast.error("No tienes permisos para actualizar este pedido.");
@@ -441,7 +441,7 @@ export default function DetallePedido() {
       {/* 1. Información general */}
       <Section title="Información general">
         <div className="flex items-center justify-between">
-          <div /> <EditBar section="general" />
+          <div /> {isAdmin && <EditBar section="general" />}
         </div>
 
         {editSection === "general" ? (
@@ -685,7 +685,7 @@ export default function DetallePedido() {
       {/* 4. Evidencias */}
       <Section title="Evidencias">
         <div className="flex items-center justify-between">
-          <div /> <EditBar section="evidencias" />
+          <div /> {isAdmin && <EditBar section="evidencias" />}
         </div>
 
         {editSection === "evidencias" ? (
@@ -724,7 +724,7 @@ export default function DetallePedido() {
       {(isClosed || editSection === "cierre") && (
         <Section title="Cierre" accent="border-emerald-200">
           <div className="flex items-center justify-between">
-            <div /> <EditBar section="cierre" />
+            <div /> {isAdmin && <EditBar section="cierre" />}
           </div>
 
           {editSection === "cierre" ? (
@@ -753,7 +753,7 @@ export default function DetallePedido() {
       )}
 
       {/* Registrar cierre manualmente si no está cerrado */}
-      {!isClosed && editSection !== "cierre" && (
+      {!isClosed && editSection !== "cierre" && isAdmin && (
         <div className="text-center pt-1">
           <button onClick={() => startEdit("cierre")} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
             Registrar cierre manualmente
