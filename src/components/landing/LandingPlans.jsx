@@ -92,15 +92,15 @@ const PROMOCION = [
 
 export default function LandingPlans({ onSelectPlan }) {
   return (
-    <section id="planes" className="px-4 md:px-6 py-20 md:py-28 max-w-5xl mx-auto scroll-mt-16 reveal-up">
+    <section id="planes" className="px-4 md:px-6 py-12 md:py-16 max-w-5xl mx-auto scroll-mt-16 reveal-up">
       <div className="text-center">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
+        <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
           Planes Workflow Radar
         </h2>
-        <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
+        <div className="mt-2.5 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
           🚀 Precio Fundador · 50% OFF por lanzamiento
         </div>
-        <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
+        <p className="mt-3 text-sm text-muted-foreground max-w-xl mx-auto">
           Empieza con el plan que mejor se adapte a tu equipo.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -108,7 +108,7 @@ export default function LandingPlans({ onSelectPlan }) {
         </p>
       </div>
 
-      <div className="mt-12 md:mt-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+      <div className="mt-8 md:mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
         {PLANS.map((plan) => (
           <div
             key={plan.name}
@@ -179,9 +179,9 @@ export default function LandingPlans({ onSelectPlan }) {
         ))}
       </div>
 
-      <div className="mt-16 bg-card border border-border rounded-2xl p-6 md:p-8 glass-premium reveal-up">
-        <h3 className="text-lg font-semibold text-foreground text-center">¿Qué incluye la implementación?</h3>
-        <ul className="mt-4 grid sm:grid-cols-2 gap-3 text-sm text-foreground">
+      <div className="mt-10 bg-card border border-border rounded-2xl p-5 md:p-6 glass-premium reveal-up">
+        <h3 className="text-base font-semibold text-foreground text-center">¿Qué incluye la implementación?</h3>
+        <ul className="mt-3 grid sm:grid-cols-2 gap-2.5 text-sm text-foreground">
           {IMPLEMENTACION.map((item, idx) => (
             <li key={idx} className="flex items-start gap-2">
               <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -191,7 +191,7 @@ export default function LandingPlans({ onSelectPlan }) {
         </ul>
       </div>
 
-      <div className="mt-8 text-center space-y-2 reveal-up">
+      <div className="mt-6 text-center space-y-2 reveal-up">
         <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white text-xs font-semibold px-4 py-1.5 rounded-full animate-shimmer">
           🎉 Precio Fundador
         </div>

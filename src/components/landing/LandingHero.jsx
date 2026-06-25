@@ -17,17 +17,17 @@ export default function LandingHero({ onScrollTo }) {
   const parallaxOffset = Math.min(scrollY * 0.15, 40);
 
   return (
-    <section className="px-4 md:px-6 pt-14 md:pt-20 pb-12 md:pb-16 max-w-5xl mx-auto text-center min-h-[90vh] flex flex-col justify-center">
+    <section className="px-4 md:px-6 pt-12 md:pt-16 pb-8 md:pb-12 max-w-5xl mx-auto text-center min-h-[85vh] flex flex-col justify-center">
       <div className="reveal-up visible">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] text-foreground">
           El seguimiento de trabajo
           <br />
           <span className="gradient-premium-text">que tu equipo sí utilizará.</span>
         </h1>
-        <p className="mt-4 text-base md:text-lg text-muted-foreground font-medium">
+        <p className="mt-3 text-base md:text-lg text-muted-foreground font-medium">
           Simple. Flexible. Adaptado a tus procesos.
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           <Button size="lg" className="rounded-[14px] gap-1.5 gradient-premium hover:scale-[1.02] transition-all duration-250" onClick={() => onScrollTo("demo")}>
             Solicitar demo <ArrowRight className="h-4 w-4" />
           </Button>
@@ -35,7 +35,7 @@ export default function LandingHero({ onScrollTo }) {
             Ver planes
           </Button>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           Precio fundador · <span className="font-semibold text-foreground">50% OFF</span> por lanzamiento.
         </p>
       </div>
@@ -43,7 +43,7 @@ export default function LandingHero({ onScrollTo }) {
       {/* Mockup Bandeja + Kanban con parallax */}
       <div
         ref={mockupRef}
-        className="mt-10 md:mt-14 max-w-4xl mx-auto transition-transform duration-100 ease-out"
+        className="mt-8 md:mt-10 max-w-4xl mx-auto transition-transform duration-100 ease-out"
         style={{ transform: `translateY(${parallaxOffset}px)` }}
       >
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-apple-lg animate-float glass-premium">
