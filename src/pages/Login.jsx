@@ -14,10 +14,10 @@ export default function Login() {
     ? `/seleccionar-empresa?empresaId=${encodeURIComponent(empresaId)}`
     : safeNextUrl || "/seleccionar-empresa";
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [alreadyAuth, setAlreadyAuth] = useState(false);
+  const DEFAULT_PASSWORD = "prueba1234";
 
   // If already authenticated, redirect to company selection
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
+      await base44.auth.loginViaEmailPassword(email, DEFAULT_PASSWORD);
       window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Error al iniciar sesion");
@@ -77,9 +77,10 @@ export default function Login() {
               <Label className="text-xs font-medium text-muted-foreground">Email</Label>
               <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 rounded-xl" required />
             </div>
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground">Contrasena</Label>
-              <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="********" className="mt-1 rounded-xl" required />
+            <div className="bg-secondary/40 border border-border rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">
+                Contraseña por defecto: <span className="font-semibold text-foreground">prueba1234</span>
+              </p>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={loading} className="w-full rounded-[14px]">
