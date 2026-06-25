@@ -72,7 +72,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen gradient-mesh text-foreground">
 
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">

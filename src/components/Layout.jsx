@@ -61,14 +61,14 @@ export default function Layout() {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-background flex">
+    <div className="h-[100dvh] w-full overflow-hidden gradient-mesh flex">
 
       {/* ── Desktop Sidebar ───────────────────────────── */}
       <aside className="hidden md:flex w-52 flex-col border-r border-border bg-sidebar fixed inset-y-0 left-0 z-30 no-select">
         <div className="px-5 py-4 border-b border-border space-y-2">
           <div>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">WORKFLOW</p>
-            <h1 className="text-sm font-bold text-foreground tracking-tight">RADAR</h1>
+            <h1 className="text-sm font-bold gradient-heading tracking-tight">RADAR</h1>
           </div>
           {empresaActiva && (
             <div className="flex items-center gap-1.5">
@@ -84,7 +84,7 @@ export default function Layout() {
               onClick={() => go(item.path)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 ${
                 isActive(item.path)
-                  ? "bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white font-medium shadow-sm shadow-[#E91E63]/25"
+                  ? "bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white font-medium shadow-sm shadow-[#E91E63]/25"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -96,7 +96,7 @@ export default function Layout() {
         <div className="p-3 border-t border-border space-y-2">
           <Link
             to="/bandeja?crear=true"
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white shadow-sm shadow-[#E91E63]/20 hover:shadow-md hover:shadow-[#E91E63]/30 transition-all w-full"
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white shadow-sm shadow-[#E91E63]/20 hover:shadow-md hover:shadow-[#E91E63]/30 hover:brightness-110 transition-all w-full"
           >
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
           </Link>

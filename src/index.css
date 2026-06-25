@@ -165,9 +165,9 @@ html, body {
 }
 
 @layer utilities {
-  /* ── Brand gradient: magenta → mint ─────── */
+  /* ── Brand gradient: magenta → pink → mint ── */
   .brand-gradient {
-    background: linear-gradient(135deg, #E91E63, #3DDC97);
+    background: linear-gradient(135deg, #E91E63, #FF2D7E, #3DDC97);
   }
 
   .brand-gradient-text {
@@ -185,6 +185,53 @@ html, body {
   /* ── Mint-only gradient ────────────────── */
   .mint-gradient {
     background: linear-gradient(135deg, #3DDC97, #00E5A0);
+  }
+
+  /* ── Apple-style mesh gradient background ── */
+  .gradient-mesh {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 0% 0%, hsl(var(--primary) / 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(var(--accent) / 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(var(--primary) / 0.05) 0px, transparent 50%);
+  }
+
+  .dark .gradient-mesh {
+    background-image:
+      radial-gradient(at 0% 0%, hsl(var(--primary) / 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(var(--accent) / 0.10) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(var(--primary) / 0.08) 0px, transparent 50%);
+  }
+
+  /* ── Gradient heading text ─────────────── */
+  .gradient-heading {
+    background: linear-gradient(135deg, #E91E63 0%, #FF2D7E 40%, #3DDC97 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Gradient border (Apple card style) ── */
+  .gradient-border {
+    position: relative;
+    background-clip: padding-box;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* ── Subtle gradient card ───────────────── */
+  .gradient-card {
+    background-image: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.5) 100%);
   }
 
   /* ── Apple-style frosted glass ─────────── */
@@ -245,14 +292,14 @@ html, body {
     @apply bg-card border border-border rounded-2xl shadow-apple;
   }
 
-  /* ── Button primaries — magenta gradient ── */
+  /* ── Button primaries — magenta→pink→mint gradient ── */
   .btn-brand {
-    background: linear-gradient(135deg, #E91E63, #FF2D7E);
+    background: linear-gradient(135deg, #E91E63, #FF2D7E, #3DDC97);
     box-shadow: 0 2px 8px rgba(233, 30, 99, 0.25);
     @apply text-white font-medium rounded-[14px] px-4 py-2 transition-all;
   }
   .btn-brand:hover {
-    background: linear-gradient(135deg, #D81B60, #E91E63);
+    filter: brightness(1.1);
     box-shadow: 0 4px 16px rgba(233, 30, 99, 0.35);
     transform: translateY(-1px);
   }

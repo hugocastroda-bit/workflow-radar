@@ -333,7 +333,7 @@ export default function Bandeja() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Bandeja de pedidos</h1>
+          <h1 className="text-xl font-semibold gradient-heading">Bandeja de pedidos</h1>
           <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
         <div className="flex gap-2">
@@ -367,19 +367,22 @@ export default function Bandeja() {
         });
         const sobreCapacidad = Object.values(cargaPorResp).filter(c => c > 5).length;
         const cards = [
-          { label: "Activos", count: activos, left: "border-l-primary", num: "text-primary", bg: "bg-accent/70 dark:bg-accent/20" },
-          { label: "Vencidos", count: vencidos, left: "border-l-alert", num: "text-alert", bg: "bg-alert/10 dark:bg-alert/10" },
-          { label: "Bloqueados", count: bloqueados, left: "border-l-warning", num: "text-warning", bg: "bg-warning/10 dark:bg-warning/10" },
-          { label: "Sin responsable", count: sinResponsable, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
-          { label: "Fuera de Time Box", count: fueraTimeBox, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
-          { label: "Sobre capacidad", count: sobreCapacidad, left: "border-l-muted-foreground/15", num: "text-muted-foreground/50", bg: "bg-muted/15 dark:bg-muted/10" },
+          { label: "Activos", count: activos, num: "gradient-heading", bg: "gradient-card", dot: "from-[#E91E63] to-[#FF2D7E]" },
+          { label: "Vencidos", count: vencidos, num: "text-alert", bg: "bg-alert/5 dark:bg-alert/10", dot: "from-[#EF4444] to-[#F87171]" },
+          { label: "Bloqueados", count: bloqueados, num: "text-warning", bg: "bg-warning/5 dark:bg-warning/10", dot: "from-[#F59E0B] to-[#FBBF24]" },
+          { label: "Sin responsable", count: sinResponsable, num: "text-muted-foreground", bg: "bg-muted/30 dark:bg-muted/10", dot: "from-[#94A3B8] to-[#CBD5E1]" },
+          { label: "Fuera de Time Box", count: fueraTimeBox, num: "text-muted-foreground", bg: "bg-muted/30 dark:bg-muted/10", dot: "from-[#A855F7] to-[#C084FC]" },
+          { label: "Sobre capacidad", count: sobreCapacidad, num: "text-muted-foreground", bg: "bg-muted/30 dark:bg-muted/10", dot: "from-[#3DDC97] to-[#00E5A0]" },
         ];
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             {cards.map(c => (
-              <div key={c.label} className={`flex items-center gap-2.5 rounded-xl border-l-4 ${c.left} ${c.bg} px-3 py-2.5 border-y border-r border-border`}>
-                <span className={`text-xl font-bold leading-none ${c.num}`}>{c.count}</span>
-                <span className="text-xs text-muted-foreground leading-tight">{c.label}</span>
+              <div key={c.label} className={`flex items-center gap-2.5 rounded-xl ${c.bg} px-3 py-2.5 border border-border shadow-apple`}>
+                <div className={`w-1 h-8 rounded-full bg-gradient-to-b ${c.dot} shrink-0`} />
+                <div className="min-w-0">
+                  <span className={`text-xl font-bold leading-none block ${c.num}`}>{c.count}</span>
+                  <span className="text-[10px] text-muted-foreground leading-tight block truncate">{c.label}</span>
+                </div>
               </div>
             ))}
           </div>

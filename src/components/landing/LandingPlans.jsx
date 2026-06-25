@@ -42,7 +42,7 @@ export default function LandingPlans({ onSelectPlan }) {
       <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
         Planes simples.
       </h2>
-      <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
+      <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white text-xs font-semibold px-4 py-1.5 rounded-full">
         🎉 50% OFF lanzamiento · Precio fundador
       </div>
 
@@ -55,7 +55,7 @@ export default function LandingPlans({ onSelectPlan }) {
             }`}
           >
             {plan.destacado && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#E91E63] to-[#FF2D7E] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white text-[10px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
                 Más popular
               </span>
             )}
