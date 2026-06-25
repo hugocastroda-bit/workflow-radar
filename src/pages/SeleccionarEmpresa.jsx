@@ -21,16 +21,20 @@ const ESTADO_COLORS = {
 export default function SeleccionarEmpresa() {
   const { user, setEmpresaActiva, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const params = new URLSearchParams(window.location.search);
+  const requestedEmpresaId = params.get("empresaId")?.trim() || "";
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/login", { replace: true });
+      const loginUrl = requestedEmpresaId ? `/login?empresaId=${encodeURIComponent(requestedEmpresaId)}` : "/login";
+      navigate(loginUrl, { replace: true });
       return;
     }
     loadEmpresas();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, requestedEmpresaId]);
 
   const loadEmpresas = async () => {
     try {
@@ -55,6 +59,17 @@ export default function SeleccionarEmpresa() {
         const emp = empresasData.find((e) => e.id === m.empresaId);
         return { ...m, empresa: emp };
       });
+
+      if (requestedEmpresaId) {
+        const requestedMembership = merged.find((m) => m.empresaId === requestedEmpresaId);
+        if (requestedMembership) {
+          await selectAndGo(requestedMembership);
+          return;
+        }
+        setAccessError("Tu usuario no tiene acceso activo a la empresa indicada.");
+        setEmpresas(merged);
+        return;
+      }
 
       // Auto-select if only one company
       if (merged.length === 1) {
@@ -119,6 +134,12 @@ export default function SeleccionarEmpresa() {
             Elige con qué empresa deseas trabajar
           </p>
         </div>
+
+        {accessError && (
+          <div className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {accessError}
+          </div>
+        )}
 
         <div className="space-y-3">
           {empresas.map((m) => (

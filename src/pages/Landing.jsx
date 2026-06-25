@@ -89,7 +89,7 @@ export default function Landing() {
                 <Button variant="ghost" size="sm" className="h-8 text-xs">Elegir empresa</Button>
               </Link>
             ) : (
-              <Link to="/login">
+              <Link to="/acceso">
                 <Button variant="ghost" size="sm" className="h-8 text-xs">Iniciar sesión</Button>
               </Link>
             )}

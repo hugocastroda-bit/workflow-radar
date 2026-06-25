@@ -21,6 +21,7 @@ import Diagnostico from './pages/Diagnostico';
 import Landing from './pages/Landing';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AccesoEmpresa from './pages/AccesoEmpresa';
 import SeleccionarEmpresa from './pages/SeleccionarEmpresa';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
       <Route path="/landing" element={<Landing />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/acceso" element={<AccesoEmpresa />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

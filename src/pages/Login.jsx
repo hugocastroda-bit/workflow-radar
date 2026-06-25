@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function Login() {
+  const params = new URLSearchParams(window.location.search);
+  const empresaId = params.get("empresaId")?.trim() || "";
+  const nextUrl = empresaId ? `/seleccionar-empresa?empresaId=${encodeURIComponent(empresaId)}` : "/seleccionar-empresa";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,11 +22,11 @@ export default function Login() {
         const me = await base44.auth.me();
         if (me) {
           setAlreadyAuth(true);
-          window.location.href = "/seleccionar-empresa";
+          window.location.href = nextUrl;
         }
       } catch {}
     })();
-  }, []);
+  }, [nextUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +34,7 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/seleccionar-empresa";
+      window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Error al iniciar sesion");
     } finally {
@@ -55,7 +58,9 @@ export default function Login() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Workflow Radar</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">by Design Lab</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {empresaId ? "Acceso validado por empresa" : "by Design Lab"}
+          </p>
         </div>
         <div className="text-center">
           <Link to="/" className="text-sm text-[#3B82F6] hover:underline font-medium">
@@ -81,7 +86,7 @@ export default function Login() {
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
             <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
-          <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", "/seleccionar-empresa")}>
+          <Button variant="outline" className="w-full" onClick={() => base44.auth.loginWithProvider("google", nextUrl)}>
             Continuar con Google
           </Button>
           <div className="text-center space-y-1">
