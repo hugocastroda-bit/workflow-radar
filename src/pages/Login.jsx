@@ -19,6 +19,13 @@ export default function Login() {
   const [alreadyAuth, setAlreadyAuth] = useState(false);
   const DEFAULT_PASSWORD = "prueba1234";
 
+  // Clear error when user starts typing
+  useEffect(() => {
+    if (error && email) {
+      setError("");
+    }
+  }, [email, error]);
+
   // If already authenticated, redirect to company selection
   useEffect(() => {
     (async () => {
