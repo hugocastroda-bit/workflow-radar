@@ -17,7 +17,6 @@ export default function AccesoEmpresa() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanEmpresaId = empresaId.trim();
-    let loginWindow = null;
     setEmpresa(null);
     setError("");
 
@@ -28,27 +27,18 @@ export default function AccesoEmpresa() {
 
     setLoading(true);
     try {
-      loginWindow = window.open("", "_blank", "noopener,noreferrer");
       const result = await base44.functions.invoke("validateEmpresaAccess", {
         empresaId: cleanEmpresaId,
       });
       const data = result?.data || result;
 
       if (!data?.valid) {
-        loginWindow?.close();
         setError("No encontramos una empresa activa con ese ID.");
         return;
       }
 
       setEmpresa(data);
-      const nextLoginUrl = `/login?empresaId=${encodeURIComponent(data.empresaId)}`;
-      if (loginWindow) {
-        loginWindow.location.href = nextLoginUrl;
-      } else {
-        setError("El navegador bloqueó la nueva ventana. Usa el botón para abrir el login.");
-      }
     } catch (err) {
-      loginWindow?.close();
       setError(err.message || "No pudimos validar la empresa. Intenta nuevamente.");
     } finally {
       setLoading(false);
@@ -97,7 +87,7 @@ export default function AccesoEmpresa() {
                 </>
               ) : (
                 <>
-                  Continuar <ArrowRight className="h-4 w-4" />
+                  Validar empresa <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
@@ -106,7 +96,7 @@ export default function AccesoEmpresa() {
           {empresa && (
             <Button variant="outline" className="w-full rounded-[14px]" asChild>
               <a href={loginUrl} target="_blank" rel="noreferrer">
-                Abrir login nuevamente
+                Abrir login
               </a>
             </Button>
           )}

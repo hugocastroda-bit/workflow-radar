@@ -12,7 +12,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'empresaId is required' }, { status: 400 });
     }
 
-    const empresa = await base44.asServiceRole.entities.Empresa.get(cleanEmpresaId);
+    let empresa = null;
+    try {
+      empresa = await base44.asServiceRole.entities.Empresa.get(cleanEmpresaId);
+    } catch (_error) {
+      empresa = null;
+    }
+
+    if (!empresa) {
+      const empresas = await base44.asServiceRole.entities.Empresa.list();
+      empresa = empresas.find(
+        (item) => String(item.nombreEmpresa || '').trim().toLowerCase() === cleanEmpresaId.toLowerCase()
+      );
+    }
+
     if (!empresa) {
       return Response.json({ valid: false, reason: 'not_found' }, { status: 404 });
     }
@@ -23,7 +36,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       valid: true,
-      empresaId: cleanEmpresaId,
+      empresaId: empresa.id,
       nombre: empresa.nombreEmpresa || 'Empresa',
       estado: empresa.estado || 'Prueba',
     });
