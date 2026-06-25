@@ -13,6 +13,8 @@ export default function AccesoEmpresa() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const normalizedEmpresaId = empresaId.trim().toLowerCase();
+  const isInitialSetupCompany = normalizedEmpresaId === "designlab1";
   const loginUrl = empresa ? `/login?empresaId=${encodeURIComponent(empresa.empresaId)}` : "";
   const setupUrl = "/login?next=/owner";
 
@@ -36,9 +38,9 @@ export default function AccesoEmpresa() {
       const data = result?.data || result;
 
       if (!data?.valid) {
-        if (cleanEmpresaId.toLowerCase() === "designlab1") {
+        if (isInitialSetupCompany) {
           setSetupRequested(true);
-          setError("DesignLab1 todavía no existe. Ingresa para crearla como empresa Owner.");
+          setError("DesignLab1 todavía no existe o aún no está disponible. Ingresa para crearla como empresa Owner.");
           return;
         }
         setError(data?.reason === "disabled" ? "La empresa existe pero no está activa." : "No encontramos una empresa activa con ese ID.");
@@ -47,6 +49,11 @@ export default function AccesoEmpresa() {
 
       setEmpresa(data);
     } catch (err) {
+      if (isInitialSetupCompany) {
+        setSetupRequested(true);
+        setError("No pudimos validar DesignLab1. Puedes continuar al setup Owner para crearla o terminar de configurarla.");
+        return;
+      }
       setError(err.message || "No pudimos validar la empresa. Intenta nuevamente.");
     } finally {
       setLoading(false);
@@ -72,7 +79,12 @@ export default function AccesoEmpresa() {
               <Label className="text-xs font-medium text-muted-foreground">Empresa ID</Label>
               <Input
                 value={empresaId}
-                onChange={(e) => setEmpresaId(e.target.value)}
+                onChange={(e) => {
+                  setEmpresaId(e.target.value);
+                  setEmpresa(null);
+                  setSetupRequested(false);
+                  setError("");
+                }}
                 placeholder="empresa_..."
                 className="mt-1 rounded-xl"
                 autoFocus
@@ -106,6 +118,14 @@ export default function AccesoEmpresa() {
               )}
             </Button>
           </form>
+
+          {isInitialSetupCompany && !empresa && !setupRequested && (
+            <Button variant="outline" className="w-full rounded-[14px]" asChild>
+              <a href={setupUrl} target="_blank" rel="noreferrer">
+                Ir al setup Owner
+              </a>
+            </Button>
+          )}
 
           {empresa && (
             <Button variant="outline" className="w-full rounded-[14px]" asChild>
