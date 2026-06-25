@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const ALLOWED_ROLES = new Set(['Owner', 'Admin', 'User']);
+const ALLOWED_ROLES = new Set(['Admin', 'User']);
 
 async function canManageCompany(base44, user, empresaId) {
   if (user?.role === 'admin') return true;
@@ -9,7 +9,7 @@ async function canManageCompany(base44, user, empresaId) {
     empresaId,
     estado: 'Activo',
   });
-  return memberships.some((m) => m.rol === 'Owner');
+  return memberships.some((m) => m.rol === 'Admin');
 }
 
 Deno.serve(async (req) => {
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     const allowed = await canManageCompany(base44, user, empresaId);
     if (!allowed) {
-      return Response.json({ error: 'Forbidden: Owner access required' }, { status: 403 });
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     if (action === 'list') {

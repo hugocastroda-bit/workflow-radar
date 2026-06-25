@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 const COMPANY_ROLE_OPTIONS = [
-  { value: "Owner", label: "Owner" },
   { value: "Admin", label: "Admin" },
   { value: "User", label: "Usuario" },
 ];

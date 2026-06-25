@@ -111,14 +111,12 @@ export default function SeleccionarEmpresa() {
           </div>
           <h2 className="text-lg font-semibold text-foreground">Sin empresas asignadas</h2>
           <p className="text-sm text-muted-foreground">
-            No tienes ninguna empresa asignada. Puedes crear DesignLab1 como Owner o contactar a un administrador.
+            No tienes ninguna empresa asignada. Puedes crear DesignLab1 o contactar a un administrador.
           </p>
           <div className="flex flex-col gap-2">
-            {user?.role === "admin" && (
-              <Button className="mt-2" onClick={() => navigate("/owner")}>
-                Crear DesignLab1
-              </Button>
-            )}
+            <Button className="mt-2" onClick={() => navigate("/owner")}>
+              Crear DesignLab1
+            </Button>
             <Link to="/">
               <Button variant="outline">
                 Volver al inicio

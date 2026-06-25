@@ -28,34 +28,19 @@ function normalizeCompanyPayload(input) {
   };
 }
 
-async function getOwnerMemberships(base44, user) {
-  return base44.asServiceRole.entities.UsuarioEmpresa.filter({
-    usuarioId: user.id,
-    rol: 'Owner',
-    estado: 'Activo',
-  });
-}
-
 async function canManageCompany(base44, user, empresaId) {
   if (user?.role === 'admin') return true;
   const memberships = await base44.asServiceRole.entities.UsuarioEmpresa.filter({
     usuarioId: user.id,
     empresaId,
-    rol: 'Owner',
+    rol: 'Admin',
     estado: 'Activo',
   });
   return memberships.length > 0;
 }
 
 async function canCreateCompany(base44, user) {
-  if (user?.role === 'admin') return true;
-
-  const [empresas, ownerMemberships] = await Promise.all([
-    base44.asServiceRole.entities.Empresa.list(),
-    getOwnerMemberships(base44, user),
-  ]);
-
-  return empresas.length === 0 || ownerMemberships.length > 0;
+  return user?.role === 'admin';
 }
 
 Deno.serve(async (req) => {
@@ -76,23 +61,8 @@ Deno.serve(async (req) => {
 
     if (action === 'list') {
       const allEmpresas = await base44.asServiceRole.entities.Empresa.list();
-      if (user.role === 'admin') {
-        return Response.json({ empresas: allEmpresas, canCreateInitial: allEmpresas.length === 0 });
-      }
-
-      if (allEmpresas.length === 0) {
-        return Response.json({ empresas: [], canCreateInitial: true });
-      }
-
-      const memberships = await getOwnerMemberships(base44, user);
-      if (memberships.length === 0) {
-        return Response.json({ error: 'Forbidden: Owner access required' }, { status: 403 });
-      }
-
-      const empresas = await Promise.all(
-        memberships.map((membership) => base44.asServiceRole.entities.Empresa.get(membership.empresaId))
-      );
-      return Response.json({ empresas: empresas.filter(Boolean), canCreateInitial: false });
+      const canCreate = user.role === 'admin' || allEmpresas.length === 0;
+      return Response.json({ empresas: allEmpresas, canCreateInitial: canCreate });
     }
 
     if (action === 'create') {
@@ -114,7 +84,7 @@ Deno.serve(async (req) => {
       const membresia = await base44.asServiceRole.entities.UsuarioEmpresa.create({
         usuarioId: user.id,
         empresaId: empresa.id,
-        rol: 'Owner',
+        rol: 'Admin',
         estado: 'Activo',
         fechaAsignacion: new Date().toISOString().split('T')[0],
         asignadoPor: user.email || user.id,

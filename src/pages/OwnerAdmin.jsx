@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/AuthContext";
-import { isCompanyOwner, isGlobalAdmin } from "@/lib/roles";
+import { isGlobalAdmin } from "@/lib/roles";
 import { toast } from "sonner";
 
 const PLANES = ["Basic", "Team", "Pro", "Business"];
@@ -26,8 +26,8 @@ const EMPTY_FORM = {
 };
 
 export default function OwnerAdmin() {
-  const { user, empresaActiva, setEmpresaActiva } = useAuth();
-  const allowed = isCompanyOwner(empresaActiva) || isGlobalAdmin(user);
+  const { user, setEmpresaActiva } = useAuth();
+  const allowed = isGlobalAdmin(user);
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canCreateInitial, setCanCreateInitial] = useState(false);
@@ -102,7 +102,7 @@ export default function OwnerAdmin() {
       });
       const data = result?.data || result || {};
       if (!editingId && data.empresa?.id) {
-        await setEmpresaActiva(data.empresa.id, "Owner");
+        await setEmpresaActiva(data.empresa.id, "Admin");
       }
       toast.success(editingId ? "Empresa actualizada." : "Empresa creada.");
       setShowForm(false);
@@ -135,9 +135,9 @@ export default function OwnerAdmin() {
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Panel Owner</h1>
+          <h1 className="text-xl font-semibold text-foreground">Administrar empresas</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            {canCreateInitial ? "Crea DesignLab1 como primera empresa Owner." : "Administra empresas, usuarios y roles."}
+            {canCreateInitial ? "Crea DesignLab1 como primera empresa." : "Administra empresas, usuarios y roles."}
           </p>
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5 shrink-0">
@@ -148,7 +148,7 @@ export default function OwnerAdmin() {
       {empresas.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-10 text-center">
           <Building2 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">No tienes empresas como Owner.</p>
+          <p className="text-sm text-muted-foreground">No tienes empresas asignadas.</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
