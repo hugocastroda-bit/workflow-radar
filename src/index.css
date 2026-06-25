@@ -16,98 +16,98 @@ html, body {
   :root {
     --font-inter: 'Inter', sans-serif;
 
-    /* ── Apple-inspired light palette ────────── */
-    --background: 240 5% 96%;            /* #F5F5F7 — Apple light gray */
-    --foreground: 0 0% 11%;             /* #1D1D1F — Apple text */
-    --card: 0 0% 100%;                  /* #FFFFFF */
-    --card-foreground: 0 0% 11%;
+    /* ── Nueva paleta unificada ────────── */
+    --background: 215 25% 97%;            /* #F8FAFC — Soft White */
+    --foreground: 222 47% 11%;            /* #0F172A — Midnight Blue */
+    --card: 0 0% 100%;                    /* #FFFFFF — Pure White */
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 11%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary — magenta */
-    --primary: 330 81% 56%;             /* #E91E63 */
+    /* Primary — Electric Blue */
+    --primary: 217 91% 53%;               /* #2563EB */
     --primary-foreground: 0 0% 100%;
 
     /* Secondary / muted */
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 0 0% 40%;
-    --muted: 240 5% 94%;
-    --muted-foreground: 0 0% 53%;      /* #86868B — Apple gray */
+    --secondary: 215 16% 92%;
+    --secondary-foreground: 215 16% 45%;
+    --muted: 215 16% 92%;
+    --muted-foreground: 215 14% 46%;      /* #64748B — Slate */
 
-    /* Accent — mint green */
-    --accent: 160 60% 50%;              /* #3DDC97 */
-    --accent-foreground: 160 100% 20%;
+    /* Accent — Fresh Mint */
+    --accent: 173 80% 50%;                /* #2DD4BF */
+    --accent-foreground: 222 47% 11%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders & inputs */
-    --border: 240 5% 90%;
-    --input: 240 5% 90%;
-    --ring: 330 81% 56%;
+    --border: 214 32% 91%;                /* #E2E8F0 — Soft Gray */
+    --input: 214 32% 91%;
+    --ring: 217 91% 53%;
 
     /* Radius — Apple uses generous rounding */
     --radius: 0.75rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 40%;
-    --sidebar-primary: 330 81% 56%;
+    --sidebar-foreground: 215 14% 46%;
+    --sidebar-primary: 217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 94%;
-    --sidebar-accent-foreground: 330 81% 56%;
-    --sidebar-border: 240 5% 90%;
-    --sidebar-ring: 330 81% 56%;
+    --sidebar-accent: 215 16% 92%;
+    --sidebar-accent-foreground: 217 91% 53%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 53%;
 
-    /* Chart colors — magenta + mint + complementary */
-    --chart-1: 330 81% 56%;   /* magenta */
-    --chart-2: 160 60% 50%;   /* mint */
-    --chart-3: 217 91% 60%;   /* blue */
+    /* Chart colors — blue + magenta + mint + complementary */
+    --chart-1: 217 91% 53%;   /* electric blue */
+    --chart-2: 301 76% 60%;   /* modern magenta */
+    --chart-3: 173 80% 50%;   /* fresh mint */
     --chart-4: 38 92% 50%;    /* orange */
     --chart-5: 271 81% 66%;   /* purple */
   }
 
   .dark {
-    /* ── n8n-inspired dark palette ────────── */
-    --background:         0 0% 7%;       /* #121212 — deep dark */
-    --foreground:         0 0% 96%;      /* #F5F5F7 */
+    /* ── Dark palette ────────── */
+    --background:         222 47% 11%;   /* #0F172A — Midnight Blue */
+    --foreground:         215 25% 97%;   /* #F8FAFC — Soft White */
 
-    --card:               0 0% 10%;      /* #1A1A1A */
-    --card-foreground:    0 0% 96%;
-    --popover:            0 0% 10%;
-    --popover-foreground: 0 0% 96%;
+    --card:               222 47% 14%;   /* #1E293B */
+    --card-foreground:    215 25% 97%;
+    --popover:            222 47% 14%;
+    --popover-foreground: 215 25% 97%;
 
-    --primary:            330 100% 59%;  /* #FF2D7E — vibrant magenta */
+    --primary:            217 91% 53%;   /* #2563EB — Electric Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary:          0 0% 12%;
-    --secondary-foreground: 0 0% 65%;
-    --muted:              0 0% 12%;
-    --muted-foreground:   0 0% 55%;
+    --secondary:          222 47% 18%;
+    --secondary-foreground: 215 16% 75%;
+    --muted:              222 47% 18%;
+    --muted-foreground:   215 14% 65%;
 
-    --accent:             160 100% 45%;  /* #00E5A0 — vibrant mint */
-    --accent-foreground:  0 0% 7%;
+    --accent:             173 80% 50%;   /* #2DD4BF — Fresh Mint */
+    --accent-foreground:  222 47% 11%;
 
     --destructive:        0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border:             0 0% 18%;
-    --input:              0 0% 18%;
-    --ring:               330 100% 59%;
+    --border:             222 47% 20%;   /* #334155 */
+    --input:              222 47% 20%;
+    --ring:               217 91% 53%;
 
-    --sidebar-background:         0 0% 10%;
-    --sidebar-foreground:         0 0% 65%;
-    --sidebar-primary:            330 100% 59%;
+    --sidebar-background:         222 47% 14%;
+    --sidebar-foreground:         215 14% 65%;
+    --sidebar-primary:            217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent:             0 0% 14%;
-    --sidebar-accent-foreground:  330 100% 59%;
-    --sidebar-border:             0 0% 18%;
-    --sidebar-ring:               330 100% 59%;
+    --sidebar-accent:             222 47% 18%;
+    --sidebar-accent-foreground:  217 91% 53%;
+    --sidebar-border:             222 47% 20%;
+    --sidebar-ring:               217 91% 53%;
 
-    --chart-1: 330 100% 59%;
-    --chart-2: 160 100% 45%;
-    --chart-3: 217 91% 60%;
+    --chart-1: 217 91% 53%;
+    --chart-2: 301 76% 60%;
+    --chart-3: 173 80% 50%;
     --chart-4: 38 92% 50%;
     --chart-5: 271 81% 66%;
   }
@@ -165,13 +165,13 @@ html, body {
 }
 
 @layer utilities {
-  /* ── Brand gradient: magenta → pink → mint ── */
+  /* ── Brand gradient: blue → magenta → mint ── */
   .brand-gradient {
-    background: linear-gradient(135deg, #E91E63, #FF2D7E, #3DDC97);
+    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
   }
 
   .brand-gradient-text {
-    background: linear-gradient(135deg, #E91E63, #3DDC97);
+    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -179,33 +179,33 @@ html, body {
 
   /* ── Magenta-only gradient ─────────────── */
   .magenta-gradient {
-    background: linear-gradient(135deg, #E91E63, #FF2D7E);
+    background: linear-gradient(135deg, #D946EF, #E879F9);
   }
 
   /* ── Mint-only gradient ────────────────── */
   .mint-gradient {
-    background: linear-gradient(135deg, #3DDC97, #00E5A0);
+    background: linear-gradient(135deg, #2DD4BF, #5EEAD4);
   }
 
   /* ── Premium mesh gradient background ──── */
   .gradient-mesh {
     background-color: hsl(var(--background));
     background-image:
-      radial-gradient(at 0% 0%, hsl(258 84% 60% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(160 60% 50% / 0.06) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsl(330 81% 56% / 0.05) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, hsl(217 91% 53% / 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(173 80% 50% / 0.06) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(301 76% 60% / 0.05) 0px, transparent 50%);
   }
 
   .dark .gradient-mesh {
     background-image:
-      radial-gradient(at 0% 0%, hsl(258 84% 60% / 0.12) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(160 60% 50% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsl(330 81% 56% / 0.08) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, hsl(217 91% 53% / 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(173 80% 50% / 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(301 76% 60% / 0.08) 0px, transparent 50%);
   }
 
   /* ── Gradient heading text ─────────────── */
   .gradient-heading {
-    background: linear-gradient(135deg, #E91E63 0%, #FF2D7E 40%, #3DDC97 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #D946EF 50%, #2DD4BF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -213,7 +213,7 @@ html, body {
 
   /* ── Premium gradient text ─────────────── */
   .gradient-premium-text {
-    background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #3DDC97 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #D946EF 50%, #2DD4BF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -221,12 +221,12 @@ html, body {
 
   /* ── Premium gradient button ───────────── */
   .gradient-premium {
-    background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
     background-size: 200% 200%;
     animation: gradientShift 3s ease infinite;
   }
   .gradient-premium:hover {
-    background: linear-gradient(135deg, #6366F1, #A78BFA);
+    background: linear-gradient(135deg, #3B82F6, #E879F9, #5EEAD4);
   }
 
   /* ── Gradient border (Apple card style) ── */
@@ -240,7 +240,7 @@ html, body {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.4));
+    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -459,16 +459,16 @@ html, body {
   .mesh-bg {
     background-color: hsl(var(--background));
     background-image:
-      radial-gradient(at 67% 27%, hsl(217 91% 60% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 15% 35%, hsl(330 81% 56% / 0.06) 0px, transparent 50%),
-      radial-gradient(at 85% 75%, hsl(160 60% 50% / 0.06) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, hsl(217 91% 53% / 0.08) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, hsl(301 76% 60% / 0.06) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, hsl(173 80% 50% / 0.06) 0px, transparent 50%);
   }
 
   .dark .mesh-bg {
     background-image:
-      radial-gradient(at 67% 27%, hsl(217 91% 60% / 0.12) 0px, transparent 50%),
-      radial-gradient(at 15% 35%, hsl(330 81% 56% / 0.1) 0px, transparent 50%),
-      radial-gradient(at 85% 75%, hsl(160 60% 50% / 0.08) 0px, transparent 50%);
+      radial-gradient(at 67% 27%, hsl(217 91% 53% / 0.12) 0px, transparent 50%),
+      radial-gradient(at 15% 35%, hsl(301 76% 60% / 0.1) 0px, transparent 50%),
+      radial-gradient(at 85% 75%, hsl(173 80% 50% / 0.08) 0px, transparent 50%);
   }
 
   /* ── Touch utilities ───────────────────── */
@@ -534,15 +534,15 @@ html, body {
     @apply bg-card border border-border rounded-2xl shadow-apple;
   }
 
-  /* ── Button primaries — magenta→pink→mint gradient ── */
+  /* ── Button primaries — blue→magenta→mint gradient ── */
   .btn-brand {
-    background: linear-gradient(135deg, #E91E63, #FF2D7E, #3DDC97);
-    box-shadow: 0 2px 8px rgba(233, 30, 99, 0.25);
+    background: linear-gradient(135deg, #2563EB, #D946EF, #2DD4BF);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
     @apply text-white font-medium rounded-[14px] px-4 py-2 transition-all;
   }
   .btn-brand:hover {
     filter: brightness(1.1);
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.35);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
     transform: translateY(-1px);
   }
   .btn-brand:active {
