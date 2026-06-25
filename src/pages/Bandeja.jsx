@@ -333,7 +333,7 @@ export default function Bandeja() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold gradient-heading">Bandeja de pedidos</h1>
+          <h1 className="text-xl font-semibold text-foreground">Bandeja de pedidos</h1>
           <p className="text-xs text-muted-foreground mt-1">{filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{isVencidoFilter ? " vencidos" : ""}</p>
         </div>
         <div className="flex gap-2">
