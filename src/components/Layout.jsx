@@ -84,7 +84,7 @@ export default function Layout() {
               onClick={() => go(item.path)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 ${
                 isActive(item.path)
-                  ? "bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white font-medium shadow-sm shadow-[#E91E63]/25"
+                  ? "bg-[#3DDC97] text-white font-medium shadow-sm shadow-[#3DDC97]/25"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -96,7 +96,7 @@ export default function Layout() {
         <div className="p-3 border-t border-border space-y-2">
           <Link
             to="/bandeja?crear=true"
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E63] via-[#FF2D7E] to-[#3DDC97] text-white shadow-sm shadow-[#E91E63]/20 hover:shadow-md hover:shadow-[#E91E63]/30 hover:brightness-110 transition-all w-full"
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-[#3DDC97] text-white shadow-sm shadow-[#3DDC97]/20 hover:bg-[#2EC488] hover:shadow-md hover:shadow-[#3DDC97]/30 transition-all w-full"
           >
             <Plus className="h-3.5 w-3.5" /> Nuevo pedido
           </Link>
