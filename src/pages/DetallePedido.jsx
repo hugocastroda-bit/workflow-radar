@@ -176,7 +176,6 @@ export default function DetallePedido() {
     if (!id) { toast.error("Pedido no encontrado."); return; }
 
     setSaving(true);
-    console.log("[saveEdit] Sección:", editSection, "| Rol:", user?.role, "| ID:", id);
 
     // Capturar estado actual antes de guardar para comparar
     const prevPedido = { ...pedido };
@@ -192,7 +191,6 @@ export default function DetallePedido() {
         if (isAdmin) {
           data.motivo_bloqueo = truncateText(draft.motivo_bloqueo ?? "", 2000);
         }
-        console.log("[saveEdit] Payload seguimiento:", JSON.stringify(data));
       } else {
         // Validar campos obligatorios
         if (!draft.titulo?.trim()) { toast.error("El título es obligatorio."); setSaving(false); return; }
@@ -208,11 +206,9 @@ export default function DetallePedido() {
         if (data.estado === "Cerrado" && !data.fecha_cierre_real) {
           data.fecha_cierre_real = new Date().toISOString().split("T")[0];
         }
-        console.log("[saveEdit] Payload admin:", JSON.stringify(data));
       }
 
       await base44.entities.Pedido.update(id, data);
-      console.log("[saveEdit] Update exitoso");
 
       // Registrar auditoría por sección
       if (editSection === "seguimiento") {
@@ -238,7 +234,6 @@ export default function DetallePedido() {
       setDraft({});
       eventBus.emit('pedidoActualizado', pedido);
     } catch (err) {
-      console.error("[saveEdit] Error:", err.message, err.response?.data);
       if (err.response?.status === 403) {
         toast.error("No tienes permisos para actualizar este pedido.");
       } else {
